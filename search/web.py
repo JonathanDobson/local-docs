@@ -54,7 +54,9 @@ def do_search(q: str, library: str | None, version: str | None, k: int, mode: st
         vec = None if mode == "bm25" else d["emb"].query(q)
         hits = search(d["client"], d["s"], vec, q, mode=mode, library=library, version=version,
                       doc_type=doc_type, limit=k)
-    return {"model": d["s"].model, "mode": mode, "hits": [asdict(h) for h in hits]}
+    return {"model": d["s"].model, "mode": mode,
+            "hits": [{**{k: v for k, v in asdict(h).items() if k != "vec"}, "source": config.provenance(h.path)}
+                     for h in hits]}
 
 
 def read_file(path: str) -> dict | None:

@@ -301,6 +301,23 @@ searches rise to the top. Milvus: `RRFRanker`.
 the query and reorders them. More accurate, slower. Ollama has no rerank
 endpoint, so it would be added only if testing shows it's needed.
 
+**Similarity / confidence label** — How close a hit is in meaning to the query
+(cosine similarity of their embeddings, -1 to 1). Search labels each hit
+**strong** (≥ `sure_sim`), **weak** (< `weak_sim`) or **related**, and a weak top
+hit gets a "No confident match" notice. The thresholds are calibrated per model on
+the question set plus off-topic questions, and are set in `search/settings.json`.
+
+**Near-duplicate collapse** — Showing hits whose embeddings are almost identical
+(≥ `dup_sim`, 0.97) once, with the other files listed as "same text also in". Next.js
+has many pages copied between its App Router and Pages Router docs.
+
+**Intro chunk** — The part of a page before its first heading; its heading path is
+just the docs set and page title. `intro_weight` can lower its hybrid score.
+
+**Provenance** — Where a docs file came from: the upstream ref and commit
+(`v16.4.5 @4e5335a`) from the source in `manifest.json` whose `dest` folder holds
+the file. Search results show it so answers can cite exactly which docs they used.
+
 **Recall@k / MRR (mean reciprocal rank)** — Scores for a search test set. Recall@5
 is "how often the right file is in the top 5". MRR rewards having it at rank 1
 over rank 5. Used to pick the embedding model on our own docs.

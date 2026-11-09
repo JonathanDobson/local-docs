@@ -5,13 +5,14 @@ authentication) serves the indexer and every Claude session's MCP server.
 """
 from __future__ import annotations
 
+import math
 import os
 import re
 import socket
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pymilvus import AnnSearchRequest, DataType, Function, FunctionType, MilvusClient
 
@@ -161,6 +162,15 @@ class Hit:
     text: str
     source_url: str
     doc_type: str = "guide"
+    sim: float | None = None      # cosine similarity to the query (meaning), when a query vector was given
+    confidence: str = ""          # "strong" / "related" / "weak", when thresholds are set for the model
+    also: list[str] = field(default_factory=list)   # paths of near-identical chunks collapsed into this one
+    vec: list[float] | None = field(default=None, repr=False)
+
+    @property
+    def is_intro(self) -> bool:
+        """The chunk before a page's first heading: breadcrumb is just "<docs set> › <title>"."""
+        return self.breadcrumb.count(" › ") <= 1
 
 
 def _hits(res) -> list[Hit]:
@@ -169,36 +179,81 @@ def _hits(res) -> list[Hit]:
         e = h.get("entity", h)
         hit = Hit(score=float(h["distance"]), **{k: e.get(k) for k in FIELDS_OUT})
         hit.doc_type = doc_type_of(hit.path)
+        hit.vec = e.get("dense")
         out.append(hit)
     return out
+
+
+def _cos(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    return dot / (na * nb) if na and nb else 0.0
+
+
+def collapse_duplicates(hits: list[Hit], threshold: float) -> list[Hit]:
+    """Fold each hit into an earlier, higher-ranked one whose vector is at least
+    `threshold` similar (the same text in two places, e.g. Next.js App and Pages
+    Router copies of a page). The kept hit lists the others' paths in `also`."""
+    kept: list[Hit] = []
+    for h in hits:
+        twin = next((k for k in kept if h.vec and k.vec and _cos(h.vec, k.vec) >= threshold), None)
+        if twin is None:
+            kept.append(h)
+        elif h.path != twin.path and h.path not in twin.also:
+            twin.also.append(h.path)
+    return kept
+
+
+def label(hits: list[Hit], s: Settings) -> None:
+    if not (s.sure_sim and s.weak_sim):
+        return
+    for h in hits:
+        if h.sim is not None:
+            h.confidence = "strong" if h.sim >= s.sure_sim else "weak" if h.sim < s.weak_sim else "related"
 
 
 def search(c: MilvusClient, s: Settings, query_vec: list[float] | None, query_text: str, *,
            mode: str = "hybrid", library: str | None = None, version: str | None = None,
            doc_type: str | None = None, limit: int = 10, candidates: int = 50,
-           api_weight: float | None = None) -> list[Hit]:
-    """Search; in hybrid mode, API results are scaled by api_weight (default from
-    settings) unless the question looks like an API question or doc_type is set."""
+           api_weight: float | None = None, intro_weight: float | None = None,
+           dedupe: bool = True) -> list[Hit]:
+    """Search, then tidy the list:
+    - hybrid only: API results are scaled by api_weight unless the question looks
+      like an API question or doc_type is set; page-intro chunks by intro_weight;
+    - every mode: near-identical hits are collapsed (dedupe), and each hit gets its
+      meaning-similarity `sim` and a `confidence` label when the model has thresholds."""
     expr = scope_filter(library, version, doc_type=doc_type)
+    out = FIELDS_OUT + ["dense"]
+    fetch = min(max(limit * 3, 30), candidates)
     if mode == "dense":
-        res = c.search(s.collection, data=[query_vec], anns_field="dense", limit=limit, filter=expr,
-                       output_fields=FIELDS_OUT, search_params={"metric_type": "COSINE", "params": {"ef": 128}})
-        return _hits(res)
-    if mode == "bm25":
-        res = c.search(s.collection, data=[query_text], anns_field="sparse", limit=limit, filter=expr,
-                       output_fields=FIELDS_OUT, search_params={"metric_type": "BM25"})
-        return _hits(res)
-    reqs = [AnnSearchRequest(data=[query_vec], anns_field="dense", param={"ef": 128}, limit=candidates, expr=expr),
-            AnnSearchRequest(data=[query_text], anns_field="sparse", param={}, limit=candidates, expr=expr)]
-    ranker = Function(name="rrf", input_field_names=[], function_type=FunctionType.RERANK,
-                      params={"reranker": "rrf", "k": s.rrf_k})
-    w = s.api_weight if api_weight is None else api_weight
-    reweight = w != 1.0 and not doc_type and not looks_like_api_question(query_text)
-    fetch = min(max(limit * 3, 30), candidates) if reweight else limit
-    hits = _hits(c.hybrid_search(s.collection, reqs=reqs, ranker=ranker, limit=fetch, output_fields=FIELDS_OUT))
-    if reweight:
+        hits = _hits(c.search(s.collection, data=[query_vec], anns_field="dense", limit=fetch, filter=expr,
+                              output_fields=out, search_params={"metric_type": "COSINE", "params": {"ef": 128}}))
+    elif mode == "bm25":
+        hits = _hits(c.search(s.collection, data=[query_text], anns_field="sparse", limit=fetch, filter=expr,
+                              output_fields=out, search_params={"metric_type": "BM25"}))
+    else:
+        reqs = [AnnSearchRequest(data=[query_vec], anns_field="dense", param={"ef": 128}, limit=candidates, expr=expr),
+                AnnSearchRequest(data=[query_text], anns_field="sparse", param={}, limit=candidates, expr=expr)]
+        ranker = Function(name="rrf", input_field_names=[], function_type=FunctionType.RERANK,
+                          params={"reranker": "rrf", "k": s.rrf_k})
+        hits = _hits(c.hybrid_search(s.collection, reqs=reqs, ranker=ranker, limit=fetch, output_fields=out))
+        w = s.api_weight if api_weight is None else api_weight
+        iw = s.intro_weight if intro_weight is None else intro_weight
+        api_down = w != 1.0 and not doc_type and not looks_like_api_question(query_text)
         for h in hits:
-            if h.doc_type == "api":
+            if api_down and h.doc_type == "api":
                 h.score *= w
+            if iw != 1.0 and h.is_intro:
+                h.score *= iw
         hits.sort(key=lambda h: -h.score)
-    return hits[:limit]
+    if query_vec is not None:
+        for h in hits:
+            h.sim = _cos(query_vec, h.vec) if h.vec else None
+    if dedupe:
+        hits = collapse_duplicates(hits, s.dup_sim)
+    hits = hits[:limit]
+    label(hits, s)
+    for h in hits:
+        h.vec = None
+    return hits
