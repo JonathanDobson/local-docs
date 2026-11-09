@@ -28,8 +28,12 @@ def _fmt(hits, width: int = 300) -> str:
     out = []
     for i, h in enumerate(hits, 1):
         snippet = " ".join(h.text.split())[:width]
-        out.append(f"{i}. [{h.library} {h.version} · {h.doc_type}] {h.path}:{h.start_line}-{h.end_line}  (score {h.score:.4f})\n"
-                   f"   {h.breadcrumb}\n   {snippet}")
+        conf = f", {h.confidence} {h.sim:.2f}" if h.confidence else ""
+        also = f"\n   same text also in: {', '.join(h.also)}" if h.also else ""
+        out.append(f"{i}. [{h.library} {h.version} · {h.doc_type}] {h.path}:{h.start_line}-{h.end_line}  (score {h.score:.4f}{conf})\n"
+                   f"   {h.breadcrumb}{also}\n   {snippet}")
+    if hits and hits[0].confidence == "weak":
+        out.insert(0, "no confident match (top hit is weak); weak hits follow")
     return "\n".join(out) or "no results"
 
 
@@ -71,16 +75,21 @@ def cmd_eval(s, a):
         t_embed += time.time() - t
         lib = q["library"] if a.scoped else None
         for m in modes:
-            hits = search(c, s, vec, q["q"], mode=m, library=lib, limit=50)
-            files, rank = [], None
+            hits = search(c, s, vec, q["q"], mode=m, library=lib, limit=50, dedupe=not a.no_dedupe)
+            # Rank by distinct file; a hit also counts for the duplicates folded into it.
+            files: list[set[str]] = []
+            seen: set[str] = set()
+            rank, hit_sim = None, None
             for h in hits:
-                if h.path not in files:
-                    files.append(h.path)
-            for i, f in enumerate(files[:10], 1):
-                if f in expect:
-                    rank = i
-                    break
-            results[m].append({"id": q["id"], "kind": q.get("kind"), "rank": rank})
+                if h.path in seen:
+                    continue
+                seen.add(h.path)
+                files.append({h.path, *h.also})
+                if rank is None and len(files) <= 10 and files[-1] & expect:
+                    rank, hit_sim = len(files), h.sim
+            top_sim = hits[0].sim if hits else None
+            results[m].append({"id": q["id"], "kind": q.get("kind"), "rank": rank,
+                               "top_sim": top_sim, "hit_sim": hit_sim})
 
     def score(rows):
         n = len(rows)
@@ -90,14 +99,15 @@ def cmd_eval(s, a):
                 "r@10": round(r(10), 3), "mrr": round(mrr, 3)}
 
     summary = {"model": s.model, "dimensions": s.dimensions, "collection": s.collection, "library": a.library,
-               "api_weight": s.api_weight,
+               "api_weight": s.api_weight, "intro_weight": s.intro_weight, "dedupe": not a.no_dedupe,
                "scoped": a.scoped, "avg_query_embed_ms": round(1000 * t_embed / len(qs), 1),
                "modes": {m: score(r) for m, r in results.items()},
                "by_kind": {m: {k: score([x for x in r if x["kind"] == k])
                                for k in sorted({x["kind"] for x in r})} for m, r in results.items()},
                "misses": {m: [x["id"] for x in r if not x["rank"] or x["rank"] > 5] for m, r in results.items()}}
     out = config.DATA / "eval" / (f"{s.collection}{'_' + a.library if a.library else ''}"
-                                  f"{'_scoped' if a.scoped else ''}{f'_w{s.api_weight:g}' if s.api_weight != 1 else ''}.json")
+                                  f"{'_scoped' if a.scoped else ''}{f'_w{s.api_weight:g}' if s.api_weight != 1 else ''}"
+                                  f"{f'_i{s.intro_weight:g}' if s.intro_weight != 1 else ''}{'_nodup' if a.no_dedupe else ''}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"summary": summary, "detail": results}, indent=2))
     print(f"{s.model}  ({len(qs)} questions, {(a.library + ' only') if a.library else 'all libraries'}{', scoped' if a.scoped else ''})")
@@ -128,6 +138,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--modes", default="hybrid,dense,bm25")
     p.add_argument("--scoped", action="store_true", help="filter each question to its library")
     p.add_argument("--library", help="only questions about this library")
+    p.add_argument("--no-dedupe", action="store_true", help="keep near-duplicate hits (to compare)")
     sub.add_parser("mcp")
     p = sub.add_parser("web")
     p.add_argument("--port", type=int, default=7710)

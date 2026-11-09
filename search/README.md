@@ -53,6 +53,8 @@ claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
 | Store | One row per chunk: library (partition key), version, path, lines, heading path, text, a dense vector, and a BM25 sparse vector built by Milvus from a keyword field (heading path + text + split identifiers, so `DISABLE_REGISTRATION` also matches "disable registration"). | [store.py](store.py) |
 | Index | Re-embeds only files whose content hash changed; deletes chunks of removed files. | [indexer.py](indexer.py) |
 | Search | Top 50 from each of BM25 and the dense index, filtered by library/version (a version like `16` or `16.4` also matches a folder named `16.4.5`) and optionally doc type, merged with RRF (k=60). API reference results are then scaled by `api_weight` (0.6) unless the question looks like an API question. | [store.py](store.py) |
+| Tidy | Each hit gets its meaning-similarity to the query (cosine, from its stored vector) and a confidence label; near-identical hits are collapsed into one. See [Results for agents](#results-for-agents). | [store.py](store.py) |
+| Show | Hits are cut at a clean break (never inside a code block) with the line range still to read, and show the upstream ref and commit from the manifest. | [present.py](present.py), [config.py](config.py) |
 
 Compared with a typical codebase semantic search: no syntax-tree (AST) code
 splitting and no file watcher (docs only change when ingested), and keyword search
@@ -76,6 +78,38 @@ menu on the search page).
 Measured on Gitea's 30 test questions with qwen3-embedding:0.6b: top-1 hits
 0.70 → 0.73 and MRR 0.831 → 0.853 at any weight from 0.8 down to 0.25, with no
 API question getting worse; 0.6 is used. To be re-checked on the full corpus.
+
+## Results for agents
+
+Ideas adopted from the MiniMax (Mavis) local-docs search, each checked against the
+question set (embeddinggemma, all 60 questions):
+
+- **Confidence labels.** Each hit is **strong** (similarity ≥ `sure_sim`, 0.60),
+  **weak** (< `weak_sim`, 0.40) or **related**, and a weak top hit gets a "No confident
+  match" notice. Calibration: no test question's correct page scored below 0.426,
+  while 7 of 15 off-topic questions (sourdough bread, Excel, the capital of Australia…)
+  topped out below 0.40. The off-topic questions that scored ≥ 0.60 had a genuinely
+  relevant page (Milvus's Kubernetes HPA guide). Thresholds apply only to the model
+  in `settings.json`; for any other model the labels are off.
+- **Near-duplicate collapse.** Hits whose vectors are ≥ `dup_sim` (0.97) similar are
+  shown once, listing the other files ("same text also in"). Next.js has many App
+  Router / Pages Router twins. No loss (hybrid MRR 0.733 → 0.734, dense 0.801
+  unchanged; a collapsed file still counts as found); the freed slots go to other pages.
+- **Clean cuts and provenance.** Long hits end at a code-block, paragraph or sentence
+  boundary with the lines still to read; each hit shows `<ref> @<commit>` for citing.
+- **Mode guidance**, from the by-kind scores: dense beats hybrid on how-to (MRR 0.745
+  vs 0.601), identifier (0.944 vs 0.750) and API (0.833 vs 0.773) questions; hybrid
+  wins on concepts (0.900 vs 0.798); BM25 alone is weakest for every kind. The
+  MCP tool and the lookup skill tell agents to retry with `dense` when hybrid misses.
+- **Page-intro demotion: tested, not adopted.** Mavis lowers the score of a page's
+  intro chunk (the text before its first heading). Here it hurt: hybrid MRR 0.734 →
+  0.724 at `intro_weight` 0.9 and 0.719 at 0.7. Our intro chunks carry the page title,
+  which is often exactly what the question asks about. `intro_weight` stays 1.0 (off);
+  the setting remains for retesting with another model.
+Not adopted: an LLM reranker and LLM-written answers (Mavis's own notes record its
+small reranker saying "yes" to ~80% of documents and causing misses; a coding agent
+writes better answers from the chunks itself), and per-package auto-narrowing (only
+worth it with dozens of docs sets).
 
 ## Model choice
 

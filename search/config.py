@@ -58,6 +58,10 @@ class Settings:
     milvus_port: int
     rrf_k: int
     api_weight: float
+    intro_weight: float = 1.0   # hybrid score multiplier for a page's intro chunk (text before its first heading)
+    dup_sim: float = 0.97       # hits whose vectors are at least this similar are collapsed into one
+    sure_sim: float = 0.0       # meaning-similarity at or above which a hit is labelled "strong" (0 = no labels)
+    weak_sim: float = 0.0       # below this a hit is labelled "weak"; if the top hit is weak, there is no confident match
 
     @property
     def uri(self) -> str:
@@ -79,5 +83,40 @@ def load() -> Settings:
     else:
         dims = raw.get("dimensions") if model == raw["model"] else None
     api_weight = float(os.environ.get("LOCALDOCS_API_WEIGHT", raw.get("api_weight", 1.0)))
+    env = lambda k, d: float(os.environ.get(f"LOCALDOCS_{k.upper()}", raw.get(k, d)))
+    # Similarity thresholds belong to one model; for any other model, labels are off.
+    same = model == raw["model"]
     return Settings(model=model, dimensions=dims, ollama_url=raw["ollama_url"],
-                    milvus_port=int(raw["milvus_port"]), rrf_k=int(raw["rrf_k"]), api_weight=api_weight)
+                    milvus_port=int(raw["milvus_port"]), rrf_k=int(raw["rrf_k"]), api_weight=api_weight,
+                    intro_weight=env("intro_weight", 1.0), dup_sim=env("dup_sim", 0.97),
+                    sure_sim=env("sure_sim", 0.0) if same else 0.0, weak_sim=env("weak_sim", 0.0) if same else 0.0)
+
+
+_manifests: dict[str, dict] = {}
+
+
+def provenance(path: str) -> str:
+    """Where a docs file came from, for citing: "<ref> @<commit>" from the manifest
+    source whose `dest` folder holds the file (a file `dest` counts as its folder),
+    else "ingested <date>". `path` is relative to the local-docs root."""
+    parts = path.split("/")
+    if len(parts) < 4 or parts[0] != "libraries":
+        return ""
+    key = "/".join(parts[1:3])
+    if key not in _manifests:
+        try:
+            _manifests[key] = json.loads((LIBS / key / "manifest.json").read_text())
+        except (OSError, ValueError):
+            _manifests[key] = {}
+    m = _manifests[key]
+    rel = "/".join(parts[3:])
+    best, best_len = None, -1
+    for src in m.get("sources", []):
+        dest = (src.get("dest") or "").rstrip("/")
+        if "." in dest.rsplit("/", 1)[-1]:      # a file, e.g. api/v1-openapi3.json
+            dest = dest.rsplit("/", 1)[0] if "/" in dest else ""
+        if (not dest or rel == dest or rel.startswith(dest + "/")) and len(dest) > best_len:
+            best, best_len = src, len(dest)
+    if best and best.get("commit"):
+        return f"{best.get('ref') or 'commit'} @{best['commit'][:7]}"
+    return f"ingested {m['ingested_at']}" if m.get("ingested_at") else ""

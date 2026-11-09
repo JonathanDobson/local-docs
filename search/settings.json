@@ -4,5 +4,9 @@
   "ollama_url": "http://127.0.0.1:11434",
   "milvus_port": 19541,
   "rrf_k": 60,
-  "api_weight": 0.6
+  "api_weight": 0.6,
+  "intro_weight": 1.0,
+  "dup_sim": 0.97,
+  "sure_sim": 0.6,
+  "weak_sim": 0.4
 }

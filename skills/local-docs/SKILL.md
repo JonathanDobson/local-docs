@@ -31,6 +31,22 @@ training data may be older or for a different version.
    ```
    (run it from `~/local-docs`). If search finds nothing, check `stats`
    (`python -m search stats`) — the set may not be indexed yet.
+
+   **Reading results.** Each hit is labelled by how close it is in meaning:
+   **strong** (likely on topic), **related**, or **weak**. A weak top hit comes
+   with a "No confident match" notice. Hits with the same text in several files
+   (Next.js App and Pages Router copies, say) are shown once, with "same text also
+   in". A long hit is cut at a clean break, with the line range to read next.
+
+   **Choosing a mode.** The default (`hybrid`, keywords + meaning) is a good start.
+   On the test questions, `dense` (meaning only) ranked the right page higher for
+   how-to, identifier and API questions, so if hybrid's top hits miss, retry with
+   `mode="dense"`. Keyword-only `bm25` was weakest for every kind of question; use
+   it, or `rg`, only to find an exact string such as an error message.
+
+   **A miss is not proof the docs lack it.** Before saying the docs don't cover
+   something, retry in the docs' own vocabulary (the words a page title would use),
+   try the other mode, and grep for the likely identifier (step 4).
 4. **Then grep** to confirm details or find every occurrence, from narrow to broad:
    ```bash
    cd ~/local-docs/libraries/<slug>/<version>
@@ -46,7 +62,10 @@ training data may be older or for a different version.
 6. **Cite** the files you used as paths, e.g.
    `~/local-docs/libraries/gitea/28/content/docs/administration/config-cheat-sheet.md`,
    and name the version (the `release` in `manifest.json` when the folder is a
-   release line like `28`). Crawled pages have a `source:` URL in their front-matter;
+   release line like `28`). Search results show the upstream ref and commit for
+   each file (e.g. `v16.4.5 @4e5335a`); include it, so the reader knows exactly
+   which docs the answer came from. In code, a comment works:
+   `// docs: libraries/nextjs/16.4.5/content/01-app/02-guides/forms.mdx (v16.4.5 @4e5335a)`. Crawled pages have a `source:` URL in their front-matter;
    include it when the user might want the web page.
 
 ## Rules
