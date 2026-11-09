@@ -3,5 +3,6 @@
   "dimensions": null,
   "ollama_url": "http://127.0.0.1:11434",
   "milvus_port": 19541,
-  "rrf_k": 60
+  "rrf_k": 60,
+  "api_weight": 0.6
 }

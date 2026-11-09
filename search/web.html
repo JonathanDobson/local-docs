@@ -8,7 +8,7 @@
 :root {
   --bg: #fbfaf8; --surface: #ffffff; --text: #1d1d1f; --muted: #6b6b70; --border: #e4e2dd;
   --accent: #2f5bd3; --accent-soft: #e8eefc; --mark: #fff0a8; --mark-text: #1d1d1f;
-  --range: #fff7d6; --code: #f4f2ee; --danger: #b42318; --on-accent: #ffffff;
+  --range: #fff7d6; --code: #f4f2ee; --danger: #b42318; --on-accent: #ffffff; --api: #6d28d9; --notes: #b45309;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -16,13 +16,13 @@
   :root:not([data-theme="light"]) {
     --bg: #141416; --surface: #1c1c1f; --text: #ececee; --muted: #9a9aa2; --border: #2e2e33;
     --accent: #8aa8ff; --accent-soft: #232b45; --mark: #5c4d00; --mark-text: #fff6cc;
-    --range: #2a2614; --code: #232327; --danger: #ff8a80; --on-accent: #10131c;
+    --range: #2a2614; --code: #232327; --danger: #ff8a80; --on-accent: #10131c; --api: #c4b5fd; --notes: #fbbf24;
   }
 }
 :root[data-theme="dark"] {
   --bg: #141416; --surface: #1c1c1f; --text: #ececee; --muted: #9a9aa2; --border: #2e2e33;
   --accent: #8aa8ff; --accent-soft: #232b45; --mark: #5c4d00; --mark-text: #fff6cc;
-  --range: #2a2614; --code: #232327; --danger: #ff8a80; --on-accent: #10131c;
+  --range: #2a2614; --code: #232327; --danger: #ff8a80; --on-accent: #10131c; --api: #c4b5fd; --notes: #fbbf24;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--sans); }
@@ -63,15 +63,24 @@ select {
 }
 .result .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; }
 .chip { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 1px 9px; font-weight: 600; }
+.chip.kind { background: var(--code); color: var(--muted); font-weight: 500; }
+.chip.kind-api { color: var(--api); } .chip.kind-release-notes { color: var(--notes); }
 .rank { color: var(--muted); font-variant-numeric: tabular-nums; }
 .crumb { font-weight: 600; font-size: 15px; margin: 6px 0 2px; overflow-wrap: anywhere; }
 .path { font-family: var(--mono); font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
 .body {
-  margin-top: 10px; font-family: var(--mono); font-size: 13px; line-height: 1.55; white-space: pre-wrap;
-  overflow-wrap: anywhere; background: var(--code); border-radius: 8px; padding: 10px 12px;
-  max-height: 11.5em; overflow: hidden; position: relative;
+  margin-top: 10px; font-size: 14px; border-top: 1px solid var(--border); padding-top: 4px;
+  max-height: 15em; overflow: hidden; position: relative;
 }
+.body:not(.open)::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3em;
+  background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+}
+.body.md h1, .body.md h2, .body.md h3, .body.md h4 { font-size: 1em; margin: 0.6em 0 0.3em; border: 0; padding: 0; }
+.body.md p, .body.md ul, .body.md ol, .body.md pre, .body.md table, .body.md blockquote { margin: 0.45em 0; }
+.body.md pre code { font-size: 12.5px; }
 .body.open { max-height: none; }
+.body.plain { font-family: var(--mono); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .more { font-size: 13px; margin-top: 6px; background: none; color: var(--accent); padding: 0; font-weight: 500; }
 mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; padding: 0 1px; }
 .actions { display: flex; gap: 14px; margin-top: 8px; font-size: 13px; flex-wrap: wrap; }
@@ -88,7 +97,37 @@ mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; pad
 .file td.n { color: var(--muted); text-align: right; user-select: none; width: 1%; white-space: nowrap; border-right: 1px solid var(--border); }
 .file td.l { white-space: pre-wrap; overflow-wrap: anywhere; }
 .file tr.hit td { background: var(--range); }
+.viewbar { display: flex; gap: 14px; align-items: center; margin-top: 10px; font-size: 14px; flex-wrap: wrap; }
+/* formatted Markdown */
+.md { line-height: 1.65; overflow-wrap: anywhere; }
+.doc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px 28px 24px; }
+.md .blk { border-left: 3px solid transparent; margin-left: -16px; padding-left: 13px; border-radius: 2px; }
+.md .blk.hit { border-left-color: var(--accent); background: var(--range); }
+.md h1, .md h2, .md h3, .md h4 { line-height: 1.3; margin: 1.4em 0 0.5em; letter-spacing: -0.01em; }
+.md h1 { font-size: 1.7em; } .md h2 { font-size: 1.35em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+.md h3 { font-size: 1.15em; } .md h4 { font-size: 1em; }
+.md p, .md ul, .md ol, .md blockquote, .md table, .md pre { margin: 0.7em 0; }
+.md ul, .md ol { padding-left: 1.6em; }
+.md li + li { margin-top: 0.2em; }
+.md code { font-family: var(--mono); font-size: 0.88em; background: var(--code); padding: 0.1em 0.35em; border-radius: 4px; }
+.md pre { background: var(--code); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+.md pre code { background: none; padding: 0; font-size: 13px; line-height: 1.55; white-space: pre; }
+.md blockquote, .md .alert { border-left: 3px solid var(--border); padding: 2px 14px; color: var(--muted); margin-left: 0; }
+.md .alert { background: var(--code); border-radius: 0 8px 8px 0; color: var(--text); padding: 8px 14px; }
+.md p.alert + p.alert { margin-top: -0.7em; padding-top: 0; }
+.md .alert-label { color: var(--accent); }
+.md .alert-warning, .md .alert-danger, .md .alert-caution { border-left-color: #d97706; }
+.md .alert-warning .alert-label, .md .alert-danger .alert-label, .md .alert-caution .alert-label { color: #d97706; }
+.md table { border-collapse: collapse; display: block; overflow-x: auto; max-width: 100%; font-size: 14px; }
+.md th, .md td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+.md th { background: var(--code); }
+.md td p, .md th p { margin: 0; }
+.md hr { border: 0; border-top: 1px solid var(--border); margin: 1.5em 0; }
+.md .img { color: var(--muted); font-size: 13px; font-style: italic; }
+.md a.dead { color: inherit; text-decoration: underline dotted; cursor: help; }
+.md .meta { color: var(--muted); font-size: 13px; margin: 14px 0 0; }
 @media (max-width: 560px) {
+  .doc { padding: 4px 16px 20px; }
   form.search { grid-template-columns: 1fr; }
   button { padding: 10px; }
   header .meta { display: none; }
@@ -113,6 +152,10 @@ mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; pad
           <label title="Meaning only"><input type="radio" name="mode" value="dense"><span>Meaning</span></label>
           <label title="Keywords only (BM25)"><input type="radio" name="mode" value="bm25"><span>Keyword</span></label>
         </span>
+        <select id="type" aria-label="Kind of page">
+          <option value="">All pages</option><option value="guide">Guides</option>
+          <option value="api">API reference</option><option value="release-notes">Release notes</option>
+        </select>
         <select id="k" aria-label="Number of results">
           <option value="5">5 results</option><option value="10" selected>10 results</option>
           <option value="20">20 results</option><option value="50">50 results</option>
@@ -128,11 +171,21 @@ mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; pad
       <a href="#" id="back">← Back to results</a>
       <div class="crumb" id="fileTitle"></div>
       <div class="path" id="filePath"></div>
+      <div class="viewbar">
+        <span class="seg" id="viewMode" role="radiogroup" aria-label="View" hidden>
+          <label><input type="radio" name="view" value="formatted" checked><span>Formatted</span></label>
+          <label><input type="radio" name="view" value="source"><span>Source</span></label>
+        </span>
+        <a id="sourceLink" target="_blank" rel="noopener noreferrer" hidden>Web page ↗</a>
+      </div>
     </div>
-    <div class="file"><table id="fileBody"></table></div>
+    <div class="file" id="fileSource"><table id="fileBody"></table></div>
+    <article class="md doc" id="fileMd" hidden></article>
   </div>
 </div>
 
+<script src="/static/marked.umd.js"></script>
+<script src="/static/purify.min.js"></script>
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
@@ -172,7 +225,8 @@ async function api(path) {
 function readState() {
   const p = new URLSearchParams(location.search);
   return { q: p.get("q") || "", scope: p.get("scope") || "", mode: p.get("mode") || "hybrid", k: p.get("k") || "10",
-           path: p.get("path"), from: +p.get("from") || 0, to: +p.get("to") || 0 };
+           type: p.get("type") || "",
+           path: p.get("path"), from: +p.get("from") || 0, to: +p.get("to") || 0, view: p.get("view") || "" };
 }
 
 function fillControls(st) {
@@ -180,6 +234,7 @@ function fillControls(st) {
   $("scope").value = st.scope;
   for (const r of document.querySelectorAll("input[name=mode]")) r.checked = r.value === st.mode;
   $("k").value = st.k;
+  $("type").value = st.type;
 }
 
 function showLibraries() {
@@ -196,18 +251,26 @@ function showLibraries() {
   $("results").replaceChildren(wrap);
 }
 
+let searchSeq = 0;
 async function runSearch(st) {
+  const mine = ++searchSeq;
   $("searchView").hidden = false; $("fileView").hidden = true;
   if (!st.q) { $("status").textContent = ""; showLibraries(); return; }
+  $("results").style.opacity = "0.5";
   const [library, version] = st.scope ? st.scope.split("@") : ["", ""];
   const params = new URLSearchParams({ q: st.q, mode: st.mode, k: st.k });
   if (library) params.set("library", library);
   if (version) params.set("version", version);
+  if (st.type) params.set("type", st.type);
   $("status").className = "status"; $("status").textContent = "Searching…";
   const t0 = performance.now();
   let res;
   try { res = await api("/api/search?" + params); }
-  catch (e) { $("status").className = "status err"; $("status").textContent = "Search failed: " + e.message; return; }
+  catch (e) {
+    if (mine !== searchSeq) return;
+    $("status").className = "status err"; $("status").textContent = "Search failed: " + e.message; return;
+  }
+  if (mine !== searchSeq) return;  // a newer search started while this one was running
   const ms = Math.round(performance.now() - t0);
   $("status").textContent = `${res.hits.length} result${res.hits.length === 1 ? "" : "s"} · ${ms} ms · ${res.mode} · ${res.model}`;
   const words = queryWords(st.q);
@@ -216,10 +279,21 @@ async function runSearch(st) {
   res.hits.forEach((h, i) => {
     const card = el("article", "result");
     const top = el("div", "top");
-    top.append(el("span", "rank", `#${i + 1}`), el("span", "chip", `${h.library} ${h.version}`));
+    const TYPE_LABEL = { guide: "Guide", api: "API reference", "release-notes": "Release notes" };
+    top.append(el("span", "rank", `#${i + 1}`), el("span", "chip", `${h.library} ${h.version}`),
+               el("span", "chip kind kind-" + h.doc_type, TYPE_LABEL[h.doc_type] || h.doc_type));
     const crumb = el("div", "crumb"); highlight(crumb, h.breadcrumb || h.path, words);
     const path = el("div", "path", `${h.path} : ${h.start_line}–${h.end_line}`);
-    const body = el("div", "body"); highlight(body, h.text, words);
+    const body = el("div", "body");
+    if (window.marked && window.DOMPurify && MD_EXT.test(h.path)) {
+      body.classList.add("md");
+      body.append(mdFragment(h.text));
+      admonitions(body);
+      highlightDom(body, words);
+    } else {
+      body.classList.add("plain");
+      highlight(body, h.text, words);
+    }
     const actions = el("div", "actions");
     const view = el("a", null, "Open in file →");
     const vp = new URLSearchParams({ path: h.path, from: h.start_line, to: h.end_line });
@@ -234,7 +308,7 @@ async function runSearch(st) {
     copy.addEventListener("click", (e) => { e.preventDefault(); navigator.clipboard?.writeText(`~/local-docs/${h.path}:${h.start_line}`); copy.textContent = "Copied"; });
     actions.append(copy);
     card.append(top, crumb, path, body);
-    if (h.text.length > 600 || h.text.split("\n").length > 7) {
+    if (h.text.length > 700 || h.text.split("\n").length > 10) {
       const more = el("button", "more", "Show whole chunk");
       more.type = "button";
       more.addEventListener("click", () => { body.classList.toggle("open"); more.textContent = body.classList.contains("open") ? "Show less" : "Show whole chunk"; });
@@ -244,16 +318,172 @@ async function runSearch(st) {
     list.append(card);
   });
   $("results").replaceChildren(list);
+  $("results").style.opacity = "";
 }
 
-async function showFile(st) {
-  $("searchView").hidden = true; $("fileView").hidden = false;
-  $("fileTitle").textContent = "Loading…"; $("filePath").textContent = st.path; $("fileBody").replaceChildren();
-  let f;
-  try { f = await api("/api/file?" + new URLSearchParams({ path: st.path })); }
-  catch (e) { $("fileTitle").textContent = "Could not open file: " + e.message; return; }
-  $("fileTitle").textContent = st.path.split("/").pop();
-  $("filePath").textContent = st.from ? `${st.path} : lines ${st.from}–${st.to}` : st.path;
+const MD_EXT = /\.(md|mdx|markdown)$/i;
+const SANITIZE = {
+  FORBID_TAGS: ["style", "form", "input", "textarea", "select", "button", "iframe", "object", "embed", "svg", "math"],
+  FORBID_ATTR: ["style"],
+};
+
+// Split off YAML front matter; return its fields and how many lines it used.
+function frontMatter(lines) {
+  if (lines[0] !== "---") return { meta: {}, used: 0 };
+  const end = lines.indexOf("---", 1);
+  if (end < 0) return { meta: {}, used: 0 };
+  const meta = {};
+  for (const l of lines.slice(1, end)) {
+    const m = l.match(/^([A-Za-z_][\w-]*):\s*(.*)$/);
+    if (m) meta[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+  return { meta, used: end + 1 };
+}
+
+// Resolve a relative link inside a docs file to another file in the docs set.
+function resolveLink(fromPath, href) {
+  const [target, frag] = href.split("#");
+  if (!target) return null;
+  const parts = fromPath.split("/").slice(0, -1);
+  for (const seg of target.split("/")) {
+    if (seg === "" || seg === ".") continue;
+    if (seg === "..") parts.pop(); else parts.push(seg);
+  }
+  let path = parts.join("/");
+  if (!/^libraries\/[^/]+\/[^/]+\//.test(path)) return null;
+  if (/\.html?$/i.test(path)) path = path.replace(/\.html?$/i, ".md");
+  else if (!/\.[a-z0-9]+$/i.test(path)) path += ".md";
+  return "/view?" + new URLSearchParams({ path }) + (frag ? "#" + frag : "");
+}
+
+function slugify(text) {
+  return text.toLowerCase().trim().replace(/[^\w\- ]+/g, "").replace(/\s+/g, "-");
+}
+
+// Markdown -> sanitized DOM fragment, built in an inert document so nothing loads.
+function mdFragment(markdown, tokensLinks) {
+  let html;
+  if (Array.isArray(markdown)) { const one = markdown; one.links = tokensLinks || {}; html = marked.parser(one); }
+  else html = marked.parse(markdown, { gfm: true });
+  const frag = DOMPurify.sanitize(html, { ...SANITIZE, RETURN_DOM_FRAGMENT: true });
+  for (const img of frag.querySelectorAll("img")) {
+    img.replaceWith(el("span", "img", `[image${img.alt ? ": " + img.alt : ""}]`));
+  }
+  return frag;
+}
+
+// Wrap query words in <mark> inside already-rendered DOM (text nodes only).
+function highlightDom(root, words) {
+  if (!words.length) return;
+  const re = new RegExp("(" + words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "gi");
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const texts = [];
+  while (walker.nextNode()) texts.push(walker.currentNode);
+  for (const t of texts) {
+    if (!re.test(t.nodeValue)) continue;
+    re.lastIndex = 0;
+    const span = document.createDocumentFragment();
+    highlight(span, t.nodeValue, words);
+    t.replaceWith(span);
+  }
+}
+
+// Render Markdown block by block, so each block knows its source lines.
+// That lets "Open in file" highlight and scroll to the chunk that matched.
+function renderMarkdown(f, st, meta, used) {
+  const lines = f.lines.slice(used).map((l, i) => {
+    // MDX import/export statements are build code, not text; blank them (keeping line numbers).
+    return /\.mdx$/i.test(st.path) && /^(import|export)\s/.test(l) ? "" : l;
+  });
+  const tokens = marked.lexer(lines.join("\n"), { gfm: true });
+  const root = $("fileMd");
+  root.replaceChildren();
+  if (meta.source && /^https?:\/\//.test(meta.source)) {
+    root.append(el("p", "meta", "Crawled from " + meta.source));
+  }
+  let line = used + 1;
+  let first = null;
+  for (const tok of tokens) {
+    const raw = tok.raw || "";
+    const start = line;
+    const end = start + ((raw.replace(/\n+$/, "").match(/\n/g) || []).length);
+    line += (raw.match(/\n/g) || []).length;
+    if (tok.type === "space") continue;
+    const one = [tok];
+    const blk = el("div", "blk");
+    blk.append(mdFragment(one, tokens.links));
+    blk.dataset.start = start;
+    if (st.from && end >= st.from && start <= st.to) {
+      blk.classList.add("hit");
+      first = first || blk;
+    }
+    root.append(blk);
+  }
+  // Headings get ids so in-page #anchors work.
+  const seen = {};
+  for (const h of root.querySelectorAll("h1, h2, h3, h4, h5, h6")) {
+    let id = slugify(h.textContent);
+    if (seen[id] != null) id += "-" + ++seen[id]; else seen[id] = 0;
+    if (!h.id) h.id = id;
+  }
+  admonitions(root);
+  for (const a of root.querySelectorAll("a[href]")) {
+    const href = a.getAttribute("href");
+    if (href.startsWith("#")) continue;
+    if (/^https?:\/\//i.test(href)) { a.target = "_blank"; a.rel = "noopener noreferrer"; continue; }
+    const to = !/^[a-z][a-z0-9+.-]*:/i.test(href) && !href.startsWith("/") ? resolveLink(st.path, href) : null;
+    if (to) {
+      a.href = to;
+      a.addEventListener("click", (e) => { e.preventDefault(); history.pushState(null, "", to); route(); });
+    } else {
+      a.removeAttribute("href");
+      a.className = "dead";
+      a.title = "Link to the original website (not stored locally): " + href;
+    }
+  }
+  return first;
+}
+
+// Docusaurus-style callouts (":::tip Title ... :::") arrive as plain paragraphs;
+// turn them into labelled callout boxes. Handles one- and multi-paragraph callouts.
+function admonitions(root) {
+  const OPEN = /^:::\s*([a-z]+)\b[ \t]*/i;
+  let current = null;
+  for (const p of root.querySelectorAll("p")) {
+    const text = p.textContent.trim();
+    const m = text.match(OPEN);
+    if (!current && !m) continue;
+    if (m) {
+      current = m[1].toLowerCase();
+      stripText(p, true, m[0].length);
+      const label = el("strong", "alert-label", current.charAt(0).toUpperCase() + current.slice(1) + ". ");
+      p.prepend(label);
+    }
+    p.classList.add("alert", "alert-" + current);
+    if (/:::\s*$/.test(text) && !(m && text === m[0].trim())) {
+      stripText(p, false, text.length - text.replace(/\s*:::\s*$/, "").length);
+      current = null;
+    }
+    if (!p.textContent.replace(/^\w+\.\s*$/, "").trim()) p.remove();
+  }
+}
+
+// Remove n characters of text from the start (or end) of an element, across text nodes.
+function stripText(node, fromStart, n) {
+  const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  if (!fromStart) nodes.reverse();
+  for (const t of nodes) {
+    if (n <= 0) break;
+    const v = fromStart ? t.nodeValue.replace(/^\s+/, "") : t.nodeValue.replace(/\s+$/, "");
+    const take = Math.min(n, v.length);
+    t.nodeValue = fromStart ? v.slice(take) : v.slice(0, v.length - take);
+    n -= take;
+  }
+}
+
+function renderSource(f, st) {
   const frag = document.createDocumentFragment();
   let first = null;
   f.lines.forEach((line, i) => {
@@ -265,7 +495,48 @@ async function showFile(st) {
     frag.append(tr);
   });
   $("fileBody").replaceChildren(frag);
+  return first;
+}
+
+async function showFile(st) {
+  $("searchView").hidden = true; $("fileView").hidden = false;
+  $("fileTitle").textContent = "Loading…"; $("filePath").textContent = st.path;
+  $("fileBody").replaceChildren(); $("fileMd").replaceChildren();
+  let f;
+  try { f = await api("/api/file?" + new URLSearchParams({ path: st.path })); }
+  catch (e) { $("fileTitle").textContent = "Could not open file: " + e.message; return; }
+  const { meta, used } = frontMatter(f.lines);
+  $("fileTitle").textContent = meta.title || st.path.split("/").pop();
+  $("filePath").textContent = st.from ? `${st.path} : lines ${st.from}–${st.to}` : st.path;
+  const link = $("sourceLink");
+  link.hidden = !(meta.source && /^https?:\/\//.test(meta.source));
+  if (!link.hidden) link.href = meta.source;
+
+  const isMd = MD_EXT.test(st.path) && window.marked && window.DOMPurify;
+  const formatted = isMd && st.view !== "source";
+  $("viewMode").hidden = !isMd;
+  for (const r of document.querySelectorAll("input[name=view]")) r.checked = r.value === (formatted ? "formatted" : "source");
+  $("fileMd").hidden = !formatted;
+  $("fileSource").hidden = formatted;
+  const first = formatted ? renderMarkdown(f, st, meta, used) : renderSource(f, st);
+  if (!meta.title) {
+    const h1 = f.lines.find(l => /^#\s+\S/.test(l));
+    if (h1) $("fileTitle").textContent = h1.replace(/^#\s+/, "").replace(/[`*_]/g, "");
+  }
+  if (location.hash && formatted) {
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (target) { target.scrollIntoView({ block: "start" }); return; }
+  }
   if (first) first.scrollIntoView({ block: "center" }); else window.scrollTo(0, 0);
+}
+
+for (const r of document.querySelectorAll("input[name=view]")) {
+  r.addEventListener("change", () => {
+    const p = new URLSearchParams(location.search);
+    if (r.value === "source") p.set("view", "source"); else p.delete("view");
+    history.replaceState(null, "", "/view?" + p);
+    route();
+  });
 }
 
 function route() {
@@ -284,6 +555,7 @@ function submit() {
   const mode = document.querySelector("input[name=mode]:checked").value;
   if (mode !== "hybrid") p.set("mode", mode);
   if ($("k").value !== "10") p.set("k", $("k").value);
+  if ($("type").value) p.set("type", $("type").value);
   history.pushState(null, "", "/" + (p.toString() ? "?" + p : ""));
   route();
 }
@@ -291,6 +563,7 @@ function submit() {
 $("form").addEventListener("submit", (e) => { e.preventDefault(); submit(); });
 $("scope").addEventListener("change", () => $("q").value.trim() && submit());
 $("k").addEventListener("change", () => $("q").value.trim() && submit());
+$("type").addEventListener("change", () => $("q").value.trim() && submit());
 for (const r of document.querySelectorAll("input[name=mode]")) r.addEventListener("change", () => $("q").value.trim() && submit());
 $("back").addEventListener("click", (e) => { e.preventDefault(); history.length > 1 ? history.back() : (location.href = "/"); });
 window.addEventListener("popstate", route);

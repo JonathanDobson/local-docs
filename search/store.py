@@ -6,6 +6,7 @@ authentication) serves the indexer and every Claude session's MCP server.
 from __future__ import annotations
 
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -94,12 +95,50 @@ def create_collection(c: MilvusClient, name: str, dim: int) -> None:
     c.load_collection(name)
 
 
+# Document type comes from where a file sits in its docs set, so it needs no extra
+# field (and no re-embedding): API reference under api/ or api-reference/, release
+# notes under release-notes/ or named release_notes / changelog; everything else is a guide.
+_API = "(path like '%/api/%' or path like '%/api-reference/%')"
+_NOTES = ("(path like '%/release-notes/%' or path like '%release_notes%' or "
+          "path like '%/changelog%' or path like '%/CHANGELOG%')")
+DOC_TYPE_EXPR = {"api": _API, "release-notes": _NOTES, "guide": f"not {_API} and not {_NOTES}"}
+DOC_TYPES = tuple(DOC_TYPE_EXPR)
+
+
+def doc_type_of(path: str) -> str:
+    p = path.lower()
+    if "/api/" in p or "/api-reference/" in p:
+        return "api"
+    if "/release-notes/" in p or "release_notes" in p or "/changelog" in p:
+        return "release-notes"
+    return "guide"
+
+
+_API_WORDS = re.compile(
+    r"\b(api|apis|rest|restful|endpoints?|http|https|url|request|response|json|payload|swagger|"
+    r"openapi|curl|sdk|client|method|methods|function|functions|class|parameters?|arguments?|"
+    r"returns?|schema|status code|webhook payload)\b", re.I)
+_API_SHAPES = re.compile(
+    r"\b(GET|POST|PUT|PATCH|DELETE)\b|/\w+/|\w\(|\b\w+\.\w+\(|"
+    r"\b[A-Z][a-z]+[A-Z]\w*|\b[a-z]+[A-Z]\w*")
+
+
+def looks_like_api_question(q: str) -> bool:
+    """True when the question is probably about an API (so API pages shouldn't be demoted)."""
+    return bool(_API_WORDS.search(q) or _API_SHAPES.search(q))
+
+
 def _q(v: str) -> str:
     return "'" + v.replace("\\", "\\\\").replace("'", "\\'") + "'"
 
 
-def scope_filter(library: str | None = None, version: str | None = None, path: str | None = None) -> str:
+def scope_filter(library: str | None = None, version: str | None = None, path: str | None = None,
+                 doc_type: str | None = None) -> str:
     parts = []
+    if doc_type:
+        if doc_type not in DOC_TYPE_EXPR:
+            raise ValueError(f"doc_type must be one of {DOC_TYPES}")
+        parts.append(DOC_TYPE_EXPR[doc_type])
     if library:
         parts.append(f"library == {_q(library)}")
     if version:
@@ -120,20 +159,26 @@ class Hit:
     end_line: int
     text: str
     source_url: str
+    doc_type: str = "guide"
 
 
 def _hits(res) -> list[Hit]:
     out = []
     for h in res[0]:
         e = h.get("entity", h)
-        out.append(Hit(score=float(h["distance"]), **{k: e.get(k) for k in FIELDS_OUT}))
+        hit = Hit(score=float(h["distance"]), **{k: e.get(k) for k in FIELDS_OUT})
+        hit.doc_type = doc_type_of(hit.path)
+        out.append(hit)
     return out
 
 
 def search(c: MilvusClient, s: Settings, query_vec: list[float] | None, query_text: str, *,
            mode: str = "hybrid", library: str | None = None, version: str | None = None,
-           limit: int = 10, candidates: int = 50) -> list[Hit]:
-    expr = scope_filter(library, version)
+           doc_type: str | None = None, limit: int = 10, candidates: int = 50,
+           api_weight: float | None = None) -> list[Hit]:
+    """Search; in hybrid mode, API results are scaled by api_weight (default from
+    settings) unless the question looks like an API question or doc_type is set."""
+    expr = scope_filter(library, version, doc_type=doc_type)
     if mode == "dense":
         res = c.search(s.collection, data=[query_vec], anns_field="dense", limit=limit, filter=expr,
                        output_fields=FIELDS_OUT, search_params={"metric_type": "COSINE", "params": {"ef": 128}})
@@ -146,4 +191,13 @@ def search(c: MilvusClient, s: Settings, query_vec: list[float] | None, query_te
             AnnSearchRequest(data=[query_text], anns_field="sparse", param={}, limit=candidates, expr=expr)]
     ranker = Function(name="rrf", input_field_names=[], function_type=FunctionType.RERANK,
                       params={"reranker": "rrf", "k": s.rrf_k})
-    return _hits(c.hybrid_search(s.collection, reqs=reqs, ranker=ranker, limit=limit, output_fields=FIELDS_OUT))
+    w = s.api_weight if api_weight is None else api_weight
+    reweight = w != 1.0 and not doc_type and not looks_like_api_question(query_text)
+    fetch = min(max(limit * 3, 30), candidates) if reweight else limit
+    hits = _hits(c.hybrid_search(s.collection, reqs=reqs, ranker=ranker, limit=fetch, output_fields=FIELDS_OUT))
+    if reweight:
+        for h in hits:
+            if h.doc_type == "api":
+                h.score *= w
+        hits.sort(key=lambda h: -h.score)
+    return hits[:limit]

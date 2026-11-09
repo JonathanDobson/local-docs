@@ -21,6 +21,9 @@ os.environ.setdefault("GRPC_VERBOSITY", "NONE")
 from search import config  # noqa: E402
 
 PAGE = Path(__file__).with_name("web.html")
+STATIC = Path(__file__).with_name("static")
+STATIC_FILES = {"marked.umd.js": "text/javascript; charset=utf-8",
+                "purify.min.js": "text/javascript; charset=utf-8"}
 _lock = threading.Lock()
 _deps: dict = {}
 
@@ -43,12 +46,14 @@ def libraries() -> list[dict]:
     return out
 
 
-def do_search(q: str, library: str | None, version: str | None, k: int, mode: str) -> dict:
+def do_search(q: str, library: str | None, version: str | None, k: int, mode: str,
+              doc_type: str | None = None) -> dict:
     from search.store import search
     d = _get_deps()
     with _lock:
         vec = None if mode == "bm25" else d["emb"].query(q)
-        hits = search(d["client"], d["s"], vec, q, mode=mode, library=library, version=version, limit=k)
+        hits = search(d["client"], d["s"], vec, q, mode=mode, library=library, version=version,
+                      doc_type=doc_type, limit=k)
     return {"model": d["s"].model, "mode": mode, "hits": [asdict(h) for h in hits]}
 
 
@@ -90,6 +95,11 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if url.path in ("/", "/view"):
                 return self._send(200, PAGE.read_bytes(), "text/html; charset=utf-8")
+            if url.path.startswith("/static/"):
+                name = url.path.removeprefix("/static/")
+                if name not in STATIC_FILES:
+                    return self._send(404, b"not found", "text/plain")
+                return self._send(200, (STATIC / name).read_bytes(), STATIC_FILES[name])
             if url.path == "/api/libraries":
                 return self._json(libraries())
             if url.path == "/api/search":
@@ -99,7 +109,9 @@ class Handler(BaseHTTPRequestHandler):
                 mode = qs.get("mode", "hybrid")
                 mode = mode if mode in ("hybrid", "dense", "bm25") else "hybrid"
                 k = max(1, min(int(qs.get("k", "10") or 10), 50))
-                return self._json(do_search(q, qs.get("library") or None, qs.get("version") or None, k, mode))
+                dt = qs.get("type") or None
+                dt = dt if dt in ("guide", "api", "release-notes") else None
+                return self._json(do_search(q, qs.get("library") or None, qs.get("version") or None, k, mode, dt))
             if url.path == "/api/file":
                 f = read_file(qs.get("path", ""))
                 return self._json(f) if f else self._json({"error": "not a file under libraries/"}, 404)

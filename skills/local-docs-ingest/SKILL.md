@@ -145,6 +145,12 @@ libraries/<slug>/<version>/
   api/            API specs and their generated pages (APIs only)
 ```
 
+Search classifies pages by folder, so keep to it: API reference pages (REST
+endpoints, SDK/client references) go under `api/` or a folder named
+`api-reference/`; release notes under `content/release-notes/` (or keep the
+upstream `release_notes.md` / `CHANGELOG.md` names). Everything else counts as a
+guide. Avoid a folder literally named `api` for guide pages.
+
 Clean `content/` after fetching:
 
 - Keep documentation text: `.md .mdx .rst .txt .adoc`, plus small example

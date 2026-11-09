@@ -329,9 +329,38 @@ input and output streams. No network port involved.
 characters of English). Throughput here is chunks (or tokens) embedded per
 second; on this machine's GPU it decides how long indexing takes.
 
+**Doc type** — Whether a page is a *guide*, *API reference* or *release notes*,
+worked out from its folder (`api/` or `api-reference/` = API reference). Searches
+can be limited to one type.
+
+**API weight** — A number (0.6, in `search/settings.json`) that API reference
+results are multiplied by, so their many short pages don't crowd out guides for
+ordinary questions. Not applied when the question itself looks like an API
+question or a doc type is chosen.
+
 **Search page** — The browser interface to the same search
 (`python -m search web`, http://127.0.0.1:7710). For people; agents use the MCP
 tools instead.
+
+**Formatted view** — The search page's way of showing a Markdown file as a
+rendered page (headings, tables, code boxes) rather than raw text, with the
+matching section highlighted. "Source" switches back to raw text with line numbers.
+
+**Sanitize (DOMPurify)** — Cleaning HTML before showing it, removing anything
+that could run code (scripts, `onclick` handlers, `javascript:` links). The
+formatted view sanitizes every page with the DOMPurify library because docs are
+downloaded from the internet. marked is the library that turns Markdown into HTML.
+
+**Vendored library** — A copy of someone else's code kept inside this project
+(`search/static/`) instead of downloaded at run time, so the page works offline
+and can't change under us. Recorded with its version and licence.
+
+**Content Security Policy (CSP)** — A rule the search page sends to the browser
+listing what the page may load. Here: only its own scripts, no remote images or
+other sites, so even a malicious doc page couldn't call out.
+
+**Callout / admonition** — A highlighted note box in docs ("Tip", "Warning"),
+written as `:::tip … :::` in Docusaurus-built docs such as Gitea's.
 
 **127.0.0.1 / localhost** — The address that means "this computer". A server
 listening only there can't be reached from other machines on the network. Both

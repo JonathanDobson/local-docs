@@ -28,7 +28,12 @@ Run from `~/local-docs`:
 
 The search page ([web.py](web.py), [web.html](web.html)) has a library filter,
 hybrid / meaning / keyword modes, highlighted matches, and an "Open in file" view
-that jumps to the matching lines. Searches are in the URL, so they can be
+that jumps to the matching lines. Markdown files open **formatted** (headings,
+tables, code, callouts, working links between docs) with the matching section
+highlighted; a toggle switches to the raw source with line numbers. Rendering
+uses vendored copies of marked and DOMPurify ([static/](static/README.md)), so it
+works offline, and every page is sanitized because the docs are downloaded
+content. Remote images are shown as their caption text and never fetched. Searches are in the URL, so they can be
 bookmarked. It listens on 127.0.0.1 only and refuses requests for other host
 names or for files outside `libraries/`.
 
@@ -46,11 +51,30 @@ claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
 | Embed | Ollama `/api/embed`, with the query/document wording each model was trained on. | [embed.py](embed.py), [config.py](config.py) |
 | Store | One row per chunk: library (partition key), version, path, lines, heading path, text, a dense vector, and a BM25 sparse vector built by Milvus from a keyword field (heading path + text + split identifiers, so `DISABLE_REGISTRATION` also matches "disable registration"). | [store.py](store.py) |
 | Index | Re-embeds only files whose content hash changed; deletes chunks of removed files. | [indexer.py](indexer.py) |
-| Search | Top 50 from each of BM25 and the dense index, filtered by library/version, merged with RRF (k=60). | [store.py](store.py) |
+| Search | Top 50 from each of BM25 and the dense index, filtered by library/version (and optionally doc type), merged with RRF (k=60). API reference results are then scaled by `api_weight` (0.6) unless the question looks like an API question. | [store.py](store.py) |
 
 Compared with a typical codebase semantic search: no syntax-tree (AST) code
 splitting and no file watcher (docs only change when ingested), and keyword search
 is added, which matters for docs because so many questions are exact identifiers.
+
+## Doc types and API weighting
+
+Every chunk is a **guide**, **API reference** or **release notes** page, worked
+out from its path (no extra field, no re-embedding): `api/` or `api-reference/`
+folders are API reference; `release-notes/`, `release_notes*` or `changelog*` are
+release notes; everything else is a guide. The ingest skill files docs to match.
+
+API reference pages are numerous and short (Gitea: 776 of 1,839 chunks are
+endpoints or data models), so they crowd results for plain questions. Search
+therefore multiplies API scores by `api_weight` in `settings.json` — unless the
+question mentions an API, endpoint, HTTP verb, function call or CamelCase
+identifier, or a doc type filter is set. Everywhere you search, you can also
+filter to one type (`-t` on the CLI, `doc_type` in the MCP tool, the "All pages"
+menu on the search page).
+
+Measured on Gitea's 30 test questions with qwen3-embedding:0.6b: top-1 hits
+0.70 → 0.73 and MRR 0.831 → 0.853 at any weight from 0.8 down to 0.25, with no
+API question getting worse; 0.6 is used. To be re-checked on the full corpus.
 
 ## Model choice
 

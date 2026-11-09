@@ -57,6 +57,7 @@ class Settings:
     ollama_url: str
     milvus_port: int
     rrf_k: int
+    api_weight: float
 
     @property
     def uri(self) -> str:
@@ -77,5 +78,6 @@ def load() -> Settings:
         dims = int(dims_env) or None
     else:
         dims = raw.get("dimensions") if model == raw["model"] else None
+    api_weight = float(os.environ.get("LOCALDOCS_API_WEIGHT", raw.get("api_weight", 1.0)))
     return Settings(model=model, dimensions=dims, ollama_url=raw["ollama_url"],
-                    milvus_port=int(raw["milvus_port"]), rrf_k=int(raw["rrf_k"]))
+                    milvus_port=int(raw["milvus_port"]), rrf_k=int(raw["rrf_k"]), api_weight=api_weight)

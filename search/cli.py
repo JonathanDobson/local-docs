@@ -4,7 +4,8 @@
   .venv/bin/python -m search down                    stop it
   .venv/bin/python -m search index [slug[/version]]  index new/changed docs (all sets by default)
           [--rebuild]                                drop and rebuild the collection
-  .venv/bin/python -m search search "question" [-l slug] [-v version] [-k 8] [--mode hybrid|dense|bm25]
+  .venv/bin/python -m search search "question" [-l slug] [-v version] [-k 8] [-t guide|api|release-notes]
+          [--mode hybrid|dense|bm25]
   .venv/bin/python -m search stats                   what is indexed
   .venv/bin/python -m search eval [--modes hybrid,dense,bm25]   score search on search/eval/questions.yaml
   .venv/bin/python -m search web [--port 7710]       search page for people at http://127.0.0.1:7710
@@ -27,7 +28,7 @@ def _fmt(hits, width: int = 300) -> str:
     out = []
     for i, h in enumerate(hits, 1):
         snippet = " ".join(h.text.split())[:width]
-        out.append(f"{i}. [{h.library} {h.version}] {h.path}:{h.start_line}-{h.end_line}  (score {h.score:.4f})\n"
+        out.append(f"{i}. [{h.library} {h.version} · {h.doc_type}] {h.path}:{h.start_line}-{h.end_line}  (score {h.score:.4f})\n"
                    f"   {h.breadcrumb}\n   {snippet}")
     return "\n".join(out) or "no results"
 
@@ -36,7 +37,8 @@ def cmd_search(s, a):
     from search.embed import Embedder
     from search.store import client, search
     vec = None if a.mode == "bm25" else Embedder(s).query(a.query)
-    hits = search(client(s), s, vec, a.query, mode=a.mode, library=a.library, version=a.version, limit=a.k)
+    hits = search(client(s), s, vec, a.query, mode=a.mode, library=a.library, version=a.version,
+                  doc_type=a.type, limit=a.k)
     print(_fmt(hits))
 
 
@@ -88,12 +90,14 @@ def cmd_eval(s, a):
                 "r@10": round(r(10), 3), "mrr": round(mrr, 3)}
 
     summary = {"model": s.model, "dimensions": s.dimensions, "collection": s.collection, "library": a.library,
+               "api_weight": s.api_weight,
                "scoped": a.scoped, "avg_query_embed_ms": round(1000 * t_embed / len(qs), 1),
                "modes": {m: score(r) for m, r in results.items()},
                "by_kind": {m: {k: score([x for x in r if x["kind"] == k])
                                for k in sorted({x["kind"] for x in r})} for m, r in results.items()},
                "misses": {m: [x["id"] for x in r if not x["rank"] or x["rank"] > 5] for m, r in results.items()}}
-    out = config.DATA / "eval" / f"{s.collection}{'_' + a.library if a.library else ''}{'_scoped' if a.scoped else ''}.json"
+    out = config.DATA / "eval" / (f"{s.collection}{'_' + a.library if a.library else ''}"
+                                  f"{'_scoped' if a.scoped else ''}{f'_w{s.api_weight:g}' if s.api_weight != 1 else ''}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"summary": summary, "detail": results}, indent=2))
     print(f"{s.model}  ({len(qs)} questions, {(a.library + ' only') if a.library else 'all libraries'}{', scoped' if a.scoped else ''})")
@@ -118,6 +122,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("-v", "--version")
     p.add_argument("-k", type=int, default=8)
     p.add_argument("--mode", default="hybrid", choices=["hybrid", "dense", "bm25"])
+    p.add_argument("-t", "--type", choices=["guide", "api", "release-notes"], help="only this kind of document")
     sub.add_parser("stats")
     p = sub.add_parser("eval")
     p.add_argument("--modes", default="hybrid,dense,bm25")

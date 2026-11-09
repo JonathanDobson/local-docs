@@ -37,13 +37,16 @@ def _deps():
 
 @server.tool()
 def docs_search(query: str, library: str | None = None, version: str | None = None,
-                limit: int = 8, mode: str = "hybrid") -> str:
+                doc_type: str | None = None, limit: int = 8, mode: str = "hybrid") -> str:
     """Search the local documentation library by meaning and keywords.
 
     Args:
         query: A natural-language question or an exact identifier (config key, function, endpoint).
         library: Optional library slug from docs_list (e.g. "gitea", "milvus") to search only that library.
         version: Optional version folder (e.g. "28", "3.0"); use with library.
+        doc_type: Optional "guide", "api" or "release-notes" to search only that kind of page.
+            By default all kinds are searched, with API reference pages ranked a little lower
+            unless the query itself looks like an API question.
         limit: Number of results (1-25).
         mode: "hybrid" (default, best), "dense" (meaning only) or "bm25" (keywords only).
     """
@@ -53,7 +56,10 @@ def docs_search(query: str, library: str | None = None, version: str | None = No
     if mode not in ("hybrid", "dense", "bm25"):
         mode = "hybrid"
     vec = None if mode == "bm25" else d["emb"].query(query)
-    hits = search(d["client"], d["s"], vec, query, mode=mode, library=library, version=version, limit=limit)
+    if doc_type not in (None, "", "guide", "api", "release-notes"):
+        return 'doc_type must be "guide", "api" or "release-notes".'
+    hits = search(d["client"], d["s"], vec, query, mode=mode, library=library, version=version,
+                  doc_type=doc_type or None, limit=limit)
     if not hits:
         scope = f" in {library}{' ' + version if version else ''}" if library else ""
         return f"No results{scope}. Check docs_list for available libraries and versions."
@@ -61,7 +67,7 @@ def docs_search(query: str, library: str | None = None, version: str | None = No
     for i, h in enumerate(hits, 1):
         body = h.text if len(h.text) <= 1500 else h.text[:1500] + "\n…(truncated; use docs_read)"
         src = f"\nweb: {h.source_url}" if h.source_url else ""
-        out.append(f"### {i}. {h.library} {h.version} — {h.breadcrumb}\n"
+        out.append(f"### {i}. {h.library} {h.version} ({h.doc_type}) — {h.breadcrumb}\n"
                    f"file: {h.path} lines {h.start_line}-{h.end_line}{src}\n\n{body}")
     return "\n\n".join(out)
 
