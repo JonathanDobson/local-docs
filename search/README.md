@@ -108,7 +108,7 @@ whole library — about 6 hours for the 15,503 chunks — so it is only a qualit
 |---|---|---|---|---|---|
 | embeddinggemma | 0.733 | 0.758 | **0.801** | 0.526 | 18 min |
 | embeddinggemma-2 | 0.741 | 0.757 | 0.739 | 0.526 | 40 min |
-| qwen3-embedding:0.6b | _running_ | | | | ~2 h (est.) |
+| qwen3-embedding:0.6b | 0.708 | 0.704 | 0.667 | 0.526 | 61 min |
 | nomic-embed-text | _pending_ | | | | |
 
 ² All at `api_weight` 0.6. The question set covers Gitea and Milvus only; Next.js
@@ -121,7 +121,8 @@ is in the index as distractor text. ³ Scoped: each question limited to its libr
   search** (0.801 vs 0.733): BM25 now adds noise for that model. To check once
   all models are in — it may favour weighting the two lists (Milvus's weighted
   ranker) over plain RRF, or changing `rrf_k`.
-- embeddinggemma indexes 3× faster than qwen3-embedding:0.6b, which matters
+- The current default, qwen3-embedding:0.6b, scores lowest of the three on the
+  full corpus so far, and indexes 3× slower than embeddinggemma — which matters
   every time a docs set is ingested.
 
 ## Limits
