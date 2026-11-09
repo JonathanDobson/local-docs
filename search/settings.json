@@ -1,5 +1,5 @@
 {
-  "model": "qwen3-embedding:0.6b",
+  "model": "embeddinggemma",
   "dimensions": null,
   "ollama_url": "http://127.0.0.1:11434",
   "milvus_port": 19541,

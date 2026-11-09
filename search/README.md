@@ -78,58 +78,77 @@ API question getting worse; 0.6 is used. To be re-checked on the full corpus.
 
 ## Model choice
 
-**Status (2026-11-09): comparison still running.** `qwen3-embedding:0.6b` stays the
-default until it finishes. Rerun with `search/eval/bakeoff.sh`, summarise with
-`.venv/bin/python -m search.eval.report` (results land in `.search/eval/`, which
-is not committed, so the numbers are recorded here).
+**Status (2026-11-09): comparison complete** (four small models, both phases, all at
+`api_weight` 0.6). The default in `settings.json` is now **`embeddinggemma`**
+(was `qwen3-embedding:0.6b`), chosen from these results. Rerun with
+`search/eval/bakeoff.sh` (`BAKEOFF_BIG= search/eval/bakeoff.sh` skips the 4B model),
+summarise with `.venv/bin/python -m search.eval.report` (results land in
+`.search/eval/`, which is not committed, so the numbers are recorded here).
 
 Scores are MRR (mean reciprocal rank: 1.0 means the right page is always first)
-and r@k (share of questions whose right page is in the top k).
+and r@k (share of questions whose right page is in the top k). Phase-2 scores were
+measured on both a GTX 1650 PC and an M1 Pro Mac: embeddinggemma matched to within
+0.001 and qwen3-embedding:0.6b to within 0.005, but embeddinggemma-2 scored about
+0.015–0.02 lower on the Mac. Treat MRR differences under ~0.02 as noise. The tables
+show the Mac run.
 
 ### Phase 1 — Gitea only (1,839 chunks, 30 questions)
 
-| Model | Hybrid MRR | Hybrid r@1 | Dense MRR | Index speed (chunks/s) | Query embed |
+| Model | Hybrid MRR | Hybrid r@1 | Dense MRR | Index time, GTX 1650 | Index time, M1 Pro ¹ |
 |---|---|---|---|---|---|
-| qwen3-embedding:4b ¹ | **0.894** | 0.80 | 0.875 | 0.7 (spills to CPU) | 424 ms |
-| embeddinggemma-2 | 0.867 | 0.77 | 0.856 | 11.3 | 70 ms |
-| embeddinggemma | 0.861 | 0.73 | **0.903** | 15.8 | 68 ms |
-| qwen3-embedding:0.6b | 0.831 (0.853 ¹) | 0.70 | 0.752 | ~2.9 | 86 ms |
-| nomic-embed-text | 0.790 | 0.67 | 0.786 | 5.1 | 88 ms |
+| qwen3-embedding:4b ² | **0.894** | 0.80 | 0.875 | ~44 min (spills to CPU) | not run |
+| embeddinggemma | 0.883 | 0.77 | **0.903** | 2 min | 15 min |
+| embeddinggemma-2 | 0.872 | **0.80** | 0.829 | 3 min | 11 min |
+| qwen3-embedding:0.6b | 0.853 | 0.73 | 0.755 | ~11 min | 21 min |
+| nomic-embed-text | 0.798 | 0.67 | 0.786 | 6 min | 5 min |
 | BM25 only (no model) | 0.634 | 0.50 | — | — | — |
 
-¹ Scored with `api_weight` 0.6; the other rows were scored before API weighting
-existed (weight 1.0). They will be re-scored at both weights (eval only, no
-re-indexing). The 4B model is too slow on this GPU (GTX 1650, 4 GB) to index the
-whole library — about 6 hours for the 15,503 chunks — so it is only a quality ceiling.
+¹ The M1 Pro run shared Ollama with another indexing job and was short of memory
+for the first three models, and Ollama's runner stalled twice (see [Limits](#limits)),
+so its times are upper bounds, not a hardware comparison. ² Too slow on the GTX 1650
+(4 GB) to index the whole library — about 6 hours for 15,503 chunks — so it is only a
+quality ceiling.
 
-### Phase 2 — all docs sets (Gitea 28, Milvus 3.0, Next.js 16.4.5: 15,503 chunks, 60 questions) ²
+### Phase 2 — all docs sets (Gitea 28, Milvus 3.0, Next.js 16.4.5: 15,503 chunks, 60 questions) ³
 
-| Model | Hybrid MRR | Hybrid MRR, scoped ³ | Dense MRR | BM25 MRR | Index time |
-|---|---|---|---|---|---|
-| embeddinggemma | 0.733 | 0.758 | **0.801** | 0.526 | 18 min |
-| embeddinggemma-2 | 0.741 | 0.757 | 0.739 | 0.526 | 40 min |
-| qwen3-embedding:0.6b | 0.708 | 0.704 | 0.667 | 0.526 | 61 min |
-| nomic-embed-text | _interrupted: Ollama stopped halfway; rerun bakeoff.sh_ | | | | |
+| Model | Hybrid MRR | Hybrid MRR, scoped ⁴ | Dense MRR | BM25 MRR | Index time, GTX 1650 | Index time, M1 Pro |
+|---|---|---|---|---|---|---|
+| embeddinggemma | 0.733 | **0.759** | **0.801** | 0.526 | **18 min** | **33 min** |
+| embeddinggemma-2 | 0.721 | 0.748 | 0.725 | 0.526 | 40 min | 39 min |
+| qwen3-embedding:0.6b | 0.711 | 0.715 | 0.672 | 0.526 | 61 min | 82 min (one stall) |
+| nomic-embed-text | 0.649 | 0.652 | 0.687 | 0.526 | interrupted | 41 min |
 
-² All at `api_weight` 0.6. The question set covers Gitea and Milvus only; Next.js
-is in the index as distractor text. ³ Scoped: each question limited to its library.
+³ The question set covers Gitea and Milvus only; Next.js is in the index as
+distractor text. ⁴ Scoped: each question limited to its library. M1 Pro phase-2
+times are for the 13,670 chunks not already indexed in phase 1.
 
-### What it shows so far
+### What it shows
 
 - Hybrid beats BM25 alone by a wide margin with every model.
-- On the larger corpus, **embeddinggemma's meaning-only search beats its hybrid
-  search** (0.801 vs 0.733): BM25 now adds noise for that model. To check once
-  all models are in — it may favour weighting the two lists (Milvus's weighted
-  ranker) over plain RRF, or changing `rrf_k`.
-- The current default, qwen3-embedding:0.6b, scores lowest of the three on the
-  full corpus so far, and indexes 3× slower than embeddinggemma — which matters
-  every time a docs set is ingested.
+- **embeddinggemma is the best small model**: top or joint-top on every phase-2
+  score and the fastest to index on both machines, so it is now the default.
+  qwen3-embedding:0.6b, the previous default, is third on quality and the slowest
+  to index — which matters every time a docs set is ingested. On a machine that
+  has not run the bake-off, run `ollama pull embeddinggemma` and
+  `python -m search index` once.
+- On the full corpus, **meaning-only search beats hybrid search** for embeddinggemma
+  (0.801 vs 0.733) and for nomic-embed-text (0.687 vs 0.649): BM25 adds noise there.
+  Worth testing a weighted ranker (Milvus's `WeightedRanker`) or a different `rrf_k`
+  instead of plain RRF before settling the search mode.
+- The 4B model is only slightly better than embeddinggemma on Gitea (0.894 vs 0.883
+  hybrid) and far slower, so it is not worth the cost on either machine.
+- Next.js has no test questions yet; questions for it would make the corpus-wide
+  numbers more representative.
 
 ## Limits
 
 - Milvus Lite has only the `standard` analyzer — no stemming ("registering" won't
   keyword-match "registration"); meaning search covers that.
 - BM25 word statistics are per storage segment, not global, in Milvus Lite.
+- Ollama's model runner occasionally stalls mid-request (seen twice on an M1 Pro
+  during the bake-off, with two indexing jobs sharing Ollama). The indexer then waits
+  up to 10 minutes before retrying. `ollama stop <model>` clears it at once; the
+  indexer's retry loads a fresh runner.
 - Indexing speed is bound by the GPU (GTX 1650, 4 GB). See the throughput table.
 - Moving to Milvus Standalone 3.0 later (for the text highlighter, global BM25
   statistics, more analyzers) needs only a different URI in `config.py`; the
