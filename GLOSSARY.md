@@ -35,6 +35,15 @@ question, and what changed in this version.
 **TOC (table of contents)** — `TOC.md` inside each docs set, listing every
 document with its title. Generated; used when keyword searches miss.
 
+**Companions** — Other packages bundled in one docs set with their own version
+numbers, recorded in the manifest's `companions` field. Example: the Milvus 3.0
+set also documents the Python SDK pymilvus 3.0.2 and Milvus Lite 3.2.2.
+
+**Transclusion / includes** — When a docs site pulls the text of one file into
+another while building the site (e.g. `{{fragments/x.md}}`, or a Next.js page
+that only says `source: other/page`). Ingest copies the text in, so each stored
+page is complete on its own.
+
 **Coverage / gaps** — Fields in the manifest. Coverage says what was ingested;
 gaps says what a user might expect but isn't there (e.g. "blog not included").
 
@@ -308,6 +317,16 @@ different models can't be mixed. Lets models be compared side by side.
 each with the file(s) that answer it, checked by hand. `python -m search eval`
 runs them and reports recall@k and MRR; `search/eval/bakeoff.sh` does that for
 every candidate model.
+
+**Bake-off (model comparison)** — Indexing the same docs with several embedding
+models and scoring each on the question set, to pick the default by measurement
+rather than by public leaderboards. Script: `search/eval/bakeoff.sh`; results in
+the [Model choice](search/README.md#model-choice) section.
+
+**Version prefix matching** — Searching with version `16` or `16.4` also finds a
+docs set filed under an exact release such as `16.4.5`, so callers needn't know
+how precisely a folder was named. In `scope_filter` in
+[store.py](search/store.py).
 
 **Scoped search** — A search limited to one library (and optionally version),
 using the partition key. Agents should scope when they know the library.

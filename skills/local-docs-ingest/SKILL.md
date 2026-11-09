@@ -61,9 +61,17 @@ docs themselves use:
 - docs taken from an exact release tag → the exact version (`4.2.1`)
 - docs published per minor or major → that line (`5.2`, `28`)
 
+If both apply (a monorepo that tags every release, like Next.js, *and* a site
+that versions per major), the tag wins: name the folder after the exact
+release (`16.4.5`). Searches for `-v 16` or `-v 16.4` still match it. On a
+later refresh to a newer patch, create the new folder and ask the user whether
+to delete the old one.
+
 `manifest.json` `version` must equal the folder name (`finalize.py` checks).
 When the folder is a release line, also set `release` to the exact newest
-release you resolved (`"version": "28", "release": "28.3.0"`).
+release you resolved (`"version": "28", "release": "28.3.0"`). When the set
+bundles companion packages with their own versions (an SDK, a "lite" edition),
+list them in `companions`, e.g. `{"pymilvus": "3.0.2", "milvus-lite": "3.2.2"}`.
 
 ## 3. Find the best source
 
@@ -87,6 +95,12 @@ repository usually reveals where the docs are written.
    link on the live site is the most reliable pointer.
    → `tools/git_docs.sh <repo> <ref> <dest> <path>[=<subdir>] ...`
    (several paths, one clone; prints the commit SHA)
+   **Survey before copying:** `gh api 'repos/OWNER/REPO/git/trees/REF?recursive=1' -q '.tree[].path'`
+   lists every file without cloning, so you can choose paths and see sizes.
+   **Look for sibling repos:** SDK and API references often live in a separate
+   repo from the guides (Milvus: guides in `milvus-docs`, SDK references in
+   `web-content`). List the organisation's repos (`gh repo list ORG -L 200`) and
+   follow the API-reference links on the live site.
 2. **`llms-full.txt` / `llms.txt`** published by the docs site (try
    `<site>/llms-full.txt`, `<site>/<version>/llms-full.txt`). Check it is the
    right version and not just an index of links.
@@ -111,6 +125,10 @@ repository usually reveals where the docs are written.
    and the best input for the overview's "Version notes". Save them under
    `content/release-notes/` with source type `release-notes`:
    `gh release view <tag> -R owner/repo --json body -q .body > content/release-notes/<tag>.md`
+   When GitHub release notes are only lists of pull requests, the project's
+   release **announcement posts** are the readable version: save the official
+   ones for this version line under `content/release-notes/blog/` (also type
+   `release-notes`). Many sites serve them as Markdown (try `<post-url>.md`).
 
 To read one file elsewhere in a repo (build config, a version table), fetch it
 directly — `gh api repos/OWNER/REPO/contents/PATH?ref=REF -q .content | base64 -d`,
@@ -146,10 +164,11 @@ libraries/<slug>/<version>/
 ```
 
 Search classifies pages by folder, so keep to it: API reference pages (REST
-endpoints, SDK/client references) go under `api/` or a folder named
-`api-reference/`; release notes under `content/release-notes/` (or keep the
-upstream `release_notes.md` / `CHANGELOG.md` names). Everything else counts as a
-guide. Avoid a folder literally named `api` for guide pages.
+endpoints, SDK/client references) go under `api/` or a folder whose name ends in
+`api-reference/` (a numbered prefix such as `03-api-reference/` is fine);
+release notes under `content/release-notes/` (or keep the upstream
+`release_notes.md` / `CHANGELOG.md` names). Everything else counts as a guide.
+Avoid a folder literally named `api` for guide pages.
 
 Clean `content/` after fetching:
 
@@ -159,6 +178,21 @@ Clean `content/` after fetching:
   docs-generator metadata (`_category_.json`, `sidebars.*`, `_meta.json`,
   `mkdocs.yml` nav files), and translations other than English (unless the user
   asked for another language). Check what you are deleting before you delete it.
+- **Resolve what the site assembles at build time**, so each page reads as it
+  does on the live site. Look for these, and record what you did in `notes`:
+  - *Includes / transclusion*: `{{fragments/x.md}}`, `<include src=…>`, or stub
+    pages whose front matter says `source: other/page` and have no body (Next.js
+    Pages Router). Inline the referenced text; an empty stub is useless to search.
+  - *Product or variant conditionals*: `<include target="milvus">…`,
+    `<AppOnly>` / `<PagesOnly>`. Keep the variant this docs set is about and drop
+    the others.
+  - *Site-only components* (`<Tabs>`, `<Card>`, `<Image>`): leave them; list them
+    in `gaps` if they hide content.
+  - *Embedded structured data* (an MDX page holding an API operation as JSON):
+    render it to readable Markdown and keep the raw data only if no standalone
+    spec exists.
+  - *Translations inside English pages* (JSON keys like `x-i18n`, `zh-CN`): drop
+    them. Check with `rg -l '[\x{4e00}-\x{9fff}]' content/ | head`.
 - **Fill in build-time placeholders.** Some sites write markers such as
   `@version@`, `{{ site.version }}` or `%VERSION%` in their Markdown and replace
   them when building. Find where the site defines their values for this version
@@ -207,7 +241,7 @@ The live example is `libraries/gitea/28/manifest.json`.
   set — `finalize.py` checks it exists), `ref`/`commit` for git, and `license`
   when sources differ. Top-level `license` summarises them all.
 - `gaps` lists anything the user might expect that is missing — be honest.
-- `stats` is filled in by `finalize.py`; don't write it yourself.
+- `stats` is filled in by `finalize.py`; leave the key out (an empty `{}` is also fine).
 
 Write `OVERVIEW.md` — the page another agent reads before searching. Read enough
 of the docs to write it from the content, not from memory:
@@ -223,7 +257,8 @@ of the docs to write it from the content, not from memory:
    (e.g. "the config file is `app.ini`, sections are `[server]`…").
 
 **Then verify every factual claim in OVERVIEW.md against `content/`** before
-finishing: version numbers, renamed things, config key spellings, defaults,
+finishing — e.g. `rg -F -c 'FunctionType.TEXTEMBEDDING' content/` for each
+identifier you name (a count of 0 means the spelling is wrong): version numbers, renamed things, config key spellings, defaults,
 "formerly called X". Grep for each. Memory slips in easily here; delete any
 claim you can't find in the docs.
 

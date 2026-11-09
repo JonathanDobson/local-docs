@@ -51,7 +51,7 @@ claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
 | Embed | Ollama `/api/embed`, with the query/document wording each model was trained on. | [embed.py](embed.py), [config.py](config.py) |
 | Store | One row per chunk: library (partition key), version, path, lines, heading path, text, a dense vector, and a BM25 sparse vector built by Milvus from a keyword field (heading path + text + split identifiers, so `DISABLE_REGISTRATION` also matches "disable registration"). | [store.py](store.py) |
 | Index | Re-embeds only files whose content hash changed; deletes chunks of removed files. | [indexer.py](indexer.py) |
-| Search | Top 50 from each of BM25 and the dense index, filtered by library/version (and optionally doc type), merged with RRF (k=60). API reference results are then scaled by `api_weight` (0.6) unless the question looks like an API question. | [store.py](store.py) |
+| Search | Top 50 from each of BM25 and the dense index, filtered by library/version (a version like `16` or `16.4` also matches a folder named `16.4.5`) and optionally doc type, merged with RRF (k=60). API reference results are then scaled by `api_weight` (0.6) unless the question looks like an API question. | [store.py](store.py) |
 
 Compared with a typical codebase semantic search: no syntax-tree (AST) code
 splitting and no file watcher (docs only change when ingested), and keyword search
@@ -78,7 +78,51 @@ API question getting worse; 0.6 is used. To be re-checked on the full corpus.
 
 ## Model choice
 
-_Filled in from the comparison run — see below._
+**Status (2026-11-09): comparison still running.** `qwen3-embedding:0.6b` stays the
+default until it finishes. Rerun with `search/eval/bakeoff.sh`, summarise with
+`.venv/bin/python -m search.eval.report` (results land in `.search/eval/`, which
+is not committed, so the numbers are recorded here).
+
+Scores are MRR (mean reciprocal rank: 1.0 means the right page is always first)
+and r@k (share of questions whose right page is in the top k).
+
+### Phase 1 — Gitea only (1,839 chunks, 30 questions)
+
+| Model | Hybrid MRR | Hybrid r@1 | Dense MRR | Index speed (chunks/s) | Query embed |
+|---|---|---|---|---|---|
+| qwen3-embedding:4b ¹ | **0.894** | 0.80 | 0.875 | 0.7 (spills to CPU) | 424 ms |
+| embeddinggemma-2 | 0.867 | 0.77 | 0.856 | 11.3 | 70 ms |
+| embeddinggemma | 0.861 | 0.73 | **0.903** | 15.8 | 68 ms |
+| qwen3-embedding:0.6b | 0.831 (0.853 ¹) | 0.70 | 0.752 | ~2.9 | 86 ms |
+| nomic-embed-text | 0.790 | 0.67 | 0.786 | 5.1 | 88 ms |
+| BM25 only (no model) | 0.634 | 0.50 | — | — | — |
+
+¹ Scored with `api_weight` 0.6; the other rows were scored before API weighting
+existed (weight 1.0). They will be re-scored at both weights (eval only, no
+re-indexing). The 4B model is too slow on this GPU (GTX 1650, 4 GB) to index the
+whole library — about 6 hours for the 15,503 chunks — so it is only a quality ceiling.
+
+### Phase 2 — all docs sets (Gitea 28, Milvus 3.0, Next.js 16.4.5: 15,503 chunks, 60 questions) ²
+
+| Model | Hybrid MRR | Hybrid MRR, scoped ³ | Dense MRR | BM25 MRR | Index time |
+|---|---|---|---|---|---|
+| embeddinggemma | 0.733 | 0.758 | **0.801** | 0.526 | 18 min |
+| embeddinggemma-2 | 0.741 | 0.757 | 0.739 | 0.526 | 40 min |
+| qwen3-embedding:0.6b | _running_ | | | | ~2 h (est.) |
+| nomic-embed-text | _pending_ | | | | |
+
+² All at `api_weight` 0.6. The question set covers Gitea and Milvus only; Next.js
+is in the index as distractor text. ³ Scoped: each question limited to its library.
+
+### What it shows so far
+
+- Hybrid beats BM25 alone by a wide margin with every model.
+- On the larger corpus, **embeddinggemma's meaning-only search beats its hybrid
+  search** (0.801 vs 0.733): BM25 now adds noise for that model. To check once
+  all models are in — it may favour weighting the two lists (Milvus's weighted
+  ranker) over plain RRF, or changing `rrf_k`.
+- embeddinggemma indexes 3× faster than qwen3-embedding:0.6b, which matters
+  every time a docs set is ingested.
 
 ## Limits
 

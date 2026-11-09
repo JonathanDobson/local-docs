@@ -98,7 +98,7 @@ def create_collection(c: MilvusClient, name: str, dim: int) -> None:
 # Document type comes from where a file sits in its docs set, so it needs no extra
 # field (and no re-embedding): API reference under api/ or api-reference/, release
 # notes under release-notes/ or named release_notes / changelog; everything else is a guide.
-_API = "(path like '%/api/%' or path like '%/api-reference/%')"
+_API = "(path like '%/api/%' or path like '%api-reference/%')"   # also 03-api-reference/
 _NOTES = ("(path like '%/release-notes/%' or path like '%release_notes%' or "
           "path like '%/changelog%' or path like '%/CHANGELOG%')")
 DOC_TYPE_EXPR = {"api": _API, "release-notes": _NOTES, "guide": f"not {_API} and not {_NOTES}"}
@@ -107,7 +107,7 @@ DOC_TYPES = tuple(DOC_TYPE_EXPR)
 
 def doc_type_of(path: str) -> str:
     p = path.lower()
-    if "/api/" in p or "/api-reference/" in p:
+    if "/api/" in p or "api-reference/" in p:
         return "api"
     if "/release-notes/" in p or "release_notes" in p or "/changelog" in p:
         return "release-notes"
@@ -142,7 +142,8 @@ def scope_filter(library: str | None = None, version: str | None = None, path: s
     if library:
         parts.append(f"library == {_q(library)}")
     if version:
-        parts.append(f"version == {_q(version)}")
+        # "16" or "16.4" also matches folders named for an exact release (16.4.5).
+        parts.append(f"(version == {_q(version)} or version like {_q(version.replace('%', '') + '.%')})")
     if path:
         parts.append(f"path == {_q(path)}")
     return " and ".join(parts)
