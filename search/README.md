@@ -22,7 +22,8 @@ Run from `~/local-docs`:
 .venv/bin/python -m search search "question" -l gitea -k 5
 .venv/bin/python -m search stats                    # collections and chunk counts
 .venv/bin/python -m search eval                     # score against eval/questions.yaml
-.venv/bin/python -m search web                      # search page at http://127.0.0.1:7710
+.venv/bin/python -m search web                      # search page at http://127.0.0.1:7710 (foreground)
+tools/web.sh start|stop|restart|status              # same page in the background (PID, log in .search/)
 .venv/bin/python -m search down                     # stop the server
 ```
 

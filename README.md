@@ -32,11 +32,13 @@ the command line:
 .venv/bin/python -m search search "how do I stop people signing up" -l gitea
 ```
 
-Or search in a browser — start the page, then open http://127.0.0.1:7710:
+Or search in a browser — start the page in the background, then open http://127.0.0.1:7710:
 
 ```bash
-.venv/bin/python -m search web
+tools/web.sh start      # also: stop, restart, status; PORT=8000 for another port
 ```
+
+(`.venv/bin/python -m search web` runs it in the foreground instead.)
 
 Details, model choice and test results: [search/README.md](search/README.md).
 
