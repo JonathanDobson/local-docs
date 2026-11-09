@@ -1,6 +1,7 @@
 """Embeddings from a local Ollama server (POST /api/embed)."""
 from __future__ import annotations
 
+import http.client
 import json
 import time
 import urllib.error
@@ -25,7 +26,7 @@ class Embedder:
             try:
                 with urllib.request.urlopen(req, timeout=600) as r:
                     return json.loads(r.read())["embeddings"]
-            except urllib.error.URLError as exc:
+            except (urllib.error.URLError, http.client.HTTPException, ConnectionError) as exc:  # incl. Ollama dropping mid-request
                 if attempt == 3:
                     raise SystemExit(f"Ollama embed failed at {self.s.ollama_url}: {exc} — is `ollama serve` running "
                                      f"and is '{self.s.model}' pulled?")

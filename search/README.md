@@ -109,7 +109,7 @@ whole library — about 6 hours for the 15,503 chunks — so it is only a qualit
 | embeddinggemma | 0.733 | 0.758 | **0.801** | 0.526 | 18 min |
 | embeddinggemma-2 | 0.741 | 0.757 | 0.739 | 0.526 | 40 min |
 | qwen3-embedding:0.6b | 0.708 | 0.704 | 0.667 | 0.526 | 61 min |
-| nomic-embed-text | _pending_ | | | | |
+| nomic-embed-text | _interrupted: Ollama stopped halfway; rerun bakeoff.sh_ | | | | |
 
 ² All at `api_weight` 0.6. The question set covers Gitea and Milvus only; Next.js
 is in the index as distractor text. ³ Scoped: each question limited to its library.
