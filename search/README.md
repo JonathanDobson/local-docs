@@ -48,7 +48,7 @@ claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
 
 | Stage | What happens | Code |
 |---|---|---|
-| Chunk | Markdown split at headings (levels 1–4); each chunk carries its heading path. Long sections are packed from whole paragraphs, lists, code blocks and tables (~2,400 characters max). One chunk per API endpoint. | [chunker.py](chunker.py) |
+| Chunk | Markdown split at headings (levels 1–4); each chunk carries its heading path. Long sections are packed from whole paragraphs, lists, code blocks and tables (~2,400 characters max). A code block too long for one chunk is closed at the cut and reopened, with its language, in the next; code fences nest as in CommonMark (a ```` block can hold ``` examples). One chunk per API endpoint. | [chunker.py](chunker.py) |
 | Embed | Ollama `/api/embed`, with the query/document wording each model was trained on. | [embed.py](embed.py), [config.py](config.py) |
 | Store | One row per chunk: library (partition key), version, path, lines, heading path, text, a dense vector, and a BM25 sparse vector built by Milvus from a keyword field (heading path + text + split identifiers, so `DISABLE_REGISTRATION` also matches "disable registration"). | [store.py](store.py) |
 | Index | Re-embeds only files whose content hash changed; deletes chunks of removed files. | [indexer.py](indexer.py) |
