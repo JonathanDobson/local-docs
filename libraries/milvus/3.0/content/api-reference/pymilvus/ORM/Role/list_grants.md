@@ -1,0 +1,92 @@
+# list_grants()
+
+<div class="alert warning">
+
+**Deprecated.**
+
+This API is an ORM-style PyMilvus API and will be removed in PyMilvus 3.1. Use `MilvusClient` instead.
+
+</div>
+
+This operation lists all privileges granted to the current role.
+
+## Request Syntax
+
+```python
+list_grants(
+    db_name: str
+)
+```
+
+**PARAMETERS:**
+
+- **db_name** (*str*)
+
+    The name of a database in which Milvus carries out this operation.
+
+    If the specified database does not exist, an empty result returns.
+
+**RETURN TYPE:**
+
+*GrantInfo*
+
+**RETURNS:**
+
+A **GrantInfo** object that contains a list of **GrantItem** objects.
+
+```python
+├── GrantInfo
+│   └── groups  
+│       └── GrantItem
+│           ├── object
+│           ├── object_name
+│           ├── role_name
+│           ├── grantor_name
+│           ├── privilege
+│           └── db_name
+```
+
+The **GrantItem** objects contains the following fields:
+
+**EXCEPTIONS:**
+
+- **[MilvusException](../../Exceptions/MilvusException.md)**
+
+    This exception will be raised when any error occurs during this operation.
+
+## Example
+
+```python
+from pymilvus import Role
+
+# Get an existing role
+role = Role(name="admin")
+
+# List all privileges granted to the current role.
+res = role.list_grants(
+    db_name="default"
+)
+```
+
+## Related operations
+
+The following operations are related to `get_replicas()`:
+
+- [add_user()](add_user.md)
+
+- [create()](create.md)
+
+- [drop()](drop.md)
+
+- [get_users()](get_users.md)
+
+- [grant()](grant.md)
+
+- [is_exist()](is_exist.md)
+
+- [list_grant()](list_grant.md)
+
+- [remove_user()](remove_user.md)
+
+- [revoke()](revoke.md)
+

@@ -1,0 +1,129 @@
+# rename_collection()
+
+<div class="alert warning">
+
+**Deprecated.**
+
+This API is an ORM-style PyMilvus API and will be removed in PyMilvus 3.1. Use `MilvusClient` instead.
+
+</div>
+
+This operation renames an existing collection and optionally moves the collection to a new database.
+
+<div class="alert note">
+
+Aliases created for the target collection remain intact after this operation.
+
+</div>
+
+## Request Syntax
+
+```python
+rename_collection(
+    old_collection_name: str,
+    new_collection_name: str,
+    new_db_name: str = "default",
+    timeout: float | None,
+    using: str = "default",
+)
+```
+
+**PARAMETERS:**
+
+- **old_collection_name** (*str*) -
+
+    **[REQUIRED]**
+    The original name of the target collection.
+
+    Setting this to a non-existing collection results in a **[MilvusException](../../Exceptions/MilvusException.md)**.
+
+- **new_collection_name** (*str*) -
+
+    **[REQUIRED]**
+
+    The name of the target collection after this operation.
+
+    Setting this to the value of **old_collection_name** results in a **[MilvusException](../../Exceptions/MilvusException.md)**.
+
+- **new_db_name** (*str*) -
+
+    The name of the database to which the collection belongs after this operation.
+
+    The value defaults to an empty string, indicating that the collection stays in the current database. Setting this to a database rather than the one the collection belongs to before this operation moves this collection to the specified database.
+
+    Setting this to a non-existing database results in a **[MilvusException](../../Exceptions/MilvusException.md)**.
+
+- **using** (*str*) - 
+
+    The alias of the employed connection.
+
+    The default value is **default**, indicating that this operation employs the default connection.
+
+- **timeout** (*float* | *None*)  
+
+    The timeout duration for this operation. Setting this to **None** indicates that this operation timeouts when any response arrives or any error occurs.
+
+**RETURN TYPE:**
+
+*NoneType*
+
+**RETURNS:**
+
+None
+
+**EXCEPTIONS:**
+
+- **[MilvusException](../../Exceptions/MilvusException.md)**
+
+    This exception will be raised when any error occurs during this operation, especially when the specified alias does not exist.
+
+## Example
+
+```python
+from pymilvus import connections, Collection, CollectionSchema, FieldSchema, DataType, utility
+
+# Connect to localhost:19530
+connections.connect()
+
+# Create a collection
+collection = Collection(
+    name="test_collection_1",
+    schema=CollectionSchema([
+        FieldSchema("id", DataType.INT64, is_primary=True),
+        FieldSchema("vector", DataType.FLOAT_VECTOR, dim=5)
+    ])
+)
+
+# Renames a collection
+utility.rename_collection(
+    old_collection_name="test_collection_1",
+    new_collection_name="test_collection_2",
+)
+
+# Create a new database and rename the collection back
+from pymilvus import db
+db.create_database("new_database")
+
+utility.rename_collection(
+    old_collection_name="test_collection_2",
+    new_collection_name="test_collection_1",
+    new_db_name="new_database"
+)
+```
+
+## Related operations
+
+The following operations are related to `rename_collection()`:
+
+- [drop_collection()](drop_collection.md)
+
+- [flush_all()](flush_all.md)
+
+- [get_query_segment_info()](get_query_segment_info.md)
+
+- [has_collection()](has_collection.md)
+
+- [has_partition()](has_partition.md)
+
+- [list_collections()](list_collections.md)
+

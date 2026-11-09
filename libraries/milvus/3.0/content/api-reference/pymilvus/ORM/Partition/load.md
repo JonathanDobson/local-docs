@@ -1,0 +1,128 @@
+# load()
+
+<div class="alert warning">
+
+**Deprecated.**
+
+This API is an ORM-style PyMilvus API and will be removed in PyMilvus 3.1. Use `MilvusClient` instead.
+
+</div>
+
+This operation loads the data of the current partition into memory.
+
+<div class="alert note">
+
+Using the **partition_names** parameter in the **load()** method of a **[Collection](../Collection/Collection.md)** object is equivalent to using the **load()** method of corresponding **[Partition](Partition.md)** objects.
+
+</div>
+
+## Request Syntax
+
+```python
+load(
+    replica_number: int,
+    timeout: float | None
+)
+```
+
+**PARAMETERS:**
+
+- **replica_number** (*int*)
+
+    The number of replicas to load in the current partition. The default value is **1**, indicating that one replica in the current partition is loaded.
+
+- **timeout** (*float* | *None*)  
+
+    The timeout duration for this operation. Setting this to **None** indicates that this operation timeouts when any response arrives or any error occurs.
+
+- **resource_groups** (*list*) -
+
+    A specific set of resource groups into which the current collection is to be loaded.
+
+    If left unspecified, the default resource group applies.
+
+    <div class="alert note">
+    
+    A resource group can hold several or all of the query nodes in a Milvus instance.
+    
+    Setting this parameter for this operation makes Milvus loads the current collection to the query nodes in the specified resource groups.
+
+    </div>
+
+- **load_fields** (*str[]*) -
+
+    The names of the fields to load. 
+
+    If this parameter is left unspecified, Milvus loads all vector field indexes plus all scalar field data into memory. Setting this parameter makes Milvus load the data of the specified fields into memory, reducing memory usage and improving search performance.
+
+- **skip_load_dynamic_field** (*bool*) - 
+
+    Setting this to true makes Milvus skip loading the dynamic field, making it unavailable for filtering conditions and output fields for searches and queries.
+
+**RETURN TYPE:**
+
+*NoneType*
+
+**RETURNS:**
+
+*None*
+
+**EXCEPTIONS:**
+
+- **[MilvusException](../../Exceptions/MilvusException.md)**
+
+    This arises when any error occurs during this operation.
+
+## Example
+
+```python
+from pymilvus import connections, Collection, Partition, CollectionSchema, FieldSchema, DataType
+
+# Connect to localhost:19530
+connections.connect()
+
+schema = CollectionSchema([
+    FieldSchema("id", DataType.INT64, is_primary=True),
+    FieldSchema("vector", DataType.FLOAT_VECTOR, dim=5)
+])
+
+# Create a collection
+collection = Collection(
+    name="test_collection",
+    schema=schema
+)
+
+# Create an index on the vector field
+collection.create_index(
+    field_name="vector",
+    index_params={
+        "index_type": "AUTOINDEX",
+        "metric_type": "COSINE",
+    },
+)
+
+# Create a partition
+partition = Partition(
+    collection=collection,
+    name="test_partition"
+)
+
+# Load a partition with one replica of the collection data
+partition.load()
+
+# Load a partition with two replicas of the collection data
+partition.load(
+    replica_number=2
+)
+```
+
+## Related operations
+
+The following operations are related to `load()`:
+
+- [drop()](drop.md)
+
+- [get_replicas()](get_replicas.md)
+
+- [release()](release.md)
+

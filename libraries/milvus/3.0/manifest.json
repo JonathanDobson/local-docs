@@ -1,0 +1,82 @@
+{
+  "name": "Milvus",
+  "slug": "milvus",
+  "version": "3.0",
+  "release": "3.0.5",
+  "requested": "milvus docs, latest stable version",
+  "kind": "application",
+  "summary": "Open-source vector database, release line 3.0 (v3.0.5): Lite/Standalone/Distributed deployment, schema and field types, vector/sparse/scalar indexes, BM25 full text search, analyzers, text/phrase match, highlighter, hybrid search and rerankers (RRF, weighted, boost, decay, model), embedding functions, multi-tenancy, admin/config reference, PyMilvus 3.0.2 SDK reference, RESTful API reference, Milvus Lite 3.2.2 README and design notes, release notes.",
+  "homepage": "https://milvus.io",
+  "docs_url": "https://milvus.io/docs",
+  "license": "Apache-2.0 (milvus-docs, web-content, milvus-lite and pymilvus repositories)",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/milvus-io/milvus-docs.git",
+      "ref": "v3.0.x",
+      "path": "site/en",
+      "commit": "877809ac11cfa2b2f5e2ee8933477830dd1b76dd",
+      "dest": "content/docs",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/milvus-io/web-content.git",
+      "ref": "master",
+      "path": "API_Reference/pymilvus/v3.0.x",
+      "commit": "09253c2a79f5b02ef9d85e370a33dc94facba949",
+      "dest": "content/api-reference/pymilvus",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/milvus-io/web-content.git",
+      "ref": "master",
+      "path": "API_Reference_MDX/milvus-restful/v3.0.x",
+      "commit": "09253c2a79f5b02ef9d85e370a33dc94facba949",
+      "dest": "content/api-reference/restful",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/milvus-io/milvus-lite.git",
+      "ref": "v3.2.2",
+      "path": "README.md, docs/*.md (top level only)",
+      "commit": "7a9955f2b5e0f6d8dd8c02e7a054386bcc8e75f4",
+      "dest": "content/milvus-lite",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/milvus-io/pymilvus/releases (v3.0.0, v3.0.1, v3.0.2, via gh release view)",
+      "dest": "content/release-notes/pymilvus",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/milvus-io/milvus-lite/releases (v3.0.0 to v3.2.2, via gh release view)",
+      "dest": "content/release-notes/milvus-lite",
+      "license": "Apache-2.0"
+    }
+  ],
+  "ingested_at": "2026-11-09",
+  "coverage": "All English Milvus 3.0.x docs as served on milvus.io/docs (about, get started and install for Lite/Standalone/Distributed/GPU, user guide: collections, schema and field types, analyzers/tokenizers/filters, indexes, insert/delete, search/query incl. full text search, text match, phrase match, highlighter, hybrid search, search aggregation; embedding functions and rerankers; admin guide; system configuration reference; architecture; FAQ; tutorials; integrations; AI tools), Milvus server release notes v3.0-beta to v3.0.5 (docs/release_notes.md), the full PyMilvus 3.0.x API reference (MilvusClient, ORM, EmbeddingModels, Rerankers, DataImport, FileResource), the Milvus RESTful API v1/v2 reference for 3.0.x (converted to Markdown), the Milvus Lite v3.2.2 README and design notes, and PyMilvus 3.0.x and Milvus Lite 3.x release notes.",
+  "gaps": [
+    "Node.js, Go, Java, C#, C++ and Rust SDK references are not included (they exist in milvus-io/web-content for v3.0.x); only PyMilvus and RESTful",
+    "The docs repo is versioned per branch (v3.0.x), not tagged per patch release; taken from the branch head. The API references come from the master branch of web-content (folder v3.0.x)",
+    "Milvus server GitHub release pages were not saved separately; the docs' own release_notes.md covers v3.0-beta to v3.0.5",
+    "Milvus 2.6.x docs (still maintained, latest 2.6.26) are not included",
+    "Zilliz Cloud docs, the Milvus blog and the bootcamp notebooks (linked from tutorials) are not included",
+    "Images were never in the source Markdown (it links to images on S3); those links stay and will not resolve offline",
+    "RESTful reference pages were converted from MDX (embedded OpenAPI operation JSON) into Markdown; no single OpenAPI spec file is published for 3.0.x, so there is no api/ folder",
+    "Milvus Lite design notes (content/milvus-lite/docs/) are developer design documents and some sections describe planned work; the README is the authoritative feature list",
+    "Milvus Lite docs/superpowers/ (AI-agent planning files) were not included"
+  ],
+  "notes": "Latest stable Milvus release resolved from GitHub releases: v3.0.5 (2026-10-30); 2.6.26 is a maintenance line. milvus.io publishes docs per minor line (v3.0.x branch of milvus-io/milvus-docs; version.json says released), so the folder is '3.0'. The docs site's {{var.*}} placeholders were substituted from site/en/Variables.json on that branch: milvus_release_version/milvus_release_tag/milvus_image=3.0.5, milvus_python_sdk_version=3.0.x, milvus_python_sdk_real_version=3.0.2, milvus_lite_version=3.2.2, milvus_node_sdk_real_version=3.0.6, milvus_java_sdk_real_version=3.0.12, milvus_go_sdk_real_version=3.0.0, milvus_operator_version=1.3.7, milvus_helm_chart_version=5.0.22, woodpecker_release_version=0.1.46, milvus_backup_release=0.5.16, product_name=Milvus, example_endpoint=http://localhost:19530, example_token=root:Milvus (and the rest of that file). {{fragments/NAME.md}} includes were replaced with the text of site/en/fragments/NAME.md (the fragments folder is kept). {{tab}} lines (a version/method tab-bar UI marker) were removed. Remaining {{...}} are user-fill placeholders in commands ({{coords_ip}}, {{query}}) or the unused fragments/tail.md. Removed non-doc files: Variables.json, menuStructure/en.json (sidebar), home/home.json (landing-page cards). RESTful MDX pages were converted to Markdown with a one-off script: the embedded `specs` JSON was rendered as parameters/request/response lists, x-i18n (zh-CN/ja-JP translations) and x-added-at bookkeeping keys dropped, and <include target=\"milvus\"> kept while <include target=\"zilliz\"> was removed. One RESTful page (v2/Import (v2)/Get Progress.md) has an upstream Chinese response description ('成功' = success). Downloaded docs contain example LLM prompts in RAG code and 'Full prompt' sections in aiTools/ meant to be pasted into coding assistants; these are content, not instructions.",
+  "stats": {
+    "files": 1052,
+    "doc_files": 1052,
+    "spec_files": 0,
+    "megabytes": 8.49
+  }
+}

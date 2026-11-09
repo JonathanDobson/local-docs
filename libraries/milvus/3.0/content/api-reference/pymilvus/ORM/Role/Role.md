@@ -1,0 +1,76 @@
+# Role
+
+<div class="alert warning">
+
+**Deprecated.**
+
+This API is an ORM-style PyMilvus API and will be removed in PyMilvus 3.1. Use `MilvusClient` instead.
+
+</div>
+
+A **Role** instance represents a role with specific privileges to access your Milvus instanceZilliz Cloud clusters.
+
+```python
+class pymilvus.Role
+```
+
+## Constructor
+
+Constructs a role by name and other parameters.
+
+```python
+Role(
+    name: str,
+    using: str
+)
+```
+
+<div class="alert note">
+
+Calling the constructor alone does not create the role. You have to explicitly call the `create()` method of the role object to create the role.
+
+</div>
+
+**PARAMETERS:**
+
+- **name** (*string*) - 
+
+    **[REQUIRED]**
+
+    The name of the role to create.
+
+- **using** (*string*) - 
+
+    The alias of the employed connection.
+
+    The default value is **default**, indicating that this operation employs the default connection.
+
+**RETURN TYPE:**
+
+*Role*
+
+**RETURNS:**
+
+A role object.
+
+**EXCEPTIONS:**
+
+- **[MilvusException](../../Exceptions/MilvusException.md)**
+
+    This exception will be raised when any error occurs during this operation.
+
+## Example
+
+```python
+from pymilvus import Role
+
+# Create a role
+role = Role(
+    name="admin",
+)
+```
+
+## Methods
+
+The following are the methods of the `Role` class:
+

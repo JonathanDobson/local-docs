@@ -1,0 +1,427 @@
+---
+id: gaussian-decay.md
+title: "Gaussian Decay"
+summary: "Gaussian decay, also known as normal decay, creates the most natural-feeling adjustment to your search results. Like human vision that gradually blurs with distance, Gaussian decay creates a smooth, bell-shaped curve that gently reduces relevance as items move away from your ideal point. This approach is ideal when you want a balanced decay that doesn't harshly penalize items just outside your preferred range but still significantly reduces the relevance of distant items."
+beta: Milvus 2.6.x
+---
+
+# Gaussian Decay
+
+Gaussian decay, also known as normal decay, creates the most natural-feeling adjustment to your search results. Like human vision that gradually blurs with distance, Gaussian decay creates a smooth, bell-shaped curve that gently reduces relevance as items move away from your ideal point. This approach is ideal when you want a balanced decay that doesn't harshly penalize items just outside your preferred range but still significantly reduces the relevance of distant items.
+
+Unlike other decay rankers:
+
+- Exponential decay drops sharply at first, creating a stronger initial penalty
+
+- Linear decay decreases at a constant rate until reaching zero, creating a clear cutoff
+
+Gaussian decay provides a more balanced, intuitive approach that feels natural to users.
+
+## When to use Gaussian decay
+
+Gaussian decay is particularly effective for:
+
+<table>
+   <tr>
+     <th><p>Use Case</p></th>
+     <th><p>Example</p></th>
+     <th><p>Why Gaussian Works Well</p></th>
+   </tr>
+   <tr>
+     <td><p>Location-based searches</p></td>
+     <td><p>Restaurant finders, store locators</p></td>
+     <td><p>Mimics natural human perception of distance relevance</p></td>
+   </tr>
+   <tr>
+     <td><p>Content recommendations</p></td>
+     <td><p>Article suggestions based on publication date</p></td>
+     <td><p>Gradual decline in relevance as content ages</p></td>
+   </tr>
+   <tr>
+     <td><p>Product listings</p></td>
+     <td><p>Items priced near a target</p></td>
+     <td><p>Smooth relevance decline as prices deviate from target</p></td>
+   </tr>
+   <tr>
+     <td><p>Expertise matching</p></td>
+     <td><p>Finding professionals with relevant experience</p></td>
+     <td><p>Balanced assessment of experience relevance</p></td>
+   </tr>
+</table>
+
+If your application requires a natural feeling of declining relevance without harsh penalties or strict cutoffs, Gaussian decay is likely your best choice.
+
+## Bell curve principle
+
+Gaussian decay creates a smooth, bell-shaped curve that gradually reduces relevance as distance increases from an ideal point. Named after mathematician Carl Friedrich Gauss, this distribution appears frequently in nature and statistics, which explains why it feels so intuitive to human perception.
+
+![Gaussian Decay](https://milvus-docs.s3.us-west-2.amazonaws.com/assets/gaussian-decay.png)
+
+The graph above shows how Gaussian decay would affect restaurant rankings in a mobile search app:
+
+- `origin` (0 km): Your current location, where relevance is at its maximum (1.0).
+
+- `offset` (±300 m): The "perfect score zone" around you—all restaurants within 300 meters maintain full relevance scores (1.0), ensuring that very nearby options aren't needlessly penalized for tiny distance differences.
+
+- `scale` (±2 km): The distance at which relevance drops to the decay value—restaurants exactly 2 kilometers away have their relevance scores halved (0.5).
+
+- `decay` (0.5): The score at the scale distance—this parameter essentially controls how quickly scores diminish with distance.
+
+As you can see from the curve, restaurants beyond 2 km continue to decrease in relevance but never quite reach zero. Even restaurants 4-5 kilometers away retain some minimal relevance, allowing excellent but distant restaurants to still appear in your results (albeit ranked lower).
+
+This behavior mimics how people naturally think about distance relevance—nearby places are preferred, but we're willing to travel farther for exceptional options.
+
+## Formula
+
+The mathematical formula for calculating a Gaussian decay score is:
+
+$$
+S(doc) = \exp\left( -\frac{\left( \max\left(0, \left|fieldvalue_{doc} - origin\right| - offset \right) \right)^2}{2\sigma^2} \right)
+$$
+
+Where:
+
+$$
+\sigma^2 = -\frac{scale^2}{2 \cdot \ln(decay)}
+$$
+
+Breaking this down in plain language:
+
+1. Calculate how far the field value is from the origin: $|fieldvalue_{doc} - origin|$
+
+2. Subtract the offset (if any) but never go below zero: $\max(0, distance - offset)$
+
+3. Square this adjusted distance: $(adjusted\_distance)^2$
+
+4. Divide by $2\sigma^2$, which is calculated from your scale and decay parameters
+
+5. Take the negative exponent, which gives you a value between 0 and 1: $\exp(-value)$
+
+The $\sigma^{2}$ calculation converts your scale and decay parameters into the standard deviation squared for the Gaussian distribution. This is what gives the function its characteristic bell shape.
+
+## Use Gaussian decay
+
+Gaussian decay can be applied to both standard vector search and hybrid search operations in Milvus. Below are the key code snippets for implementing this feature.
+
+<div class="alert note">
+
+Before using decay functions, you must first create a collection with appropriate numeric fields (like timestamps, distances, etc.) that will be used for decay calculations. For complete working examples including collection setup, schema definition, and data insertion, refer to [Tutorial: Implement Time-based Ranking in Milvus](tutorial-implement-a-time-based-ranking-in-milvus.md).
+
+</div>
+
+### Create a decay ranker
+
+After your collection is set up with a numeric field (in this example, `distance` in meters from the user), create a Gaussian decay ranker:
+
+<div class="multipleCode">
+    <a href="#python">Python</a>
+    <a href="#java">Java</a>
+    <a href="#go">Go</a>
+    <a href="#rust">Rust</a>
+    <a href="#cpp">C++</a>
+    <a href="#javascript">NodeJS</a>
+    <a href="#csharp">C#</a>
+    <a href="#bash">cURL</a>
+</div>
+
+```python
+from pymilvus import Function, FunctionType
+
+# Create a Gaussian decay ranker for location-based restaurant search
+rerank = Function(
+    name="restaurant_distance_decay",     # Function identifier
+    input_field_names=["distance"],       # Numeric field for distance in meters
+    function_type=FunctionType.RERANK,    # Function type. Must be RERANK
+    params={
+        "reranker": "decay",              # Specify decay reranker
+        "function": "gauss",              # Choose Gaussian decay
+        "origin": 0,                      # Your current location (0 meters)
+        "offset": 300,                    # 300m no-decay zone
+        "decay": 0.5,                     # Half score at scale distance
+        "scale": 2000                     # 2 km scale (2000 meters)
+    }
+)
+```
+
+```java
+import io.milvus.v2.service.vector.request.ranker.DecayRanker;
+import java.util.Collections;
+
+DecayRanker rerank = DecayRanker.builder()
+        .name("restaurant_distance_decay")
+        .inputFieldNames(Collections.singletonList("distance"))
+        .function("gauss")
+        .origin(0)
+        .offset(300)
+        .decay(0.5)
+        .scale(2000)
+        .build();
+```
+
+```go
+import "github.com/milvus-io/milvus/client/v3/entity"
+
+rerank := entity.NewFunction().
+    WithName("restaurant_distance_decay").
+    WithType(entity.FunctionTypeRerank).
+    WithInputFields("distance").
+    WithParam("reranker", "decay").
+    WithParam("function", "gauss").
+    WithParam("origin", "0").
+    WithParam("offset", "300").
+    WithParam("decay", "0.5").
+    WithParam("scale", "2000")
+```
+
+```rust
+use milvus::v2::prelude::*;
+
+let rerank = Function::new()
+    .name("restaurant_distance_decay")
+    .function_type(FunctionType::Rerank)
+    .input_fields(vec!["distance"])
+    .param("reranker", "decay")
+    .param("function", "gauss")
+    .param("origin", "0")
+    .param("offset", "300")
+    .param("decay", "0.5")
+    .param("scale", "2000");
+```
+
+```cpp
+auto rerank = std::make_shared<milvus::DecayRerank>("restaurant_distance_decay");
+rerank->AddInputFieldName("distance");
+rerank->SetFunction("gauss");
+rerank->SetOrigin(0);
+rerank->SetScale(2000);
+rerank->SetOffset(300);
+rerank->SetDecay(0.5);
+```
+
+```javascript
+import { FunctionType } from "@zilliz/milvus2-sdk-node";
+
+const rerank = {
+  name: "restaurant_distance_decay",
+  input_field_names: ["distance"],
+  type: FunctionType.RERANK,
+  params: {
+    reranker: "decay",
+    function: "gauss",
+    origin: 0,
+    offset: 300,
+    decay: 0.5,
+    scale: 2000,
+  },
+};
+```
+
+```csharp
+using Milvus.Client.V2.Types;
+
+// Create a Gaussian decay ranker for location-based restaurant search
+DecayRerank rerank = new DecayRerank("restaurant_distance_decay") // Function identifier
+    .WithInputField("distance")                        // Numeric field for distance in meters
+    .WithFunction("gauss")                             // Choose Gaussian decay
+    .WithOrigin(0)                                     // Your current location (0 meters)
+    .WithOffset(300)                                   // 300m no-decay zone
+    .WithDecay(0.5f)                                   // Half score at scale distance
+    .WithScale(2000);                                  // 2 km scale (2000 meters)
+```
+
+```bash
+rerank='{
+  "name": "restaurant_distance_decay",
+  "type": "Rerank",
+  "inputFieldNames": ["distance"],
+  "params": {
+    "reranker": "decay",
+    "function": "gauss",
+    "origin": 0,
+    "offset": 300,
+    "decay": 0.5,
+    "scale": 2000
+  }
+}'
+```
+
+### Apply to standard vector search
+
+After defining your decay ranker, you can apply it during search operations by passing it to the `ranker` parameter:
+
+<div class="multipleCode">
+    <a href="#python">Python</a>
+    <a href="#java">Java</a>
+    <a href="#go">Go</a>
+    <a href="#rust">Rust</a>
+    <a href="#cpp">C++</a>
+    <a href="#javascript">NodeJS</a>
+    <a href="#csharp">C#</a>
+    <a href="#bash">cURL</a>
+</div>
+
+```python
+# Apply decay ranker to restaurant vector search
+result = milvus_client.search(
+    collection_name,
+    data=[your_query_vector],         # Replace with your query vector
+    anns_field="dense",                   # Vector field to search
+    limit=10,                             # Number of results
+    output_fields=["name", "cuisine", "distance"],  # Fields to return
+    #  highlight-next-line
+    ranker=rerank,                        # Apply the decay ranker
+    consistency_level="Strong"
+)
+```
+
+```java
+import io.milvus.v2.common.ConsistencyLevel;
+import io.milvus.v2.service.vector.request.FunctionScore;
+import io.milvus.v2.service.vector.request.SearchReq;
+import io.milvus.v2.service.vector.request.data.FloatVec;
+import io.milvus.v2.service.vector.response.SearchResp;
+import java.util.Arrays;
+import java.util.Collections;
+
+SearchReq searchReq = SearchReq.builder()
+        .collectionName(COLLECTION_NAME)
+        .data(Collections.singletonList(new FloatVec(new float[]{0.1f, 0.2f, 0.3f, 0.4f}))) // Replace with your query vector
+        .annsField("dense")
+        .limit(10)
+        .outputFields(Arrays.asList("name", "cuisine", "distance"))
+        .functionScore(FunctionScore.builder()
+                .addFunction(rerank)
+                .build())
+        .consistencyLevel(ConsistencyLevel.STRONG)
+        .build();
+SearchResp searchResp = client.search(searchReq);
+```
+
+```go
+import (
+    "fmt"
+
+    "github.com/milvus-io/milvus/client/v3/entity"
+    "github.com/milvus-io/milvus/client/v3/milvusclient"
+)
+
+results, err := client.Search(ctx, milvusclient.NewSearchOption(
+    "restaurant_db", 10,
+    []entity.Vector{entity.FloatVector{0.1, 0.2, 0.3, 0.4}}). // Replace with your query vector
+    WithANNSField("dense").
+    WithOutputFields("name", "cuisine", "distance").
+    WithFunctionReranker(rerank).
+    WithConsistencyLevel(entity.ClStrong))
+if err != nil {
+    fmt.Println(err.Error())
+}
+```
+
+```rust
+use milvus::v2::prelude::*;
+
+let search_req = SearchRequest::builder()
+    .collection_name("restaurant_db")
+    .vector_field("dense")
+    .vectors(SearchVectors::Float(vec![vec![0.1f32, 0.2, 0.3, 0.4]]))
+    .limit(10)
+    .output_fields(vec!["name", "cuisine", "distance"])
+    .rerank(FunctionScore::new().add_function(rerank))
+    .consistency_level(ConsistencyLevel::Strong)
+    .build()?;
+
+let res = client.search(search_req).await?;
+println!("{:?}", res.results());
+```
+
+```cpp
+auto function_score = std::make_shared<milvus::FunctionScore>();
+function_score->AddFunction(rerank);
+
+auto request = milvus::SearchRequest()
+                   .WithCollectionName(collection_name)
+                   .WithAnnsField("dense")
+                   .WithRerank(function_score)
+                   .WithLimit(10)
+                   .AddOutputField("name")
+                   .AddOutputField("cuisine")
+                   .AddOutputField("distance")
+                   .AddFloatVector(your_query_vector)
+                   .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+milvus::SearchResponse response;
+auto status = client->Search(request, response);
+if (!status.IsOk()) {
+    std::cout << status.Message() << std::endl;
+}
+```
+
+```javascript
+const result = await milvusClient.search({
+  collection_name: collection_name,
+  data: [your_query_vector], // Replace with your query vector
+  anns_field: "dense",
+  limit: 10,
+  output_fields: ["name", "cuisine", "distance"],
+  rerank: rerank,
+  consistency_level: "Strong",
+});
+```
+
+```csharp
+using Milvus.Client.V2;
+using Milvus.Client.V2.Requests.Dql;
+using Milvus.Client.V2.Responses.Dql;
+using Milvus.Client.V2.Types;
+
+MilvusClientV2 client = new(new ConnectConfig
+{
+    Uri = "http://localhost:19530",
+    ApiKey = "root:Milvus"
+});
+
+float[] queryVector = [0.1f, 0.2f, 0.3f, 0.4f]; // Replace with your query vector
+
+// Apply decay ranker to restaurant vector search
+SearchResp resp = await client.SearchAsync(new SearchReq
+{
+    CollectionName = "restaurant_db",
+    VectorFieldName = "dense",
+    Vectors = [queryVector],
+    Limit = 10,
+    Parameters = new SearchParameters
+    {
+        OutputFields = { "name", "cuisine", "distance" },
+        FunctionScoreReranker = rerank,
+        ConsistencyLevel = ConsistencyLevel.Strong
+    }
+});
+```
+
+```bash
+export CLUSTER_ENDPOINT="http://localhost:19530"
+export TOKEN="root:Milvus"
+
+curl --request POST \
+--url "${CLUSTER_ENDPOINT}/v2/vectordb/entities/search" \
+--header "Authorization: Bearer ${TOKEN}" \
+--header "Content-Type: application/json" \
+-d '{
+    "collectionName": "restaurant_db",
+    "data": [[0.1, 0.2, 0.3, 0.4]],
+    "annsField": "dense",
+    "limit": 10,
+    "outputFields": ["name", "cuisine", "distance"],
+    "functionScore": {
+        "functions": [
+            {
+                "name": "restaurant_distance_decay",
+                "type": "Rerank",
+                "inputFieldNames": ["distance"],
+                "params": {"reranker": "decay", "function": "gauss", "origin": 0, "offset": 300, "decay": 0.5, "scale": 2000}
+            }
+        ]
+    },
+    "consistencyLevel": "Strong"
+}'
+```

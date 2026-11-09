@@ -1,0 +1,69 @@
+# truncate_collection()
+
+This operation removes all entities while preserving the collection's schema, constraints, and indexes. It is more efficient than deleting entities because it hides all entities flushed before the current timestamp from searches and queries and drops them in the background.
+
+<div class="alert note">
+
+This does not apply to external collections.
+
+</div>
+
+## Request Syntax
+
+```python
+truncate_collection(
+    collection_name: str, 
+    timeout: Optional[float] = None
+)
+```
+
+**PARAMETERS:**
+
+- **collection_name** *(string)* –
+
+    **[REQUIRED]**
+
+    The name of the target collection.
+
+- **timeout** *(float)* –
+
+    Timeout (in seconds) for the RPC request. If `None`, the call waits indefinitely.
+
+**RETURN TYPE:**
+
+*None*
+
+**RETURNS:**
+
+None
+
+**EXCEPTIONS:**
+
+- **CollectionNotExists**
+
+    This exception will be raised when the specified collection does not exist.
+
+## Example
+
+```python
+from pymilvus import MilvusClient, DataType
+
+client = MilvusClient(
+    uri="http://localhost:19530",
+    token="root:Milvus"
+)
+
+# Create a collection and insert some data
+client.create_collection(
+    collection_name="my_collection",
+    dimension=5
+)
+client.insert(
+    collection_name="my_collection",
+    data=[{"id": i, "vector": [0.1] * 5} for i in range(10)]
+)
+
+client.truncate_collection(
+    collection_name="my_collection"
+)
+```

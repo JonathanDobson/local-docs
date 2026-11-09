@@ -1,0 +1,103 @@
+# Partition
+
+<div class="alert warning">
+
+**Deprecated.**
+
+This API is an ORM-style PyMilvus API and will be removed in PyMilvus 3.1. Use `MilvusClient` instead.
+
+</div>
+
+A **Partition** instance represents a partition within a collection.
+
+```python
+class pymilvus.Partition
+```
+
+## Constructor
+
+Constructs a partition in a collection by name, description, and other parameters. 
+
+<div class="alert note">
+
+When using partitions, ensure that **enable_partition_key** is not set to **True** in the collection schema. Otherwise, an error will occur.
+
+</div>
+
+```python
+Partition(
+    collection=collection, 
+    name="string",
+    description="string",
+)
+```
+
+**PARAMETERS:**
+
+- **[collection](../Collection/Collection.md)** (*[Collection](../Collection/Collection.md)* | *str*) - 
+
+    **[REQUIRED]**
+
+    The collection in which to create a partition. 
+
+    You can either reference a **[Collection](../Collection/Collection.md)** object or its name.
+
+    <div class="alert note">
+    
+    A collection collects data in a two-dimensional table with a fixed number of columns and a variable number of rows. In the table, each column corresponds to a field, and each row represents an entity.
+    
+    A collection can support up to 64 partitions.
+
+    </div>
+
+- **name** (*string*) - 
+
+    **[REQUIRED]**
+
+    The name of the partition to create.
+
+- **description** (*string*) - 
+
+    The description of the partition to create.
+
+**RETURN TYPE:**
+
+*Partition*
+
+**RETURNS:**
+
+A **Partition** object.
+
+**EXCEPTIONS:**
+
+- **[MilvusException](../../Exceptions/MilvusException.md)**
+
+    This exception will be raised when any error occurs during this operation.
+
+## Example
+
+```python
+from pymilvus import connections, Collection, Partition, CollectionSchema, FieldSchema, DataType
+
+# Connect to localhost:19530
+connections.connect()
+
+schema = CollectionSchema([
+    FieldSchema("id", DataType.INT64, is_primary=True),
+    FieldSchema("vector", DataType.FLOAT_VECTOR, dim=5)
+])
+
+# Create a collection
+collection = Collection(
+    name="book",
+    schema=schema
+)
+
+# Create a partition object in the current collection
+partition = Partition(collection, "novel", "")
+```
+
+## Members
+
+The following are the members of the `Partition` class:
+

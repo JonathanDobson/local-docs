@@ -1,0 +1,539 @@
+---
+id: release_notes.md
+summary: Milvus Release Notes
+title: Release Notes
+---
+
+# Release Notes
+
+Find out what's new in Milvus! This page summarizes new features, improvements, known issues, and bug fixes in each release. We suggest that you regularly visit this page to learn about updates.
+
+## v3.0.5
+
+Release date: October 30, 2026
+
+| Milvus Version | Python SDK Version | Node.js SDK Version | Java SDK Version | Go SDK Version |
+| -------------- | ------------------ | ------------------- | ---------------- | -------------- |
+| 3.0.5          | 3.0.2              | 3.0.6               | 3.0.12           | 3.0.0          |
+
+We are excited to announce the release of Milvus v3.0.5! This release adds resource-group-aware load status in QueryCoord, reduces memory use in several paths. It also fixes stability issues around coordinator restarts, rolling upgrades and transient etcd errors.
+
+### Improvements
+
+- Added per-resource-group load percentage and shard-leader readiness in QueryCoord, and tagged each shard leader with its replica's resource group, so queries can be routed within a single resource group ([#52500](https://github.com/milvus-io/milvus/pull/52500), [#52711](https://github.com/milvus-io/milvus/pull/52711))
+- Reduced copying in unscored Tantivy term queries by borrowing decoded postings blocks directly ([#54469](https://github.com/milvus-io/milvus/pull/54469))
+- Upgraded Knowhere to v3.0.17 and moved nullable vector offset mapping behind Knowhere APIs ([#54473](https://github.com/milvus-io/milvus/pull/54473))
+- Reduced memory allocations when encoding batched RESTful query and search responses by reusing per-request encoding buffers ([#54540](https://github.com/milvus-io/milvus/pull/54540))
+- Improved text analyzer performance by reusing compiled regexes and per-filter search caches in analyzer filters ([#54570](https://github.com/milvus-io/milvus/pull/54570))
+- Added an opt-in two-tier mix compaction planner (`dataCoord.compaction.twoTierCompaction`, default off) to reduce compaction write amplification ([#54589](https://github.com/milvus-io/milvus/pull/54589))
+- Reduced timestamp index memory usage when loading small sealed segments ([#54659](https://github.com/milvus-io/milvus/pull/54659))
+- Added the missing `status="fail"` label to the `internal_storage_op_count` metric for failed `get` operations; the old unlabeled series stops and the new series starts from zero ([#54637](https://github.com/milvus-io/milvus/pull/54637))
+- Allowed hyphens in resource group names after the first character, matching the naming rules for partitions ([#54679](https://github.com/milvus-io/milvus/pull/54679))
+- Reduced memory allocations in compaction merge sort by reusing output columns across records ([#54718](https://github.com/milvus-io/milvus/pull/54718))
+
+### Bug fixes
+
+- Fixed an issue where collections with struct array fields could force-load raw embedding-list vectors on first search or after cache eviction, increasing memory usage and query latency ([#54167](https://github.com/milvus-io/milvus/pull/54167))
+- Fixed an issue where upserts on CMEK-enabled collections wrote the delete part (primary keys and timestamps) to the WAL without encryption ([#54478](https://github.com/milvus-io/milvus/pull/54478))
+- Fixed an issue where `ST_DWITHIN` filters returned fewer rows on segments with an RTREE index than on unindexed segments; empty geometries no longer match `ST_DWITHIN`, consistent with PostGIS ([#54611](https://github.com/milvus-io/milvus/pull/54611))
+- Fixed an issue where writes to Storage V3 segments could stall after a coordinator restart because the next flush used a column layout that conflicted with the committed manifest ([#54652](https://github.com/milvus-io/milvus/pull/54652))
+- Fixed an issue where QueryNode could panic while replaying encrypted WAL messages from a dropped database that shared a physical channel with other collections ([#54640](https://github.com/milvus-io/milvus/pull/54640))
+- Fixed an issue where partial upserts failed on collections with nullable struct array fields when the field was omitted and the batch contained new primary keys ([#54619](https://github.com/milvus-io/milvus/pull/54619))
+- Fixed an issue where index state was incorrectly reported as Failed when a partition was dropped while the index state was being queried ([#54670](https://github.com/milvus-io/milvus/pull/54670))
+- Fixed a data race when serializing sync task statistics concurrently with task execution ([#54610](https://github.com/milvus-io/milvus/pull/54610))
+- Fixed an issue where specifying a non-integer max_length for a field returned a raw parsing error instead of an invalid-parameter error naming the field ([#54694](https://github.com/milvus-io/milvus/pull/54694))
+- Fixed a panic when stopping MixCoord during rolling upgrades that caused a core dump and left the old pod stuck in Terminating for several minutes ([#54732](https://github.com/milvus-io/milvus/pull/54732))
+- Fixed an issue where Milvus Backup could not replicate the flush positions returned by FlushAll ([#54745](https://github.com/milvus-io/milvus/pull/54745))
+- Fixed an issue where MixCoord and other components crashed on transient etcd errors such as leader changes, which could stall scale-down; they now retry and re-watch until etcd recovers ([#54754](https://github.com/milvus-io/milvus/pull/54754))
+- Fixed an issue where stopping all query nodes of a cluster at the same time could hang for up to the graceful stop timeout (30 minutes by default); renamed `queryNode.standaloneMigrateDataTimeout` to `queryNode.migrateDataTimeout`, and the old key still works ([#54813](https://github.com/milvus-io/milvus/pull/54813))
+- Fixed an issue where, after switching the message queue (for example from Pulsar to Woodpecker), query nodes could keep reconnecting from an incompatible position and stop consuming data ([#54811](https://github.com/milvus-io/milvus/pull/54811))
+- Fixed an issue where fields named after contextual keywords such as `iso` or `interval` could be created but not used in filter expressions; `LIKE`, `AND`, `OR`, `NOT` and `IN` are now rejected as field names in any casing when creating a collection or adding a field ([#54770](https://github.com/milvus-io/milvus/pull/54770))
+- Fixed an issue where the coordinator could crash when a client disconnected during a SuspendNode request while an etcd write was being retried ([#54802](https://github.com/milvus-io/milvus/pull/54802))
+
+## v3.0.4
+
+Release date: October 26, 2026
+
+| Milvus Version | Python SDK Version | Node.js SDK Version | Java SDK Version | Go SDK Version |
+| -------------- | ------------------ | ------------------- | ---------------- | -------------- |
+| 3.0.4          | 3.0.2              | 3.0.6               | 3.0.10           | 3.0.0          |
+
+We are excited to announce the release of Milvus v3.0.4! This release speeds up bulk import, compaction, and filtered and grouped search, adds lazy column-group loading for Storage V3, and fixes hangs in import, collection loading, and partial-update writes, along with several access control issues and CVEs.
+
+### Improvements
+
+- Improved sort compaction read throughput by reading input chunks in parallel and prefetching byte ranges eagerly ([#53437](https://github.com/milvus-io/milvus/pull/53437))
+- Added support for precomputed sparse vectors in external collections backed by Parquet, Lance, and Vortex files ([#53894](https://github.com/milvus-io/milvus/pull/53894))
+- Refactored Proxy DML tasks into a dedicated package to separate task responsibilities ([#54064](https://github.com/milvus-io/milvus/pull/54064))
+- Ensured all output fields of a search on sealed segments are filled from the same segment snapshot as the search itself ([#54074](https://github.com/milvus-io/milvus/pull/54074))
+- Added the `queryNode.segcore.tieredStorage.lazyColumnGroupEnabled` option (disabled by default) to defer loading Storage V3 column groups until first access, reducing segment load time and memory usage ([#54169](https://github.com/milvus-io/milvus/pull/54169))
+- Added `autoIndex.params.sparse.ip.build` and `autoIndex.params.sparse.bm25.build` to configure sparse AutoIndex build parameters separately for IP and BM25 metrics, falling back to `autoIndex.params.sparse.build` ([#54212](https://github.com/milvus-io/milvus/pull/54212))
+- Reduced health check latency on clusters with large segment metadata by no longer collecting DataCoord self metrics during CheckHealth ([#54214](https://github.com/milvus-io/milvus/pull/54214))
+- Improved DataCoord import scheduling performance for clusters with many import jobs by indexing import tasks by job ID ([#54202](https://github.com/milvus-io/milvus/pull/54202))
+- Reduced object storage list requests during garbage collection by scanning obsolete JSON stats prefixes once per GC cycle instead of once per segment ([#54207](https://github.com/milvus-io/milvus/pull/54207))
+- Improved `ARRAY_LENGTH` filter performance on sealed segments by reading lengths from existing array chunk offsets, raising QPS from 102 to 270 on a customer filter workload ([#54321](https://github.com/milvus-io/milvus/pull/54321))
+- Upgraded grpc-go to v1.84.0 so Proxy releases raw request buffers right after decoding, saving up to the full request size (61.5 MB for an nq=10000, 1536-dim search) of heap per in-flight large search ([#54271](https://github.com/milvus-io/milvus/pull/54271))
+- Added a hidden `streaming.partialUpdate.enableCAS` option (enabled by default) to turn off compare-and-swap checks for partial updates on StreamingNode, trading protection against concurrent stale updates for lower write overhead ([#54249](https://github.com/milvus-io/milvus/pull/54249))
+- Removed a spurious "status is nil" warning that Proxy logged on every successful query ([#54247](https://github.com/milvus-io/milvus/pull/54247))
+- Reduced memory allocations when decoding RESTful V2 insert and upsert requests, and stopped logging full request payloads on conversion failures ([#54403](https://github.com/milvus-io/milvus/pull/54403))
+- Reworked bulk import to assign exact per-file ID ranges after preimport, so import requests return immediately without sizing files up front, and fixed log ID exhaustion during import write retries ([#54416](https://github.com/milvus-io/milvus/pull/54416))
+- Added startup configuration options to override the interim index algorithm for IP and BM25 sparse vector fields ([#54441](https://github.com/milvus-io/milvus/pull/54441))
+- Upgraded Go to 1.26.9 and golang.org/x/net to v0.60.0 to address CVE-2026-78667, CVE-2026-97031, and CVE-2026-78669 ([#54451](https://github.com/milvus-io/milvus/pull/54451))
+- Improved search group-by on typed JSON paths in sealed segments by reading VARCHAR, BOOL, and integer group keys from JSON shredding stats instead of parsing raw JSON ([#54456](https://github.com/milvus-io/milvus/pull/54456))
+- Upgraded OpenTelemetry to 1.45.0 and cilium/ebpf to 0.22.0, and updated curl, tar, zlib, and glibc in runtime images to address CVE-2026-81870 and CVE-2026-10722 ([#54461](https://github.com/milvus-io/milvus/pull/54461))
+- Reduced redundant query-term conversion for indexed ARRAY_CONTAINS filters by converting terms only on cache miss ([#54459](https://github.com/milvus-io/milvus/pull/54459), [#54465](https://github.com/milvus-io/milvus/pull/54465))
+- Improved import throughput by scheduling import tasks continuously instead of waiting for each batch to finish ([#54471](https://github.com/milvus-io/milvus/pull/54471))
+- Added support for cluster-local Flush and FlushAll on both primary and secondary clusters in CDC replication setups ([#54502](https://github.com/milvus-io/milvus/pull/54502))
+- Isolated search fan-out work (PK filling, distance refinement, and output field materialization) into a dedicated thread pool so that searches no longer queue behind field and index loading ([#54524](https://github.com/milvus-io/milvus/pull/54524))
+
+### Bug fixes
+
+- Fixed an issue where a transient etcd read failure during startup could make the timestamp allocator issue timestamps older than previously allocated ones ([#51762](https://github.com/milvus-io/milvus/pull/51762))
+- Fixed an issue where import jobs could hang forever and block a pchannel's checkpoint, which previously required manual etcd repair and a StreamingNode restart ([#54111](https://github.com/milvus-io/milvus/pull/54111))
+- Fixed a Go SDK panic when inserting rows into collections with Timestamptz or Geometry fields ([#54131](https://github.com/milvus-io/milvus/pull/54131))
+- Fixed high write latency and write backlogs on a shard when partial updates were running, where each partial-update commit blocked all other writes on the same vchannel; partial updates now only block writes that touch the same primary keys ([#54215](https://github.com/milvus-io/milvus/pull/54215))
+- Fixed an issue where collection loading could hang indefinitely when a segment load or channel watch request got stuck; QueryCoord now enforces `queryCoord.channelTaskTimeout` (default 2 min) and `queryCoord.segmentTaskTimeout` (default 5 min) per task step, so increase the segment timeout if individual segment loads take longer ([#54217](https://github.com/milvus-io/milvus/pull/54217))
+- Fixed an issue where slow L0 compaction manifest commits on Storage V3 could stall flush and segment info requests in DataCoord ([#54186](https://github.com/milvus-io/milvus/pull/54186))
+- Fixed a potential crash when accessing AWS S3 storage, caused by native libraries bundling separate copies of the AWS runtime ([#54192](https://github.com/milvus-io/milvus/pull/54192))
+- Fixed an issue where low-priority segment loads (for example, during scale-down or balancing) loaded raw field data at high priority, competing with other loads and increasing search latency ([#54335](https://github.com/milvus-io/milvus/pull/54335))
+- Fixed an issue where loading StorageV3 packed scalar indexes (STL_SORT, MARISA) could use more memory than budgeted, and where load failures did not stop in-flight downloads promptly ([#54359](https://github.com/milvus-io/milvus/pull/54359))
+- Fixed an issue where GROUP BY aggregation queries with ORDER BY and LIMIT could return incomplete or incorrect aggregate values when results were merged across segments and nodes ([#54393](https://github.com/milvus-io/milvus/pull/54393))
+- Fixed an issue where, with authorization enabled, non-root users could access client telemetry administration APIs; these APIs now require the root user ([#54408](https://github.com/milvus-io/milvus/pull/54408))
+- Fixed an issue where users could view import job details for collections they lacked Import permission on by specifying a different database or a historical collection name ([#54449](https://github.com/milvus-io/milvus/pull/54449))
+- Fixed an issue where requests waiting on a QueryNode segment load could hang indefinitely, missing both load completion and cancellation ([#54452](https://github.com/milvus-io/milvus/pull/54452))
+- Fixed an issue where search aggregation `top_hits` could return the least similar results instead of the most similar ones for L2 and Hamming metrics when buckets were truncated ([#54458](https://github.com/milvus-io/milvus/pull/54458))
+- Fixed an issue where hybrid search with group-by could fail when output fields were returned from multiple shards ([#54457](https://github.com/milvus-io/milvus/pull/54457))
+- Fixed an issue where partial upserts that omitted a nullable or default-valued TIMESTAMPTZ field could fail or reject valid requests when new primary keys were present ([#54460](https://github.com/milvus-io/milvus/pull/54460), [#54464](https://github.com/milvus-io/milvus/pull/54464))
+- Fixed a memory leak when computing word-level MinHash signatures ([#54463](https://github.com/milvus-io/milvus/pull/54463))
+- Fixed an issue where RESTful v2 search silently ignored explicit group-by parameters such as a non-positive `groupSize` or `strictGroupSize`; invalid values are now rejected instead of falling back to defaults ([#54466](https://github.com/milvus-io/milvus/pull/54466))
+- Fixed an issue where Strong-consistency queries could wait for the next periodic time tick even after preceding writes had already been applied ([#54501](https://github.com/milvus-io/milvus/pull/54501))
+- Fixed an issue where the channel checkpoint stopped advancing for idle collections with TEXT fields after inserted data had been persisted while the segment remained Growing ([#54538](https://github.com/milvus-io/milvus/pull/54538))
+- Fixed an issue where snapshot manifests written by one Milvus version could fail to decode in another version; snapshot manifests are now self-describing Avro files ([#54549](https://github.com/milvus-io/milvus/pull/54549))
+- Fixed an issue where querying the replicate configuration on a cluster without replication configured blocked until the request timed out, and made replicate streams back off when the secondary rejects every message ([#54555](https://github.com/milvus-io/milvus/pull/54555))
+- Fixed an issue where partitions created after LoadCollection on a CDC secondary cluster were not loaded, causing queries on the secondary to miss their data ([#54561](https://github.com/milvus-io/milvus/pull/54561))
+- Fixed an issue where successful upserts counted the reported value twice in proxy metrics, overstating the reported amount ([#54605](https://github.com/milvus-io/milvus/pull/54605))
+
+## v3.0.3
+
+Release date: October 14, 2026
+
+| Milvus Version | Python SDK Version | Node.js SDK Version | Java SDK Version | Go SDK Version |
+| -------------- | ------------------ | ------------------- | ---------------- | -------------- |
+| 3.0.3          | 3.0.2              | 3.0.6               | 3.0.10           | 3.0.0          |
+
+We are excited to announce the release of Milvus v3.0.3! This release brings Function Chain to Hybrid Search, element-level partial updates for Array, Struct, and JSON fields, and `IS NULL` filtering on nullable vector fields, along with security hardening and a broad set of stability fixes; note the breaking changes to legacy V1 REST routes on the metrics port, binlog import privileges, and the default Pulsar producer access mode.
+
+### Features
+
+- Added Function Chain support to Hybrid Search, letting a top-level L2 chain starting with `merge` define fusion and reranking and letting each sub-search run its own L0/L1 chain before fusion ([#53541](https://github.com/milvus-io/milvus/pull/53541))
+- Added support for replacing individual Array elements, Struct array elements or their sub-fields, and JSON paths in partial updates, available in the Go SDK and REST v2 ([#53746](https://github.com/milvus-io/milvus/pull/53746))
+- Added dynamic field support to function chains in search and hybrid search ([#54011](https://github.com/milvus-io/milvus/pull/54011))
+- Added support for `IS NULL` and `IS NOT NULL` filter expressions on nullable vector fields, with batched validity checks for efficient evaluation ([#54020](https://github.com/milvus-io/milvus/pull/54020))
+
+### Improvements
+
+- Added optional root authentication for management endpoints on the metrics port (`common.security.adminAuthEnabled`, disabled by default) and redacted credentials and other sensitive values from configuration dumps, HTTP responses and logs ([#53499](https://github.com/milvus-io/milvus/pull/53499))
+- Preserved the primary keys of existing entities in full upsert on AutoID collections, assigning new IDs only to keys that are not found; such upserts now require the collection to be loaded ([#53511](https://github.com/milvus-io/milvus/pull/53511))
+- Added snappy and s2 gRPC compression algorithms, made the zstd codec configurable, and hardened gRPC decompression against oversized allocations ([#53598](https://github.com/milvus-io/milvus/pull/53598))
+- Blocked import paths that point into Milvus's internal storage directories and required the new cluster-level `ImportBinlog` privilege for binlog (`backup=true`) and L0 imports; this breaks non-admin roles that have only the collection-level `Import` privilege until they are granted `ImportBinlog` ([#53680](https://github.com/milvus-io/milvus/pull/53680))
+- Optimized bitset writes for Tantivy-backed index lookups, making writes of contiguous doc IDs about 7x faster in microbenchmarks ([#53700](https://github.com/milvus-io/milvus/pull/53700))
+- Reduced redundant payload and metadata copies in the C++ query execution path ([#53756](https://github.com/milvus-io/milvus/pull/53756))
+- Deferred loading of JSON stats for sealed segments until first use when warmup is disabled, so segments whose JSON stats are never queried no longer pay the load cost ([#53888](https://github.com/milvus-io/milvus/pull/53888))
+- Added an optional QueryCoord precheck that estimates memory and local disk demand before loading collections or partitions, with per-resource-group demand metrics ([#53905](https://github.com/milvus-io/milvus/pull/53905))
+- Reduced per-chunk overhead in filter expressions and group-by search on sealed segments by reading data through the request-pinned column snapshot ([#53984](https://github.com/milvus-io/milvus/pull/53984))
+- Accelerated RPC protobuf decoding with the fastPB decoder for search, query, insert, and upsert paths, enabled by default and controllable via `common.enableFastPB` ([#53995](https://github.com/milvus-io/milvus/pull/53995), [#54003](https://github.com/milvus-io/milvus/pull/54003))
+- Removed the legacy non-underscore `/api/v1/*` REST routes (including `/api/v1/health`) from the metrics port and added `proxy.http.enableV1` to disable the remaining V1 APIs; this is a breaking change, so clients should migrate to the V2 REST API or a gRPC SDK and use `/healthz` or `/livez` for health probes ([#54028](https://github.com/milvus-io/milvus/pull/54028))
+- Pinned the analyzer stemmer independently of Tantivy so built-in and custom analyzers keep producing the same stemmed tokens for existing text indexes across Tantivy upgrades ([#54097](https://github.com/milvus-io/milvus/pull/54097))
+- Reduced the delay in delivering completed asynchronous segcore results under heavy executor load, so finished results are released sooner instead of waiting behind queued work ([#54127](https://github.com/milvus-io/milvus/pull/54127))
+
+### Bug fixes
+
+- Fixed an issue where a two-phase import job with a `timeout` that expired during commit was failed and rolled back, removing data that was already visible to queries, and where dropping an import job did not stop its running tasks on DataNodes ([#53481](https://github.com/milvus-io/milvus/pull/53481))
+- Fixed an issue where, with Pulsar as the WAL, a StreamingNode could keep writing to a channel after another node took it over, causing committed rows to be lost; the default `pulsar.producerAccessMode` is now `exclusive`, which requires Pulsar 2.8.0 or later ([#53539](https://github.com/milvus-io/milvus/pull/53539))
+- Fixed an issue where Milvus standalone deployed with Docker Compose or `standalone_embed.sh` could fail to write to bind-mounted data directories owned by root, on both fresh installs and upgrades ([#53564](https://github.com/milvus-io/milvus/pull/53564), [#53615](https://github.com/milvus-io/milvus/pull/53615))
+- Fixed an issue where searches on growing segments with an interim index could intermittently fail with reduce errors while data was being inserted concurrently ([#53574](https://github.com/milvus-io/milvus/pull/53574))
+- Fixed an issue where a StreamingNode could use the wrong Woodpecker mode when `AlterWAL` ran right after the Woodpecker storage config was updated, which caused WAL recovery to hang after the next restart ([#53584](https://github.com/milvus-io/milvus/pull/53584))
+- Fixed an issue where inserts into collections with geometry fields could stall under sustained GIS query load when the geometry cache was enabled ([#53609](https://github.com/milvus-io/milvus/pull/53609))
+- Fixed an issue where Milvus could hang during shutdown or block on logging calls when the log output was stuck ([#53625](https://github.com/milvus-io/milvus/pull/53625))
+- Fixed an issue where refreshing an external collection from an invalid Milvus snapshot source, or from snapshot metadata that was malformed or used an unsupported version, did not fail promptly and could stay pending until timeout ([#53695](https://github.com/milvus-io/milvus/pull/53695), [#54034](https://github.com/milvus-io/milvus/pull/54034))
+- Fixed an issue where LIKE queries containing NUL characters on ngram-indexed fields could crash the QueryNode or return incorrect matches ([#53711](https://github.com/milvus-io/milvus/pull/53711))
+- Fixed an issue where the health check endpoint reported a node as ready before all of its components had finished registering ([#53735](https://github.com/milvus-io/milvus/pull/53735))
+- Fixed an issue where loading a collection could report completion while skipping recovered segments that had only a committed V3 manifest, leaving their data missing from query results ([#53782](https://github.com/milvus-io/milvus/pull/53782))
+- Fixed an issue where cross-bucket snapshot copies of large objects (around 2 GB) could time out on OSS; objects above the new configurable `minio.multipartCopyThreshold` (default 1 GiB) are now copied with server-side multipart copy ([#53789](https://github.com/milvus-io/milvus/pull/53789))
+- Fixed an issue where snapshot operations (create, drop, pin, unpin, export, and restore) could be throttled or rejected by collection DDL rate limits and DDL force-deny ([#53791](https://github.com/milvus-io/milvus/pull/53791))
+- Fixed an issue where Parquet import stored NULL instead of the field's default value for null rows in nullable Timestamptz fields ([#53808](https://github.com/milvus-io/milvus/pull/53808))
+- Fixed an issue where model-based rerankers could assign scores to the wrong documents when the rerank service returned results in a different order, producing incorrectly ranked search results ([#53813](https://github.com/milvus-io/milvus/pull/53813))
+- Fixed an issue where search and query requests could fail with `collection not loaded` for an extended period after a channel was rebalanced to another QueryNode ([#53814](https://github.com/milvus-io/milvus/pull/53814))
+- Fixed an issue where grouping search with strict group size could return groups with fewer than `group_size` results even when enough matching entities existed ([#53899](https://github.com/milvus-io/milvus/pull/53899))
+- Fixed an issue where users could view metadata of collections they had no access to through DescribeCollection, and could call segment-info and replica RPCs without the required privileges ([#54033](https://github.com/milvus-io/milvus/pull/54033))
+- Fixed an issue where `phrase_match` could match documents containing a repeated query term only once, and improved phrase-match performance by upgrading Tantivy ([#54030](https://github.com/milvus-io/milvus/pull/54030))
+- Fixed an issue where a malformed sparse vector in a Search or HybridSearch request could cause a heap out-of-bounds write in the query node; such requests are now rejected with `ParameterInvalid` ([#54035](https://github.com/milvus-io/milvus/pull/54035))
+- Fixed an issue where index build progress could miss committed import data or report Finished while flushed segments were still waiting to be sorted and indexed ([#54037](https://github.com/milvus-io/milvus/pull/54037))
+- Fixed an issue where RESTful insert and upsert returned success but stored JSON strings without quotes or silently rewrote numeric values; such inputs are now preserved or rejected, a `compatibilityMode` option restores the legacy conversion, and previously written rows are not repaired ([#54072](https://github.com/milvus-io/milvus/pull/54072))
+
+## v3.0.2
+
+Release date: September 20, 2026
+
+| Milvus Version | Python SDK Version | Node.js SDK Version | Java SDK Version | Go SDK Version |
+| -------------- | ------------------ | ------------------- | ---------------- | -------------- |
+| 3.0.2          | 3.0.2              | 3.0.6               | 3.0.10           | 3.0.2          |
+
+We are excited to announce the release of Milvus v3.0.2! This release focuses on search and query performance — removing hot-path contention in filtered search, group-by, and index building — along with stronger external collection and Storage V2 support, and a broad set of stability fixes across streaming, compaction, and index management.
+
+### Improvements
+
+- Optimized ARRAY filtering by merging chained contains predicates into a single `ContainsAny`/`ContainsAll` expression in the query planner ([#52365](https://github.com/milvus-io/milvus/pull/52365))
+- Added support for custom S3-compatible endpoints in external collections via the `extfs.endpoint_url` option, with validation of unsafe or conflicting endpoint settings ([#52814](https://github.com/milvus-io/milvus/pull/52814))
+- Unified Bloom and Roaring membership filters behind a single `membership_match` expression, with matching Go client support for building and querying both filter types ([#53019](https://github.com/milvus-io/milvus/pull/53019))
+- Reduced write amplification during Tantivy-based index building, lowering disk I/O for text match, NGRAM, and JSON key stats indexes ([#53057](https://github.com/milvus-io/milvus/pull/53057))
+- Added admission control on RESTful v2 DQL endpoints that returns HTTP 429 with `Retry-After` before request decoding when the proxy query queue is full ([#53111](https://github.com/milvus-io/milvus/pull/53111))
+- Reduced an atomic refcount hotspot in the scalar filter evaluation path that accounted for ~48% of leaf CPU time in search, improving filtered search throughput ([#53167](https://github.com/milvus-io/milvus/pull/53167))
+- Improved storage thread pool scalability by replacing the hand-rolled implementation with `folly::CPUThreadPoolExecutor` and restoring elastic worker scaling ([#53184](https://github.com/milvus-io/milvus/pull/53184))
+- Improved REST access log matching so formatters are matched against the parsed URL path, and configured methods now apply to requests carrying query parameters ([#53147](https://github.com/milvus-io/milvus/pull/53147))
+- Added idempotent broadcast support so retried requests no longer create duplicate tasks, with `BulkImport` as the first adopter ([#53228](https://github.com/milvus-io/milvus/pull/53228))
+- Added configurable sentence split characters for the Lindera tokenizer, allowing user dictionary entries containing punctuation to match as a single token ([#53287](https://github.com/milvus-io/milvus/pull/53287))
+- Added a cluster-version gate that automatically enables write-before function materialization only after all nodes finish upgrading, avoiding mixed-version inconsistency during rolling upgrades ([#53261](https://github.com/milvus-io/milvus/pull/53261))
+- Upgraded Woodpecker to v0.1.42, fixing WAL recovery failures on finalized empty segments and improving append-path stability and metrics ([#53295](https://github.com/milvus-io/milvus/pull/53295))
+- Reduced per-chunk atomic and reference-count overhead in the search and query hot path by pinning a sealed segment snapshot once per request ([#53301](https://github.com/milvus-io/milvus/pull/53301))
+- Improved partial update latency by replacing TimeTick waits with snapshot-based optimistic locking, and refined AutoID handling so existing primary keys are preserved and returned IDs keep the input order ([#53337](https://github.com/milvus-io/milvus/pull/53337))
+- Reduced redundant row-view construction when grouping search results by VARCHAR or JSON fields on sealed segments, lowering group-by search overhead ([#53500](https://github.com/milvus-io/milvus/pull/53500))
+- Added a compliance API that reports load configuration convergence globally and per resource group, covering replica serviceability, query visibility, residual resources and WAL placement ([#53517](https://github.com/milvus-io/milvus/pull/53517))
+
+### Bug fixes
+
+- Fixed an issue where queries could return incorrect results after a struct array field was dropped and re-added ([#52921](https://github.com/milvus-io/milvus/pull/52921))
+- Fixed SASL/SCRAM-SHA-256 authentication failures when connecting to Apache Kafka 4.x brokers by upgrading librdkafka to 2.6.1 ([#53086](https://github.com/milvus-io/milvus/pull/53086))
+- Fixed an issue where all channels of a replica were assigned to a single query node, causing repeated out-of-memory kills and leaving the replica unserviceable ([#53094](https://github.com/milvus-io/milvus/pull/53094))
+- Fixed repeated WAL fencing that stalled writes on a PChannel for 45-60 seconds every few minutes under sustained ingest ([#53118](https://github.com/milvus-io/milvus/pull/53118))
+- Fixed Storage V2 compaction dropping valid physical group paths, which could misalign packed column indexes in compacted segments ([#53202](https://github.com/milvus-io/milvus/pull/53202))
+- Fixed compaction logs printing collection encryption keys and object storage credentials ([#53226](https://github.com/milvus-io/milvus/pull/53226))
+- Fixed stale struct array offset aliases that could surface incorrect data after a sealed segment was reopened ([#53154](https://github.com/milvus-io/milvus/pull/53154))
+- Fixed file resource synchronization running before any resource was added, which could clear node-local files on startup or node registration ([#53170](https://github.com/milvus-io/milvus/pull/53170))
+- Fixed an issue where an incomplete binlog chunk could be silently treated as fully read, risking missing data in query and compaction results ([#53263](https://github.com/milvus-io/milvus/pull/53263))
+- Fixed an issue where storage of dropped segments was never reclaimed for collections without any active index ([#53252](https://github.com/milvus-io/milvus/pull/53252))
+- Fixed inaccurate resource estimation when loading sparse vector indexes, which could lead to incorrect raw-data handling and repeated warnings on QueryNode ([#53249](https://github.com/milvus-io/milvus/pull/53249))
+- Fixed an issue where a frozen streaming node outside the primary resource group could be unfrozen unexpectedly during rebalancing ([#53229](https://github.com/milvus-io/milvus/pull/53229))
+- Fixed a failure to connect to Google Cloud Storage where GCP credentials (IAM and HMAC) were not registered before the chunk manager pre-check ([#53288](https://github.com/milvus-io/milvus/pull/53288))
+- Fixed an issue where C++ logs were unexpectedly written to the `/tmp` directory instead of being forwarded to the unified log output ([#53293](https://github.com/milvus-io/milvus/pull/53293))
+- Fixed backfill commits failing with an HTTP 500 error when a Spark result spanned multiple partitions ([#53346](https://github.com/milvus-io/milvus/pull/53346))
+- Fixed a memory leak in DataNode where a canceled index-build or analyze task never released the native memory of the object it had already built ([#53348](https://github.com/milvus-io/milvus/pull/53348))
+- Fixed an issue where binlog import failed when a nullable vector field had no binlog files ([#53363](https://github.com/milvus-io/milvus/pull/53363))
+- Fixed incomplete or incorrect output fields when search and query requests read external table data ([#53372](https://github.com/milvus-io/milvus/pull/53372), [#53385](https://github.com/milvus-io/milvus/pull/53385))
+- Fixed duplicated sparse-vector rows and partition IDs in REST requests, plus memory ownership and cleanup issues that could cause crashes or leaks when queries exited early ([#53402](https://github.com/milvus-io/milvus/pull/53402))
+- Fixed an issue where a compaction reporting completion without a result payload could crash DataCoord or leave the compaction task stuck instead of being cleanly retried ([#53443](https://github.com/milvus-io/milvus/pull/53443))
+- Fixed an issue where properties of external data files were dropped when building segment manifests, causing external collections to lose source file metadata ([#53444](https://github.com/milvus-io/milvus/pull/53444))
+- Fixed a QueryNode crash that could occur when handling `count(*)` requests at debug log level, notably during rolling upgrades ([#53474](https://github.com/milvus-io/milvus/pull/53474))
+- Fixed an issue where index and stats build tasks kept consuming worker resources after their segment, index, or collection had been dropped, and improved cleanup of orphaned index files ([#53515](https://github.com/milvus-io/milvus/pull/53515))
+- Fixed local storage path handling so that data written by different components always lands where readers and garbage collection expect it, with automatic upgrade for existing local deployments ([#53530](https://github.com/milvus-io/milvus/pull/53530))
+- Fixed index build tasks retrying forever when a segment contained malformed JSON documents; such builds now fail fast instead of consuming worker resources indefinitely ([#53531](https://github.com/milvus-io/milvus/pull/53531))
+- Fixed concurrent snapshot restores targeting the same collection: restores are now serialized and a restore to an existing target is rejected with a clear "already exists in database" error instead of racing or leaking resources ([#53586](https://github.com/milvus-io/milvus/pull/53586))
+- Fixed binary encryption keys being corrupted across storage interfaces and misaligned cursors in projected Storage V2 packed readers by upgrading milvus-storage ([#53569](https://github.com/milvus-io/milvus/pull/53569))
+
+## v3.0.1
+
+Release date: September 9, 2026
+
+| Milvus Version | Python SDK Version | Node.js SDK Version | Java SDK Version | Go SDK Version |
+| -------------- | ------------------ | ------------------- | ---------------- | -------------- |
+| 3.0.1          | 3.0.1              | 3.0.5               | 3.0.9            | 3.0.1          |
+
+We are excited to announce the release of Milvus v3.0.1! This release adds REST v2 snapshot management, expanded reranking capabilities, and TEXT field support in the Go client and RESTful API, alongside performance improvements and fixes for Storage V3, data consistency, and security.
+
+### Features improvements
+
+- Added REST v2 APIs for collection-scoped native snapshot management and asynchronous restoration ([#52118](https://github.com/milvus-io/milvus/pull/52118), [#52172](https://github.com/milvus-io/milvus/pull/52172))
+- Added a configurable result-count threshold to control Take output path selection for search and query operations ([#52437](https://github.com/milvus-io/milvus/pull/52437))
+- Added TEXT field support to the Go client and RESTful API ([#52450](https://github.com/milvus-io/milvus/pull/52450))
+- Added configurable initial and maximum read IOPS rates for External Tables ([#52503](https://github.com/milvus-io/milvus/pull/52503))
+- Added an opt-in setting for external collection refresh jobs to wait until all segments are indexed before reporting completion, without delaying data publication ([#52712](https://github.com/milvus-io/milvus/pull/52712))
+- Added L1 reranking support to search function chains ([#52745](https://github.com/milvus-io/milvus/pull/52745))
+- Added weighted RRF reranking with optional per-ANN-request weights across FunctionScore, REST, legacy hybrid search, and the Go client ([#52891](https://github.com/milvus-io/milvus/pull/52891), [#52926](https://github.com/milvus-io/milvus/pull/52926))
+
+### Stability improvements
+
+- Improved memory safety in geometry RTree indexes and caches, and handling of unparseable WKB and empty-geometry queries ([#51312](https://github.com/milvus-io/milvus/pull/51312))
+- Improved memory management by restoring process-wide transient-memory budgeting and correcting memory estimates for concurrent Storage V2/V3 field loading and scalar V3 index loading ([#51405](https://github.com/milvus-io/milvus/pull/51405))
+- Reduced download bottlenecks and memory usage during external-collection index builds by parallelizing reads and streaming raw vector data to disk ([#51651](https://github.com/milvus-io/milvus/pull/51651))
+- Improved Woodpecker throughput for small-batch, high-concurrency workloads by batching client appends and exposing synchronization settings ([#51810](https://github.com/milvus-io/milvus/pull/51810))
+- Improved record-reader ownership and lifetime consistency, empty-blob handling, and read-error reporting across storage and compaction paths ([#51891](https://github.com/milvus-io/milvus/pull/51891))
+- Improved grouping hash-probe efficiency with a four-way interleaved pipeline and safeguards for collisions and rehash boundaries ([#51977](https://github.com/milvus-io/milvus/pull/51977))
+- Reduced insert processing overhead by skipping WAL insert-body parsing for collections without BM25 or MinHash output fields ([#51986](https://github.com/milvus-io/milvus/pull/51986))
+- Improved storage failure reporting and retry handling by preserving transient and permanent error classifications across execution layers ([#51990](https://github.com/milvus-io/milvus/pull/51990))
+- Improved spatial query performance by enabling GIS coarse/refine splitting and same-column predicate fusion by default ([#52008](https://github.com/milvus-io/milvus/pull/52008))
+- Improved text-indexing and JSON-shredding task scheduling with shared backlog-based admission control and alternating submission priority ([#52010](https://github.com/milvus-io/milvus/pull/52010))
+- Added mmap support for sealed segment offset mappings, with dedicated loading options and disk resource accounting ([#52035](https://github.com/milvus-io/milvus/pull/52035))
+- Optimized Storage V2 data loading by running per-column chunk memory estimation on demand ([#52037](https://github.com/milvus-io/milvus/pull/52037))
+- Added server-side AutoIndex support for indexes bound to new function output fields, allowing add_function_field requests to omit index parameters or specify AUTOINDEX ([#52109](https://github.com/milvus-io/milvus/pull/52109))
+- Reduced QueryNode distribution report payloads through incremental reporting with full-report fallback, and reduced memory allocations during metrics collection ([#52111](https://github.com/milvus-io/milvus/pull/52111), [#52119](https://github.com/milvus-io/milvus/pull/52119))
+- Improved password hashing strength by increasing the bcrypt cost from 4 to 10, with credential rotation required to upgrade existing hashes ([#52145](https://github.com/milvus-io/milvus/pull/52145))
+- Reduced redundant decoding during Parquet imports by reading only the required leaf columns for struct array subfields ([#52224](https://github.com/milvus-io/milvus/pull/52224))
+- Improved force-merge grouping with multi-round size-based planning and deprecated the legacy planning threshold setting ([#52242](https://github.com/milvus-io/milvus/pull/52242))
+- Upgraded cgosymbolizer to prevent Milvus processes running as PID 1 from hanging after native faults ([#52299](https://github.com/milvus-io/milvus/pull/52299))
+- Improved row-count validation for semantic highlighting inputs ([#52409](https://github.com/milvus-io/milvus/pull/52409))
+- Improved import retry control with configurable backoff for write retries ([#52414](https://github.com/milvus-io/milvus/pull/52414), [#52415](https://github.com/milvus-io/milvus/pull/52415), [#52427](https://github.com/milvus-io/milvus/pull/52427))
+- Improved analysis task lifecycle management by reclaiming stale statistics versions and persisting terminal states ([#52416](https://github.com/milvus-io/milvus/pull/52416), [#52417](https://github.com/milvus-io/milvus/pull/52417))
+- Improved segment lifecycle coordination by waiting for segment release after lock timeouts ([#52422](https://github.com/milvus-io/milvus/pull/52422))
+- Improved storage sorting for data compaction with a k-way merge ([#52429](https://github.com/milvus-io/milvus/pull/52429))
+- Reduced nullable-field validity buffer expansion by preserving packed masks across chunk access, expression evaluation, and JSON statistics ([#52451](https://github.com/milvus-io/milvus/pull/52451))
+- Improved protection of sensitive credentials, API keys, RBAC password hashes, and external collection source details by preventing their exposure in logs or error messages ([#52487](https://github.com/milvus-io/milvus/pull/52487), [#52664](https://github.com/milvus-io/milvus/pull/52664), [#52710](https://github.com/milvus-io/milvus/pull/52710))
+- Improved partial-update concurrency control with optimistic CAS validation and safe retries for eligible conflicts ([#52495](https://github.com/milvus-io/milvus/pull/52495))
+- Improved growing segment read snapshot stability and schema snapshot lifetime management ([#52572](https://github.com/milvus-io/milvus/pull/52572))
+- Reduced redundant scans of authorization metadata during backups ([#52612](https://github.com/milvus-io/milvus/pull/52612))
+- Improved nullable vector ID mapping by moving it into the index layer, unifying logical ID handling and supporting mmap-backed mappings for sealed indexes ([#52657](https://github.com/milvus-io/milvus/pull/52657))
+- Improved synchronization between Sonic JIT compilation and Go plugin loading in CPU and GPU builds ([#52738](https://github.com/milvus-io/milvus/pull/52738))
+- Improved Proxy write-path channel resolution through the metadata cache, eliminating redundant coordinator RPCs and improving error classification ([#52739](https://github.com/milvus-io/milvus/pull/52739))
+- Reduced recall calculation time from approximately 3.08 seconds to 18.5 milliseconds at topk=100000 in the reported benchmark ([#52763](https://github.com/milvus-io/milvus/pull/52763))
+- Optimized nullable-field filtering by reusing validity bitmaps, reducing redundant null-offset storage, and accelerating bitset copies ([#52801](https://github.com/milvus-io/milvus/pull/52801), [#52823](https://github.com/milvus-io/milvus/pull/52823), [#52825](https://github.com/milvus-io/milvus/pull/52825))
+- Improved hybrid scalar indexes on nested struct subfields by using STL_SORT when distinct element counts reach the bitmap cardinality limit ([#52849](https://github.com/milvus-io/milvus/pull/52849))
+- Improved the efficiency of segment ID filtering in the metadata cache ([#52855](https://github.com/milvus-io/milvus/pull/52855))
+- Reduced memory allocations in hash helper functions ([#52857](https://github.com/milvus-io/milvus/pull/52857))
+- Optimized sorting of merged rerank results by eliminating per-comparison map lookups ([#52885](https://github.com/milvus-io/milvus/pull/52885))
+- Improved memory safety when handling JSON default values and non-NUL-terminated string views ([#52906](https://github.com/milvus-io/milvus/pull/52906))
+- Improved C++ build times with scoped unity compilation, improved compiler caching, and reduced redundant compilation work ([#52995](https://github.com/milvus-io/milvus/pull/52995))
+- Improved filesystem metrics coverage and freshness by collecting metrics from cached filesystems at scrape time while preserving existing metric names and labels ([#53026](https://github.com/milvus-io/milvus/pull/53026))
+- Added a refreshable growingBuildThreadRate setting to configure threads per growing segment interim index build while retaining the single-threaded default ([#53033](https://github.com/milvus-io/milvus/pull/53033))
+- Added mmap field-data writeback support to 3.0 through a backport, with the disabled-by-default queryNode.mmap.writeback option ([#53079](https://github.com/milvus-io/milvus/pull/53079))
+
+### Bug fixes
+
+- Fixed incorrect results and inconsistent predicate validation in JSON, ARRAY, and TIMESTAMPTZ queries, including mixed-type predicates, large-number comparisons, and filtering across multiple batches ([#51775](https://github.com/milvus-io/milvus/pull/51775))
+- Fixed inconsistent refreshed data during parallel external collection refreshes when a segment's source files spanned multiple tasks ([#51893](https://github.com/milvus-io/milvus/pull/51893))
+- Fixed MATCH expressions accepting predicates that did not operate at the element level ([#51940](https://github.com/milvus-io/milvus/pull/51940))
+- Fixed searches with no matches failing with an unsupported ID type error ([#51999](https://github.com/milvus-io/milvus/pull/51999))
+- Fixed standalone Milvus hanging during shutdown by adding a configurable migration timeout with a 10-second default ([#52027](https://github.com/milvus-io/milvus/pull/52027))
+- Fixed external-table embedding requests using the wrong cluster identity when DataNode workers were shared across serving clusters ([#52042](https://github.com/milvus-io/milvus/pull/52042))
+- Fixed an issue that prevented updating integration_id and model_deployment_id for TextEmbedding functions ([#52081](https://github.com/milvus-io/milvus/pull/52081))
+- Fixed HTTP JSON responses omitting the explicit ok=false status for failed backfill segments ([#52082](https://github.com/milvus-io/milvus/pull/52082))
+- Fixed MinIO object uploads failing with HTTP 400 XAmzContentChecksumMismatch when retried after transport or low-speed timeouts ([#52128](https://github.com/milvus-io/milvus/pull/52128), [#52194](https://github.com/milvus-io/milvus/pull/52194))
+- Fixed segment balancing between QueryNodes stalling when Streaming Service was enabled ([#52147](https://github.com/milvus-io/milvus/pull/52147), [#52169](https://github.com/milvus-io/milvus/pull/52169))
+- Fixed silent data loss during mix compaction when retained records could not be rebuilt ([#52200](https://github.com/milvus-io/milvus/pull/52200))
+- Fixed snapshot restores losing collection settings and unexpectedly defaulting to Strong consistency ([#52206](https://github.com/milvus-io/milvus/pull/52206))
+- Fixed streaming deletes missing newly loaded sealed segments, allowing deleted data to remain queryable ([#52218](https://github.com/milvus-io/milvus/pull/52218))
+- Fixed nested indexes not being built correctly for empty data ([#52247](https://github.com/milvus-io/milvus/pull/52247))
+- Fixed deadlocks when switching to the streaming service that left operations waiting indefinitely ([#52292](https://github.com/milvus-io/milvus/pull/52292))
+- Fixed incorrect geometry default values during compaction and record rebuilds, and incorrect null markings for default-filled geometry values in Parquet imports ([#52350](https://github.com/milvus-io/milvus/pull/52350))
+- Fixed valid V3 segments being rejected during compaction and recovery after a DataCoord restart ([#52383](https://github.com/milvus-io/milvus/pull/52383), [#52389](https://github.com/milvus-io/milvus/pull/52389), [#52390](https://github.com/milvus-io/milvus/pull/52390), [#52391](https://github.com/milvus-io/milvus/pull/52391), [#52392](https://github.com/milvus-io/milvus/pull/52392), [#52393](https://github.com/milvus-io/milvus/pull/52393))
+- Fixed segment loading failures with a missing version metadata error when using hybrid scalar indexes on VARCHAR array sub-fields in structs ([#52385](https://github.com/milvus-io/milvus/pull/52385))
+- Fixed external columns failing to refresh when an updated manifest was reopened ([#52397](https://github.com/milvus-io/milvus/pull/52397))
+- Fixed incorrect timezone handling in searches with time-dependent conditions ([#52407](https://github.com/milvus-io/milvus/pull/52407))
+- Fixed incorrect handling of ArrayOfVector inputs in search requests ([#52408](https://github.com/milvus-io/milvus/pull/52408))
+- Fixed inserts failing to reject rows exceeding the supported size limit ([#52426](https://github.com/milvus-io/milvus/pull/52426))
+- Fixed interim indexes ignoring the configured target index version ([#52449](https://github.com/milvus-io/milvus/pull/52449))
+- Fixed queries using order_by failing to return dense vector output fields ([#52504](https://github.com/milvus-io/milvus/pull/52504), [#52606](https://github.com/milvus-io/milvus/pull/52606))
+- Fixed revoked privileges remaining effective after being removed from a privilege group ([#52554](https://github.com/milvus-io/milvus/pull/52554))
+- Fixed incorrect binlog file counts and storage format labels for Storage V3 segments after DataCoord restarts ([#52571](https://github.com/milvus-io/milvus/pull/52571), [#52578](https://github.com/milvus-io/milvus/pull/52578))
+- Fixed external snapshot restores stalling due to unreliable worker version checks or repeatedly retrying unsupported workers until timeout ([#52639](https://github.com/milvus-io/milvus/pull/52639))
+- Fixed segment loading failures for HYBRID indexes on struct-array subfields with legacy STLSORT files from 3.0.0, without requiring reindexing ([#52643](https://github.com/milvus-io/milvus/pull/52643))
+- Fixed crashes when processing zero-length Arrow C Data buffers ([#52652](https://github.com/milvus-io/milvus/pull/52652))
+- Fixed incorrect failure handling when loading or reopening Storage V3 segments after manifest errors, preserving existing segment state for safe retries ([#52678](https://github.com/milvus-io/milvus/pull/52678))
+- Fixed query failures when ARRAY element filters encountered full batches of NULL or empty arrays before later elements ([#52720](https://github.com/milvus-io/milvus/pull/52720))
+- Fixed backfill jobs committing stale embeddings after the collection schema changed ([#52789](https://github.com/milvus-io/milvus/pull/52789))
+- Fixed absent fields in Storage V3 records being returned as NULL instead of their declared default values ([#52790](https://github.com/milvus-io/milvus/pull/52790), [#52807](https://github.com/milvus-io/milvus/pull/52807), [#52888](https://github.com/milvus-io/milvus/pull/52888))
+- Fixed server-side copy failures that prevented Storage V3 snapshot restores on GCS with IAM/OAuth credentials, including copies of objects larger than 5 GiB ([#52792](https://github.com/milvus-io/milvus/pull/52792))
+- Fixed unauthenticated access through streaming gRPC calls on the external proxy port ([#52854](https://github.com/milvus-io/milvus/pull/52854))
+- Fixed data losing its original commit timestamps after clustering compaction ([#52859](https://github.com/milvus-io/milvus/pull/52859))
+- Fixed streaming node crashes caused by repeated flush failures after adding a TEXT field to collections with existing Storage V2 segments ([#52897](https://github.com/milvus-io/milvus/pull/52897))
+- Fixed expired rows in Storage V3 segments failing to trigger TTL-field-based compaction and remaining stored until another compaction condition was met ([#52931](https://github.com/milvus-io/milvus/pull/52931))
+- Fixed inconsistent auto-generated primary keys between source and target collections during CDC-replicated imports ([#52941](https://github.com/milvus-io/milvus/pull/52941))
+- Fixed concurrent writes being lost during WAL backend migration ([#52947](https://github.com/milvus-io/milvus/pull/52947), [#52951](https://github.com/milvus-io/milvus/pull/52951), [#52955](https://github.com/milvus-io/milvus/pull/52955))
+- Fixed rebuilt or compacted nested HYBRID indexes with high-cardinality data becoming unreadable after rollback to an older version ([#52959](https://github.com/milvus-io/milvus/pull/52959))
+- Fixed handling of null elements in external dense vector rows by accepting all-null nullable rows and adding configurable handling of partially null rows ([#52968](https://github.com/milvus-io/milvus/pull/52968))
+- Fixed incorrect V3 segment row counts and repeated sort compaction failures following streaming node failover ([#52970](https://github.com/milvus-io/milvus/pull/52970))
+- Fixed queries combining range conditions with OR omitting records at an inclusive lower bound ([#52998](https://github.com/milvus-io/milvus/pull/52998))
+- Fixed searches by primary key failing to preserve the requested ID order ([#52999](https://github.com/milvus-io/milvus/pull/52999))
+- Fixed an issue where adding a TEXT field after enabling Storage V3 prevented existing Storage V2 growing segments from loading, disrupting flush, sort, and index operations ([#53002](https://github.com/milvus-io/milvus/pull/53002))
+- Fixed snapshots including uncommitted Storage V3 segments, causing restores to report success while restored segments could not be loaded ([#53022](https://github.com/milvus-io/milvus/pull/53022), [#53039](https://github.com/milvus-io/milvus/pull/53039))
+- Fixed Storage V3 text indexes failing to load when their files were stored in nested task or version directories ([#53062](https://github.com/milvus-io/milvus/pull/53062))
+
+## v3.0.0
+
+Release date: July 29, 2026
+
+| Milvus Version | Python SDK Version | Node.js SDK Version | Java SDK Version | Go SDK Version |
+| -------------- | ------------------ | ------------------- | ---------------- | -------------- |
+| 3.0.0          | 3.0.1              | 3.0.3               | 3.0.5            | 3.0.0          |
+
+Milvus 3.0.0 is officially released! Building on the lake-native architecture introduced in [3.0-beta](https://milvus.io/docs/release_notes.md#v30-beta), this release completes what the beta started: External Collection covers more lakehouse workflows; schema supports online add / backfill / drop; the sparse index is rebuilt around SINDI; StructArray and faceted search round out the retrieval engine; FAISS passthrough, and TEXT extend index and modality choices; and Woodpecker runs as a standalone service.
+
+Watch the video below to learn more about Milvus 3.0 and AMA with core maintainers: 
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/SAm4YfrO1ok?si=87HTPnuH_xJtZda0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+If you are new to the 3.0 line, the Core 3.0 features recall section below summarizes the capabilities introduced in 3.0-beta; the [3.0-beta release notes](https://milvus.io/docs/release_notes.md#v30-beta) have the full write-ups.
+
+### What's new in 3.0.0 (since 3.0-beta)
+
+#### External Collection: more complete lakehouse workflows
+
+3.0-beta introduced External Collection: reference lake files in place, build indexes, and search them without copying data into Milvus. This release extends it toward complete lakehouse retrieval workflows. External fields can now feed function output fields such as BM25 sparse vectors, MinHash signatures, and text embeddings, so text and model-derived retrieval fields are built inside Milvus without copying the source table. Refresh also supports additive schema evolution: when the external table gains new columns, Milvus patches the affected segments instead of rebuilding the collection.
+
+This release also adds a `milvus-table` external format that treats Milvus Snapshot metadata and Storage V3 manifests as an external source, so a collection snapshot can itself be served as an external table — batch and serving systems get a shared, manifest-backed view of the same data.
+
+For more information, refer to [Create an External Collection](create-an-external-collection.md) and [Snapshots](snapshots.md).
+
+#### Flexible schema: add, backfill, and drop columns online
+
+Schemas do not stay static in production — embedding models get replaced, features iterate, fields get deprecated — and these used to mean full-collection rebuilds with downtime or double-writes. 3.0.0 closes the loop: columns can be added, filled, and dropped while serving continues.
+
+Backfill works in both directions. External backfill handles values computed outside Milvus: add a column, snapshot the collection as a consistent starting point, run the job offline, write the values back, and Milvus indexes the new column incrementally — an embedding-model upgrade across hundreds of millions of rows becomes a hot path with no downtime. Inner backfill covers kernel-derived values: attach a BM25 or MinHash function to an existing collection and its output field is computed over existing data automatically.
+
+For more information, refer to [Add Fields to an Existing Collection](add-fields-to-an-existing-collection.md).
+
+#### Sparse index overhaul: SINDI, Block-Max WAND, and Block-Max MaxScore
+
+Milvus 3.0 upgrades the sparse vector index across the board. It introduces new search algorithms — [SINDI](https://arxiv.org/abs/2509.08395), Block-Max WAND, and Block-Max MaxScore — along with inverted-list compression, configurable quantization, and per-workload search-algorithm selection. mmap loading, serialization, and BM25 scoring are also optimized, cutting index storage and loading overhead for large-scale sparse vector and full-text search. In internal benchmarks, the compressed BM25 index is roughly 3x smaller than the 2.6 sparse index at comparable recall, and SINDI reaches up to about 10x the QPS of MaxScore on learned sparse embeddings. Once the new index version is enabled (see Compatibility and behavior notes), SINDI is the default for sparse IP search, and MaxScore is the default for BM25.
+
+#### StructArray coverage
+
+StructArray now supports null values, bitmap indexes, dynamic field addition on live collections, and partial update of struct fields through upsert, with REST and bulk-import coverage to match.
+
+Element-level search adds hybrid search across vector sub-fields with configurable per-entity collapse (max / sum / avg / top-k variants), plus range search and group-by within it. Nested filtering covers `element_filter` predicates, the `MATCH_ANY` / `MATCH_ALL` / `MATCH_LEAST` / `MATCH_MOST` / `MATCH_EXACT` quantifiers, positional sub-field access such as `tags[0][name]`, and `array_length()` on the struct column.
+
+For more information, refer to [StructArray](array-of-structs.md) and [StructArray Operators](struct-array-operators.md).
+
+#### Search Aggregation and faceted search
+
+Query Aggregation from the beta computes exact statistics over filtered data; 3.0.0 adds faceting on the search path. Specify a facet field at search time and Milvus returns the top facet values, each represented by its best-matching member in ANN ranking and annotated with aggregates such as COUNT and AVG — the faceted-search sidebar (brand, price range, attributes) in one request, instead of over-fetching and counting client-side.
+
+#### Function Chain reranking
+
+Reranking is now composable through the Function Chain API, which executes an ordered, typed pipeline as part of a single search request. A chain can combine early L0 rescoring on QueryNode with L2 post-reduction reranking on Proxy, supporting score transformation and combination, model-based reranking, sorting, and candidate trimming without client-side orchestration. This release also adds native XGBoost scoring for L0 reranking using UBJ models registered as FileResources, along with Hugging Face Inference Providers for server-managed text embedding and sentence-similarity reranking.
+
+#### TEXT long-text fields
+
+TEXT fields make long text first-class, with storage-side length limits removed: they support `text_match`, `phrase_match`, and BM25. Values under 64 KB stay inline; larger values go to partition-level LOB files in Vortex format, with the column storing only `(file_id, offset)` references. LOB files are shared across segments, so compaction moves references instead of rewriting text. For RAG this means retrieving vectors and source text from the same store in one IO — no external blob store to operate.
+
+#### FAISS index passthrough
+
+A new `FAISS` index type accepts arbitrary Faiss index-factory strings through the `faiss_index_name` parameter — `IVF64,Flat`, `HNSW16,Flat`, `OPQ16,IVF64,PQ16x4` — with search parameters passed through, so Faiss recipes reproduce directly on Milvus.
+
+#### Vortex and Lance format support
+
+The storage layer gains two open columnar formats: Vortex as the next-generation internal format — adaptive encodings (dictionary, RLE, bit-packing, float-specific compression), zero-copy decompression, optimized for mixed vector + scalar workloads — and Lance alongside Parquet for open-ecosystem interchange. Vortex is set to become the default internal format, with filter pushdown and a local variant on the roadmap.
+
+#### Woodpecker standalone deployment
+
+Woodpecker, the WAL at the core of the streaming write path, can now be deployed as an independent service instead of embedded in other nodes — independent scaling, fault isolation, and observability, like any other microservice. This matters most for large clusters and high-write workloads.
+
+### Core 3.0 features recall
+
+The features below were introduced in [3.0-beta](https://milvus.io/docs/release_notes.md#v30-beta) and are part of 3.0.0; see the beta notes for the full write-ups.
+
+- **External Collection** — query lakehouse data (Parquet, Lance, Iceberg, Vortex) in place: zero-copy, read-only, synced through incremental refresh.
+- **Snapshot** — point-in-time read-only collection views by segment reference, with near-zero marginal storage.
+- **Storage V3 (Loon)** — manifest-based columnar storage on object storage; the foundation for Snapshot and External Collection.
+- **Query / Search ORDER BY** — server-side multi-field sorting with per-field ASC / DESC.
+- **Query Aggregation** — COUNT / SUM / AVG / MIN / MAX with group-by, evaluated server-side.
+- **EmbList + DiskANN** — on-disk multi-vector indexing for StructArray embedding lists, with acceleration paths such as Muvera and Lemur.
+- **MinHash function (doc-in, doc-out)** — server-side MinHash signatures plus `MINHASH_LSH` for near-duplicate detection.
+- **Nullable vectors** — NULL on all six vector types; search skips NULL rows, and AddField extends to vector fields.
+- **Entity TTL** — per-row expiration driven by a TIMESTAMPTZ field.
+- **FileResource** — cluster-managed dictionaries, synonym lists, and stop-word lists for analyzers, BM25, and Text Match.
+- **Force Merge** — operator-triggered segment compaction, in synchronous or asynchronous mode.
+
+### Compatibility and behavior notes
+
+- **Storage V3 (Loon) is disabled by default.** Features that depend on it — such as Snapshot and TEXT fields — require enabling it manually via `common.storage.useLoonFFI`. Storage V3 will be enabled by default in a later release.
+- **2.6 → 3.0 compatibility and rollback are guaranteed** — a 3.0 deployment can be rolled back to 2.6. However, once you enable or use features that change the serialized data format (for example Storage V3), rollback is no longer possible.
+- **New index versions are opt-in for now.** Newly introduced index algorithms require manually raising the target index version (`dataCoord.targetVecIndexVersion` to 10, `dataCoord.targetScalarIndexVersion` to 4) before they take effect; a later release will enable them by default.
+- **GPU images move to CUDA 12.9** and no longer preserve Ubuntu 20.04 GPU compatibility.
+
+## v3.0-beta
+
+Release date: May 9, 2026
+
+| Milvus Version | Python SDK Version | Node.js SDK Version |
+| -------------- | ------------------ | ------------------- |
+| 3.0-beta       | 3.0.0              | 3.0.0               |
+
+Milvus 3.0-beta extends the Milvus vector database with new integration into the open lake ecosystem: External Collection lets Milvus query external lake tables zero-copy, and Spark can read Milvus collections directly through Snapshot. The release also brings richer retrieval, more expressive schema, deeper text search customization, finer data and model lifecycle controls, and more operator-side controls. Milvus 3.0 is the core kernel of Zilliz Lakebase, powering its unified serving, discovery, and batch.
+
+
+### Key Features
+
+#### External Collection
+
+In typical AI data pipelines, terabytes of embeddings and metadata already sit on object storage as Parquet, Lance, or Iceberg tables. Copying that data into Milvus doubles storage cost, adds an ETL pipeline that has to be kept in sync, and shifts data governance away from the customer.
+
+External Collection removes the copy. A Milvus Collection can reference files where they already live, and Milvus manages only the schema, indexes, and query execution. An incremental refresh keeps the Collection aligned with the underlying files. Customers whose data cannot leave the lake, such as finance and healthcare teams, can run vector retrieval against that data where it sits. A single lake-resident dataset can also be served from multiple Milvus instances at once.
+
+For more information, refer to [Create an External Collection](create-an-external-collection.md).
+
+#### Snapshot
+
+Serving and batch discovery often need the same Collection at the same time. A/B model evaluation, large-scale deduplication, backfill validation, and version rollback all need a stable view of the Collection while writes are still going in.
+
+Snapshot creates a point-in-time, read-only view of a Collection by referencing existing segments instead of copying data, so the marginal storage cost is close to zero. Batch jobs can read from the Snapshot under MVCC-style isolation while the live Collection keeps accepting writes.
+
+For more information, refer to [Snapshots](snapshots.md), [Manage Snapshots](manage-snapshots.md), and [Snapshot Use Cases](snapshot-use-cases.md).
+
+#### Query / Search Order By
+
+Search and Query now accept multi-field ordering, with the sort pushed down into the Milvus kernel and `ASC` / `DESC` settable per field. This closes a common production gap: Top-K by distance alone often does not match the business need when the most similar item is not the cheapest, the most recent, or the most popular.
+
+Applications no longer have to over-fetch results and re-sort on the client to express composite ranking.
+
+For more information, refer to [Sort Search Results by Scalar Fields](single-vector-search.md#Sort-Search-Results-by-Scalar-Fields--Milvus-30x) and [Sort Query Results](get-and-scalar-query.md#Sort-Query-Results--Milvus-30x).
+
+#### Query Aggregation
+
+Producing tenant-distribution stats, field-completeness counts, or version-rollout progress from a Milvus Collection used to require pulling matching entities back to the client and aggregating them there. Milvus 3.0 pushes SQL-style scalar aggregation into the kernel. A query call accepts `group_by_fields` and aggregation expressions in `output_fields`, including `count(*)`, `count(<field>)`, `sum(<field>)`, `avg(<field>)`, `min(<field>)`, and `max(<field>)`. Aggregation is evaluated server-side after filtering.
+
+For more information, refer to [Aggregate Query Results](get-and-scalar-query.md#Aggregate-Query-Results--Milvus-30x).
+
+#### Null Vector
+
+Embeddings are often produced asynchronously, so an entity can arrive before its vector does. Multimodal data has natural gaps too, such as a video without captions or a product without an image. Earlier versions had no good answer: applications either delayed the write until the vector was ready or filled in a placeholder vector, and both choices hurt retrieval quality.
+
+Milvus 3.0 supports NULL on vector fields across all six vector types. Search skips NULL vectors automatically, retrieval quality is unaffected, and NULL vectors take effectively no storage. `AddField` also extends to vector fields under this change: with `nullable=True`, an existing Collection can grow new vector fields online without a rebuild.
+
+For more information, refer to [Nullable Fields](nullable-and-default.md).
+
+#### Custom Dictionary & Synonym Dictionary
+
+Out-of-the-box tokenizers do not always meet production search quality requirements. Chinese, vertical domains such as medicine, law, and chemistry, and multilingual corpora can benefit substantially from custom dictionaries and synonym tables. Until now, these resources mostly lived as application-side query rewrites.
+
+Milvus 3.0 adds a FileResource mechanism for registering custom tokenizer dictionaries, synonym lists, stop-word lists, and decompounder rules. Once registered, a resource can be referenced from any tokenizer or filter and takes effect on BM25, analyzers, and Text Match. Dictionaries and synonyms can now be versioned and managed centrally instead of scattered across application code.
+
+For more information, refer to [Manage File Resources](manage-file-resources.md).
+
+#### Entity TTL
+
+Collection-level and partition-level TTL are too coarse for many lifecycle and compliance scenarios. Different tenants inside the same Collection often have different retention rules, and individual entities may need to expire on a schedule that does not match the rest of the Collection.
+
+Milvus 3.0 supports per-entity TTL. Declare a `TIMESTAMPTZ` field in the schema, mark it as the TTL field through a Collection property, and Milvus reclaims expired entities automatically. This covers right-to-be-forgotten requests, expiring session data, and bounded conversation history without application-side cleanup.
+
+For more information, refer to [Set Entity-level TTL](set-collection-ttl.md#Set-entity-level-TTL--Milvus-30x).
+
+#### MinHash DIDO (Doc-in, Doc-out)
+
+Milvus 2.6 added the `MINHASH_LSH` index for set-based near-duplicate detection, but applications still had to compute MinHash signatures before writing data into Milvus.
+
+Milvus 3.0 adds a server-side MinHash function. Declare a `VARCHAR` input field and a `BINARY_VECTOR` output field in the schema, attach a `FunctionType.MINHASH` function, and Milvus computes the signatures during insert, bulk insert, and search. Together with `MINHASH_LSH`, this supports deduplication workflows for large datasets, fingerprinting, and plagiarism detection inside Milvus.
+
+For more information, refer to [MinHash Function](minhash-function.md).
+
+#### EmbList + DISKANN
+
+The "one entity = one vector" assumption no longer fits modern retrieval. Long documents get split into many chunks, late-interaction models such as ColBERT emit one vector per token, and multimodal entities can carry several views.
+
+EmbList stores a variable-length vector list per entity, with `DISKANN` as the on-disk index. The disk path keeps RAM usage under control when the corpus exceeds memory budgets. EmbList + `DISKANN` is the first variant of the broader StructList family in this RC. The rest of the family, including StructList filtering and Muvera / Lemur multi-vector acceleration, is targeted for the official 3.0 release.
+
+For more information, refer to [Search with Embedding Lists](search-with-embedding-lists.md).
+
+#### Force Merge
+
+Production workloads accumulate segment fragmentation over time, which causes query-latency jitter and inflated storage.
+
+Milvus 3.0 adds the ability to trigger segment compaction explicitly during off-peak windows, in both synchronous and asynchronous modes.
+
+For more information, refer to [Force Merge Compaction](force-merge.md).
+
+#### Storage V3
+
+Milvus 3.0 introduces Storage V3, a manifest-based columnar storage engine where data and metadata live on S3-compatible object storage. Each dataset version is captured as an immutable manifest snapshot, an Avro-encoded file that records which column groups, delta logs, and statistics comprise the dataset.
+
+Manifests are compact Avro files, and delta logs record entity-level deletes without rewriting data files. This keeps metadata overhead small as datasets grow. The manifest also decouples metadata tracking from the query path, allowing a Collection to manage more segments without degrading query performance.
+
+Because states are stored on object storage, the dataset is self-descriptive: any reader with access to the storage path can discover and interpret it without a central catalog. This property underpins External Collection, Snapshot, and future lake integrations.

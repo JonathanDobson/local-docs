@@ -1,0 +1,63 @@
+# to_dict()
+
+This operation converts a **[StructFieldSchema](StructFieldSchema.md)** object to a dictionary representation.
+
+## Request Syntax
+
+```python
+to_dict()
+```
+
+**PARAMETERS:**
+
+None
+
+**RETURN TYPE:**
+
+*dict*
+
+**RETURNS:**
+
+The dictionary representation of the collection schema.
+
+**EXCEPTIONS:**
+
+- **[MilvusException](../../../Exceptions/MilvusException.md)**
+
+    This exception will be raised when any error occurs during this operation.
+
+## Example
+
+```python
+from pymilvus import StructFieldSchema, FieldSchema, DataType  
+
+vector = FieldSchema(
+    name="vector",
+    dtype=DataType.FLOAT_VECTOR,
+    dim=768,
+)
+
+varchar = FieldSchema(
+    name="varchar",
+    dtype=DataType.VARCHAR,
+    max_length=512
+)
+
+# Create a StructFieldSchema with field schemas
+
+schema = StructFieldSchema()
+schema.add_field(
+    field_name="vector",
+    datatype=DataType.FLOAT_VECTOR,
+    dim=768,
+)
+schema.add_field(
+    field_name="varchar",
+    datatype=DataType.VARCHAR,
+    max_length=512
+)
+
+# Call to_dict() to get a dictionary representation of the schema 
+
+schema_dict = schema.to_dict()  
+```
