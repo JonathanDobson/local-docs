@@ -1,0 +1,52 @@
+{
+  "name": "Next.js",
+  "slug": "nextjs",
+  "version": "16.4.5",
+  "requested": "nextjs docs for latest version (user guessed 16.4 or something)",
+  "kind": "framework",
+  "summary": "React framework, v16.4.5 (latest stable): App Router (layouts/pages, Server and Client Components, Cache Components with 'use cache'/cacheLife/cacheTag, Partial Prerendering and Partial Prefetching, Server Functions, proxy.ts, route handlers, metadata), full API reference (directives, components, file conventions, functions, next.config.js options, CLI, Build Adapters), Pages Router (older router) docs, upgrade guides incl. version 16, and 16.x release notes plus announcement posts.",
+  "homepage": "https://nextjs.org",
+  "docs_url": "https://nextjs.org/docs",
+  "license": "MIT (docs in vercel/next.js and GitHub release notes); nextjs.org blog posts carry no stated licence (copyright Vercel)",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/vercel/next.js.git",
+      "ref": "v16.4.5",
+      "path": "docs",
+      "commit": "4e5335a00314be7fbb2aace5e9be56a88e64e5a8",
+      "dest": "content",
+      "license": "MIT"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/vercel/next.js/releases (all 47 stable v16.x tags, v16.0.0 to v16.4.5, via gh release view)",
+      "dest": "content/release-notes",
+      "license": "MIT"
+    },
+    {
+      "type": "other",
+      "url": "https://nextjs.org/blog/next-16.md, next-16-1.md, next-16-2.md, next-16-2-ai.md, next-16-2-turbopack.md, next-16-3.md, next-16-3-ai-improvements.md, next-16-3-instant-navigations.md, next-16-3-turbopack.md, next-16-4.md (Markdown served by nextjs.org)",
+      "dest": "content/release-notes/blog",
+      "license": "No stated licence; copyright Vercel"
+    }
+  ],
+  "ingested_at": "2026-11-09",
+  "coverage": "Every English page in docs/ of vercel/next.js at tag v16.4.5 (474 MDX files): App Router getting started, 80 guides (caching, Cache Components migration, authentication, data security, self-hosting, deploying, testing, ISR, instant navigation, prefetching, AI agents, MCP, ...), the full App Router API reference (directives, components, file conventions incl. metadata files and route segment config, functions, every next.config.js option, TypeScript, ESLint, CLI, Build Adapters API), the Pages Router docs (getting started, guides, routing/rendering/data fetching, API reference), architecture and community pages, the 9.x to 16 upgrade guides and codemods, GitHub release notes for every stable 16.x release, and the 16.0 to 16.4 announcement blog posts (plus companion AI/Turbopack/Instant Navigations posts).",
+  "gaps": [
+    "Images and videos are not in the source repo (pages link to them on nextjs.org); those links won't resolve offline",
+    "nextjs.org renders MDX components (<Image>, <Check>, <FixCard> and similar) that remain as raw JSX tags in the files",
+    "API reference folders were renamed from 01-app/03-api-reference and 02-pages/04-api-reference to api-reference/ so search classifies them as API pages; doc links in the text use site URLs (/docs/app/api-reference/...), not file paths, so they are unaffected",
+    "Learn course (nextjs.org/learn), examples/ folder, and blog posts outside the 16.x release announcements (e.g. next-16-beta, turbopack-chunking) are not included",
+    "Pre-release (canary/preview) notes and 16.5 canary docs are not included; the 15.5.x backport line is not included",
+    "GitHub release notes for patch releases are commit lists, not prose; use the blog posts for overviews",
+    "React docs (react.dev) are not included, although Next.js 16.4 bundles React 19.3"
+  ],
+  "notes": "Latest stable resolved on 2026-11-09 from GitHub releases and npm dist-tags: latest = 16.4.5 (released 2026-11-03); canary is 16.5.0-canary.45 and 15.5.29 is the backport line. The user's guess '16.4' was right about the minor; the exact newest release is 16.4.5. Docs are taken from that exact release tag, so the folder is the exact version. Repo checked: not archived, pushed 2026-11-09. Build-time processing done to match nextjs.org: 116 Pages Router pages that are stubs with a frontmatter `source:` key (body only an editor comment) were filled with the body of their App Router source page; on App Router pages <PagesOnly> blocks were removed and <AppOnly> wrappers unwrapped, on Pages Router pages the reverse; the 'DO NOT EDIT / content shared between routers' editor comments were removed. The `source:` frontmatter key is kept so you can see which pages are shared. 04-community (contribution guide, which documents these components) was left untouched. No version placeholders were found ({{ ... }} in mdx.mdx and image-legacy.mdx are JSX style objects). Nothing else was removed: the docs folder held only .mdx files. Many pages discuss AI coding agents (AGENTS.md, agentRules, next upgrade --agent, MCP, Skills); this is product documentation, not instructions. useOffline's version table says 'v16.x.0' upstream.",
+  "stats": {
+    "files": 531,
+    "doc_files": 531,
+    "spec_files": 0,
+    "megabytes": 4.68
+  }
+}

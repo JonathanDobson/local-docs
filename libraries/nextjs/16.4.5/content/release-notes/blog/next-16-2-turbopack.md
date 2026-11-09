@@ -1,0 +1,253 @@
+---
+title: "Turbopack: What's New in Next.js 16.2"
+description: Turbopack in Next.js 16.2 brings faster builds, SRI support, postcss.config.ts, tree shaking of dynamic imports, Server Fast Refresh, inline loader configuration, and over 200 bug fixes.
+url: "https://nextjs.org/blog/next-16-2-turbopack"
+docs_index: /docs/llms.txt
+publishedAt: March 18th 2026
+authors:
+  - Andrew Imm
+  - Tim Neutkens
+---
+
+
+
+Two releases after Turbopack became the default bundler for Next.js, we're focused on improving performance, fixing bugs, and increasing parity.
+Here are some of the latest features shipping as part of [Next.js 16.2](/blog/next-16-2).
+
+- [**Server Fast Refresh**](#server-fast-refresh): Fine-grained server-side hot reloading
+- [**Web Worker Origin**](#web-worker-origin): Increasing support for WASM libraries in Workers
+- [**Subresource Integrity Support**](#subresource-integrity-support): Subresource Integrity for JavaScript files
+- [**Tree Shaking of Dynamic Imports**](#tree-shaking-of-dynamic-imports): Unused exports removed from dynamic `import()`
+- [**Inline Loader Configuration**](#inline-loader-configuration): Per-import loader configuration via import attributes
+- [**Lightning CSS Configuration**](#lightning-css-configuration): Experimental LightningCSS configuration options
+- [**Log Filtering**](#log-filtering): Suppressing noisy logs and warnings with `ignoreIssue`
+- [**`postcss.config.ts` Support**](#postcssconfigts-support): TypeScript PostCSS configuration
+- [**Performance Improvements and Bug Fixes**](#performance-improvements-and-bug-fixes): Over 200 changes and bug fixes
+
+Looking forward towards our next release, we'll be focused on speeding up compiler performance and reducing memory usage.
+
+## Server Fast Refresh
+
+We've reworked how server-side code is reloaded during development. The previous system cleared the `require.cache` for the changed module and all other modules in its import chain. This approach often reloaded more code than necessary, including unchanged `node_modules`.
+
+The new system brings the same Fast Refresh approach used in the browser to your server code. Turbopack's knowledge of the module graph means only the module that actually changed is reloaded, leaving the rest intact. This makes server-side hot reloading significantly more efficient.
+
+In real-world Next.js applications, we've seen 67-100% faster application refresh and 400-900% faster compile time inside Next.js. These results scale from the smallest "hello world" starter project to large sites like `vercel.com`.
+
+<div
+  className="not-prose my-8 rounded-lg border border-[var(--ds-gray-400)] overflow-hidden"
+  role="figure"
+  aria-label="Server Fast Refresh time comparison showing improvements"
+>
+  <div className="py-0 pr-3 pl-4 rounded-t-md border-b border-[var(--ds-gray-400)] h-10 flex items-center justify-between bg-[var(--ds-background-200)]">
+    <span className="text-sm font-medium text-[var(--ds-gray-1000)]">
+      Server refresh time on a sample Next.js site
+    </span>
+    <span
+      className="text-xs font-semibold"
+      style={{ color: 'var(--ds-blue-700)' }}
+    >
+      375% faster
+    </span>
+  </div>
+  <div className="p-4 flex flex-col gap-3 bg-[var(--ds-background-100)]">
+    <div
+      className="flex flex-col gap-2"
+      role="group"
+      aria-label="Server refresh time comparison"
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-[var(--ds-gray-900)] w-12 shrink-0">
+          Before
+        </span>
+        <div className="flex-1 bg-[var(--ds-gray-200)] rounded h-7 overflow-hidden">
+          <div className="h-full flex gap-px">
+            <div
+              className="bg-[var(--ds-gray-900)] h-full flex items-center justify-center"
+              style={{ flex: '40 0 0' }}
+            >
+              <span className="text-xs font-medium text-white hidden sm:inline">
+                40ms
+              </span>
+            </div>
+            <div
+              className="bg-[var(--ds-gray-600)] h-full flex items-center justify-center"
+              style={{ flex: '19 0 0' }}
+            >
+              <span className="text-xs font-medium text-white hidden sm:inline">
+                19ms
+              </span>
+            </div>
+          </div>
+        </div>
+        <span className="text-xs font-medium text-[var(--ds-gray-1000)] w-12 shrink-0 text-right">
+          59ms
+        </span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-[var(--ds-gray-900)] w-12 shrink-0">
+          After
+        </span>
+        <div className="flex-1 bg-[var(--ds-gray-200)] rounded h-7 overflow-hidden">
+          <div
+            className="h-full flex gap-px"
+            style={{ width: 'max(21%, 150px)' }}
+          >
+            <div
+              className="h-full flex items-center justify-center"
+              style={{
+                flex: '2.7 0 0',
+                backgroundColor: 'var(--ds-blue-900)',
+              }}
+            >
+              <span className="text-xs font-medium text-white hidden sm:inline">
+                2.7ms
+              </span>
+            </div>
+            <div
+              className="h-full flex items-center justify-center"
+              style={{
+                flex: '9.7 0 0',
+                backgroundColor: 'var(--ds-blue-700)',
+              }}
+            >
+              <span className="text-xs font-medium text-white hidden sm:inline">
+                9.7ms
+              </span>
+            </div>
+          </div>
+        </div>
+        <span className="text-xs font-medium text-[var(--ds-gray-1000)] w-12 shrink-0 text-right">
+          12.4ms
+        </span>
+      </div>
+    </div>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[var(--ds-gray-400)] pt-3">
+      <div className="flex items-center gap-1.5">
+        <div className="w-2.5 h-2.5 rounded-sm bg-[var(--ds-gray-900)]" />
+        <span className="text-xs text-[var(--ds-gray-900)]">
+          Next.js (40ms → 2.7ms)
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <div className="w-2.5 h-2.5 rounded-sm bg-[var(--ds-gray-600)]" />
+        <span className="text-xs text-[var(--ds-gray-900)]">
+          Application (19ms → 9.7ms)
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+Today we're enabling this feature for all developers, by default. [Proxy](/docs/app/getting-started/proxy) and [Route Handlers](/docs/app/getting-started/route-handlers) will use the existing system today, but support for those is arriving in a future release. Share your feedback or any issues with this new feature on [GitHub](https://github.com/vercel/next.js/issues).
+
+## Web Worker Origin
+
+Previously, Web Workers were bootstrapped through a `blob://` URL. This streamlined loading the worker, but it set an empty `location.origin` value. Web Worker code that tried to use `importScripts()` or `fetch()` (usually in third-party libraries) would have been unable to resolve the request without changes.
+
+With the updated Worker bootstrap code, the `origin` correctly points to your domain name, and relative fetches succeed. This should unblock anyone who had trouble running WASM code inside a Worker in previous versions.
+
+## Subresource Integrity Support
+
+Turbopack now supports [Subresource Integrity (SRI)](https://nextjs.org/docs/app/guides/content-security-policy#enabling-sri). SRI generates cryptographic hashes of your JavaScript files at build time, allowing browsers to verify that files haven't been modified.
+
+Browsers provide a technology called Content Security Policy that allows sites to restrict the JavaScript that can run, eliminating entire classes of security issues. However, the typical `nonce`-based method for implementing this requires all pages to be dynamically rendered, impacting performance. Subresource Integrity is an alternative that computes a hash of each script ahead of time, and only allows the browser to execute scripts with approved hashes.
+
+```js filename="next.config.js"
+const nextConfig = {
+  experimental: {
+    sri: {
+      algorithm: 'sha256',
+    },
+  },
+};
+
+module.exports = nextConfig;
+```
+
+## Tree Shaking of Dynamic Imports
+
+Turbopack now tree shakes destructured dynamic imports the same way it does static imports. Unused exports are removed from the bundle:
+
+```ts
+const { cat } = await import('./lib');
+```
+
+This is now equivalent to a static import for tree shaking purposes — any exports from `./lib` that aren't used will be tree-shaken.
+
+## Inline Loader Configuration
+
+Turbopack now supports per-import loader configuration via [import attributes](https://github.com/vercel/next.js/pull/89644). Instead of applying loaders globally through `turbopack.rules`, you can configure them on individual imports using the `with` clause:
+
+```ts
+import rawText from './data.txt' with {
+  turbopackLoader: 'raw-loader',
+  turbopackAs: '*.js',
+};
+import value from './data.js' with {
+  turbopackLoader: 'string-replace-loader',
+  turbopackLoaderOptions: '{"search":"PLACEHOLDER","replace":"replaced value"}',
+};
+```
+
+This is useful when only a specific import needs special treatment, avoiding side effects on other imports of the same file type. The available attributes are `turbopackLoader`, `turbopackLoaderOptions`, `turbopackAs`, and `turbopackModuleType`.
+
+You should still prefer configuring your loaders in `next.config.ts` when possible, since code using inline loaders is less portable. This option is more useful for code generated from plugins or loaders.
+
+## Lightning CSS Configuration
+
+Lightning CSS is a fast, Rust-based CSS transformer used by Turbopack for CSS minification and prefixing. It also allows implementation of modern CSS features on older browsers, similar to what Babel or SWC do for JavaScript. Previously, the only way to toggle these settings was through a Browserslist configuration. Now with the experimental `lightningCssFeatures` option, you can force certain features to always or never transpile.
+
+```ts
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  experimental: {
+    useLightningcss: true,
+    lightningCssFeatures: {
+      include: ['light-dark', 'oklab-colors'],
+      exclude: ['nesting'],
+    },
+  },
+};
+
+export default nextConfig;
+```
+
+## Log Filtering
+
+Turbopack can now suppress noisy or expected warnings from streaming logs with the `turbopack.ignoreIssue` config option. This is useful for suppressing warnings from third-party code, generated files, or optional dependencies, as well as hiding expected errors from the Next.js error overlay.
+
+You can match logs generated from specific code paths, as well as filter for specific title/description strings or patterns.
+
+```ts
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  turbopack: {
+    ignoreIssue: [
+      { path: '**/vendor/**' },
+      { path: 'app/**', title: 'Module not found' },
+      { path: /generated\/.*\.ts/, description: /expected error/i },
+    ],
+  },
+};
+
+export default nextConfig;
+```
+
+## `postcss.config.ts` Support
+
+Turbopack now supports `postcss.config.ts` in addition to the existing `.js` and `.cjs` variants.
+
+## Performance Improvements and Bug Fixes
+
+We've continued to invest in improving Turbopack internals. Over 200 changes and bug fixes have improved stability and compatibility across a wide range of projects. Optimizations in data encoding, internal representation formats, and hashing algorithms have improved memory usage and build time. We've made error logs clearer and expanded diagnostics to help you better understand compiler errors. We've also used your GitHub Issues as a guide for which features were missing since the 16.1 release.
+
+## Feedback and Community
+
+Share your feedback and help shape the future of Next.js:
+
+- [GitHub Discussions](https://github.com/vercel/next.js/discussions)
+- [GitHub Issues](https://github.com/vercel/next.js/issues)
+- [Discord Community](https://nextjs.org/discord)
