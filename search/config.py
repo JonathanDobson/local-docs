@@ -56,8 +56,10 @@ class Settings:
     dimensions: int | None
     ollama_url: str
     milvus_port: int
-    rrf_k: int
+    rrf_k: int                  # RRF k for natural-language queries (lower = top ranks count for more)
     api_weight: float
+    dense_weight: float = 1.0   # how much the meaning list counts against the keyword list, for natural-language queries
+    ident_rrf_k: int = 60       # RRF k for identifier-shaped queries (keywords and meaning weighted equally)
     intro_weight: float = 1.0   # hybrid score multiplier for a page's intro chunk (text before its first heading)
     dup_sim: float = 0.97       # hits whose vectors are at least this similar are collapsed into one
     sure_sim: float = 0.0       # meaning-similarity at or above which a hit is labelled "strong" (0 = no labels)
@@ -87,7 +89,8 @@ def load() -> Settings:
     # Similarity thresholds belong to one model; for any other model, labels are off.
     same = model == raw["model"]
     return Settings(model=model, dimensions=dims, ollama_url=raw["ollama_url"],
-                    milvus_port=int(raw["milvus_port"]), rrf_k=int(raw["rrf_k"]), api_weight=api_weight,
+                    milvus_port=int(raw["milvus_port"]), rrf_k=int(env("rrf_k", 60)), api_weight=api_weight,
+                    dense_weight=env("dense_weight", 1.0), ident_rrf_k=int(env("ident_rrf_k", 60)),
                     intro_weight=env("intro_weight", 1.0), dup_sim=env("dup_sim", 0.97),
                     sure_sim=env("sure_sim", 0.0) if same else 0.0, weak_sim=env("weak_sim", 0.0) if same else 0.0)
 

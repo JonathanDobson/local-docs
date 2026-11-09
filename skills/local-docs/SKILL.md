@@ -38,11 +38,14 @@ training data may be older or for a different version.
    (Next.js App and Pages Router copies, say) are shown once, with "same text also
    in". A long hit is cut at a clean break, with the line range to read next.
 
-   **Choosing a mode.** The default (`hybrid`, keywords + meaning) is a good start.
-   On the test questions, `dense` (meaning only) ranked the right page higher for
-   how-to, identifier and API questions, so if hybrid's top hits miss, retry with
-   `mode="dense"`. Keyword-only `bm25` was weakest for every kind of question; use
-   it, or `rg`, only to find an exact string such as an error message.
+   **Choosing a mode.** Start with the default, `hybrid` (keywords + meaning). It
+   adapts to the query: a bare identifier (`norm_score`, `REQUIRE_SIGNIN_VIEW`)
+   gets keyword search's full weight, a sentence leans on meaning. For a
+   **sentence-style question** whose top hits miss, retry with `mode="dense"`
+   (meaning only); it ranked how-to and API questions slightly higher. **Never
+   use `dense` for a bare identifier**: meaning search misses many outright.
+   Keyword-only `bm25` was weakest for every kind of question; use it, or `rg`,
+   only to find an exact string such as an error message.
 
    **A miss is not proof the docs lack it.** Before saying the docs don't cover
    something, retry in the docs' own vocabulary (the words a page title would use),

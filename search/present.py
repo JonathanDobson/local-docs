@@ -10,10 +10,24 @@ FENCE = re.compile(r"^\s*(```|~~~)", re.M)
 
 def smart_cut(text: str, limit: int) -> str:
     """Cut `text` to at most `limit` characters at the best boundary that keeps
-    at least half of it: never inside a code block, else after a paragraph,
-    sentence, line or word."""
+    at least half of it: before a code block, or after a paragraph, sentence,
+    line or word. A code block that starts early and runs long is cut at a line
+    and closed with its fence, so the snippet still shows code."""
+    return _cut(text, limit)[0]
+
+
+def _cut(text: str, limit: int) -> tuple[str, int]:
+    """smart_cut, plus how many characters of `text` the result shows (it may end
+    with an added closing fence that isn't in `text`)."""
     if len(text) <= limit:
-        return text
+        return text, len(text)
+    cut = _cut_at(text, limit)
+    if isinstance(cut, tuple):
+        return cut
+    return cut, len(cut)
+
+
+def _cut_at(text: str, limit: int):
     win = text[:limit]
     floor = limit // 2
     fences = [m.start() for m in FENCE.finditer(win)]
@@ -28,7 +42,12 @@ def smart_cut(text: str, limit: int) -> str:
             end = len(text) if end == -1 else end
             if end <= limit * 1.5:
                 return text[:end]
-        return win[:opened].rstrip() if opened else win.rsplit("\n", 1)[0]
+        if win[:opened].strip() and opened >= limit // 5:
+            return win[:opened].rstrip()
+        # Little or nothing comes before the block: show its first lines, closed off.
+        shown = win.rsplit("\n", 1)[0]
+        fence = FENCE.match(text, opened).group(1) if FENCE.match(text, opened) else "```"
+        return shown + "\n" + fence, len(shown)
     for sep, at_least in (("\n\n", floor), (". ", int(limit * 0.7)), ("\n", floor), (" ", floor)):
         i = win.rfind(sep)
         if i >= at_least:
@@ -55,10 +74,10 @@ def for_agent(hits, s, query: str, scope: str = "", body_chars: int = 1500) -> s
             lines.append("same text also in: " + ", ".join(h.also))
         if h.source_url:
             lines.append(f"web: {h.source_url}")
-        body = smart_cut(h.text, body_chars)
-        if len(body) < len(h.text):
-            shown = h.start_line + body.count("\n")
-            body += (f"\n…(cut: {len(h.text) - len(body)} more characters; read lines {shown + 1}-{h.end_line} "
+        body, used = _cut(h.text, body_chars)
+        if used < len(h.text):
+            shown = h.start_line + h.text[:used].count("\n")
+            body += (f"\n…(cut: {len(h.text) - used} more characters; read lines {shown + 1}-{h.end_line} "
                      f"with docs_read)")
         out.append("\n".join(lines) + "\n\n" + body)
     return "\n\n".join(out)

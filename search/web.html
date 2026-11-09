@@ -295,7 +295,7 @@ async function runSearch(st) {
                el("span", "chip kind kind-" + h.doc_type, TYPE_LABEL[h.doc_type] || h.doc_type));
     if (h.confidence) {
       const conf = el("span", "chip conf conf-" + h.confidence, h.confidence[0].toUpperCase() + h.confidence.slice(1));
-      conf.title = `Similarity to your search: ${h.sim.toFixed(2)} (strong ≥ 0.60, weak < 0.40)`;
+      conf.title = `Similarity to your search: ${h.sim.toFixed(2)} (strong ≥ ${res.thresholds.strong.toFixed(2)} or contains the identifier searched for, weak < ${res.thresholds.weak.toFixed(2)})`;
       top.append(conf);
     }
     const crumb = el("div", "crumb"); highlight(crumb, h.breadcrumb || h.path, words);

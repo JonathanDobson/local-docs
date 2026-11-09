@@ -14,7 +14,7 @@ import sys
 import time
 from dataclasses import dataclass, field
 
-from pymilvus import AnnSearchRequest, DataType, Function, FunctionType, MilvusClient
+from pymilvus import DataType, Function, FunctionType, MilvusClient
 
 from search.config import DATA, ROOT, Settings
 
@@ -129,6 +129,32 @@ def looks_like_api_question(q: str) -> bool:
     return bool(_API_WORDS.search(q) or _API_SHAPES.search(q))
 
 
+_IDENT = re.compile(r"[_.]|[a-z][A-Z]|^[A-Z0-9_]+$")
+
+
+def looks_like_identifier(q: str) -> bool:
+    """True for a short query shaped like a name from code or config (`norm_score`,
+    `REQUIRE_SIGNIN_VIEW`, `useTypeScriptCli`, `mmap.enabled`) rather than a sentence.
+    Meaning search is unreliable for these, so keyword search gets an equal say."""
+    return len(q.split()) <= 3 and bool(_IDENT.search(q))
+
+
+def fuse_rrf(dense: list[Hit], keyword: list[Hit], k: int, dense_weight: float = 1.0) -> list[Hit]:
+    """Weighted Reciprocal Rank Fusion: score = dense_weight/(k + dense rank) + 1/(k + keyword rank).
+    Done here rather than by Milvus's RRF ranker, which has no per-list weights."""
+    by_id: dict[tuple[str, int, int], Hit] = {}
+    score: dict[tuple[str, int, int], float] = {}
+    for lst, w in ((dense, dense_weight), (keyword, 1.0)):
+        for r, h in enumerate(lst, 1):
+            key = (h.path, h.start_line, h.end_line)
+            if key not in by_id or (by_id[key].vec is None and h.vec is not None):
+                by_id[key] = h
+            score[key] = score.get(key, 0.0) + w / (k + r)
+    for key, h in by_id.items():
+        h.score = score[key]
+    return sorted(by_id.values(), key=lambda h: -h.score)
+
+
 def _q(v: str) -> str:
     return "'" + v.replace("\\", "\\\\").replace("'", "\\'") + "'"
 
@@ -205,11 +231,17 @@ def collapse_duplicates(hits: list[Hit], threshold: float) -> list[Hit]:
     return kept
 
 
-def label(hits: list[Hit], s: Settings) -> None:
+def label(hits: list[Hit], s: Settings, query: str = "") -> None:
+    """Label each hit by meaning-similarity. A bare identifier has little meaning to
+    embed (`norm_score` scores ~0.35 against its own docs), so for identifier-shaped
+    queries a hit that contains the identifier word for word is labelled strong."""
     if not (s.sure_sim and s.weak_sim):
         return
+    ident = query.strip().lower() if looks_like_identifier(query) else ""
     for h in hits:
-        if h.sim is not None:
+        if ident and ident in h.text.lower():
+            h.confidence = "strong"
+        elif h.sim is not None:
             h.confidence = "strong" if h.sim >= s.sure_sim else "weak" if h.sim < s.weak_sim else "related"
 
 
@@ -233,11 +265,17 @@ def search(c: MilvusClient, s: Settings, query_vec: list[float] | None, query_te
         hits = _hits(c.search(s.collection, data=[query_text], anns_field="sparse", limit=fetch, filter=expr,
                               output_fields=out, search_params={"metric_type": "BM25"}))
     else:
-        reqs = [AnnSearchRequest(data=[query_vec], anns_field="dense", param={"ef": 128}, limit=candidates, expr=expr),
-                AnnSearchRequest(data=[query_text], anns_field="sparse", param={}, limit=candidates, expr=expr)]
-        ranker = Function(name="rrf", input_field_names=[], function_type=FunctionType.RERANK,
-                          params={"reranker": "rrf", "k": s.rrf_k})
-        hits = _hits(c.hybrid_search(s.collection, reqs=reqs, ranker=ranker, limit=fetch, output_fields=out))
+        # Two searches fused here, so the mix can depend on the query: identifiers get
+        # keywords and meaning equally (RRF k=ident_rrf_k), sentences lean on meaning
+        # (dense_weight, with a lower k so top ranks count for more). See search/README.md.
+        dense = _hits(c.search(s.collection, data=[query_vec], anns_field="dense", limit=candidates, filter=expr,
+                               output_fields=out, search_params={"metric_type": "COSINE", "params": {"ef": 128}}))
+        keyword = _hits(c.search(s.collection, data=[query_text], anns_field="sparse", limit=candidates, filter=expr,
+                                 output_fields=out, search_params={"metric_type": "BM25"}))
+        if looks_like_identifier(query_text):
+            hits = fuse_rrf(dense, keyword, s.ident_rrf_k)
+        else:
+            hits = fuse_rrf(dense, keyword, s.rrf_k, s.dense_weight)
         w = s.api_weight if api_weight is None else api_weight
         iw = s.intro_weight if intro_weight is None else intro_weight
         api_down = w != 1.0 and not doc_type and not looks_like_api_question(query_text)
@@ -247,13 +285,14 @@ def search(c: MilvusClient, s: Settings, query_vec: list[float] | None, query_te
             if iw != 1.0 and h.is_intro:
                 h.score *= iw
         hits.sort(key=lambda h: -h.score)
+        hits = hits[:fetch]
     if query_vec is not None:
         for h in hits:
             h.sim = _cos(query_vec, h.vec) if h.vec else None
     if dedupe:
         hits = collapse_duplicates(hits, s.dup_sim)
     hits = hits[:limit]
-    label(hits, s)
+    label(hits, s, query_text)
     for h in hits:
         h.vec = None
     return hits
