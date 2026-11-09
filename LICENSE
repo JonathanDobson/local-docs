@@ -19,15 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-This licence covers this project's own files: tools/, search/ (except
-search/static/), skills/, and the top-level documentation. It does NOT cover:
-
-- libraries/ — copies of third-party documentation, each under its own
-  licence, recorded in that docs set's manifest.json ("license" and
-  sources[].license). For example, Gitea's docs are Apache-2.0 and Milvus's
-  docs are Apache-2.0.
-- search/static/ — vendored marked (MIT) and DOMPurify (MPL-2.0 or
-  Apache-2.0), with their licence files alongside.
