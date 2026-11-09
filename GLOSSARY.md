@@ -297,6 +297,16 @@ key" and "how do I…" questions.
 each result scores by its position in each list, so items ranked well by both
 searches rise to the top. Milvus: `RRFRanker`.
 
+**Weighted RRF / adaptive fusion** — RRF where one list counts for more: a result
+scores `weight / (k + rank)` from each list. Hybrid search here weights the meaning list
+1.5× with k=10 for sentence questions, and treats the lists equally (k=60) for
+identifier-shaped queries. Why and the measurements: [Hybrid fusion](search/README.md#hybrid-fusion).
+
+**Identifier-shaped query** — A search of at most three words that contains `_`, `.`,
+camelCase or ALL_CAPS, i.e. a name from code or config such as `norm_score` or
+`REQUIRE_SIGNIN_VIEW`. Meaning search handles these poorly, so keyword search gets an
+equal say, and a hit containing the name word for word is labelled strong.
+
 **Reranker** — An optional second model that re-reads the top results next to
 the query and reorders them. More accurate, slower. Ollama has no rerank
 endpoint, so it would be added only if testing shows it's needed.

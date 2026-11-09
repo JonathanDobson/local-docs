@@ -48,11 +48,11 @@ claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
 
 | Stage | What happens | Code |
 |---|---|---|
-| Chunk | Markdown split at headings (levels 1–4); each chunk carries its heading path. Long sections are packed from whole paragraphs, lists, code blocks and tables (~2,400 characters max). One chunk per API endpoint. | [chunker.py](chunker.py) |
+| Chunk | Markdown split at headings (levels 1–4); each chunk carries its heading path. Long sections are packed from whole paragraphs, lists, code blocks and tables (~2,400 characters max). A code block too long for one chunk is closed at the cut and reopened, with its language, in the next; code fences nest as in CommonMark (a ```` block can hold ``` examples). One chunk per API endpoint. | [chunker.py](chunker.py) |
 | Embed | Ollama `/api/embed`, with the query/document wording each model was trained on. | [embed.py](embed.py), [config.py](config.py) |
 | Store | One row per chunk: library (partition key), version, path, lines, heading path, text, a dense vector, and a BM25 sparse vector built by Milvus from a keyword field (heading path + text + split identifiers, so `DISABLE_REGISTRATION` also matches "disable registration"). | [store.py](store.py) |
 | Index | Re-embeds only files whose content hash changed; deletes chunks of removed files. | [indexer.py](indexer.py) |
-| Search | Top 50 from each of BM25 and the dense index, filtered by library/version (a version like `16` or `16.4` also matches a folder named `16.4.5`) and optionally doc type, merged with RRF (k=60). API reference results are then scaled by `api_weight` (0.6) unless the question looks like an API question. | [store.py](store.py) |
+| Search | Top 50 from each of BM25 and the dense index, filtered by library/version (a version like `16` or `16.4` also matches a folder named `16.4.5`) and optionally doc type, merged by weighted RRF chosen by the query's shape (see [Hybrid fusion](#hybrid-fusion)). API reference results are then scaled by `api_weight` (0.6) unless the question looks like an API question. | [store.py](store.py) |
 | Tidy | Each hit gets its meaning-similarity to the query (cosine, from its stored vector) and a confidence label; near-identical hits are collapsed into one. See [Results for agents](#results-for-agents). | [store.py](store.py) |
 | Show | Hits are cut at a clean break (never inside a code block) with the line range still to read, and show the upstream ref and commit from the manifest. | [present.py](present.py), [config.py](config.py) |
 
@@ -79,6 +79,42 @@ Measured on Gitea's 30 test questions with qwen3-embedding:0.6b: top-1 hits
 0.70 → 0.73 and MRR 0.831 → 0.853 at any weight from 0.8 down to 0.25, with no
 API question getting worse; 0.6 is used. To be re-checked on the full corpus.
 
+## Hybrid fusion
+
+Hybrid search runs the meaning (dense) and keyword (BM25) searches separately, 50
+candidates each, and merges them in [store.py](store.py) with **weighted RRF**: a
+chunk scores `dense_weight / (k + its meaning rank) + 1 / (k + its keyword rank)`.
+Milvus's own RRF ranker has no per-list weights, so the merge is done in Python.
+The mix depends on the query's shape:
+
+| Query | Example | k | Meaning weight | Setting |
+|---|---|---|---|---|
+| Identifier: ≤ 3 words containing `_`, `.`, camelCase or ALL_CAPS | `norm_score`, `mmap.enabled` | 60 | 1 (equal) | `ident_rrf_k` |
+| Anything else (a sentence) | "how do I stop people registering?" | 10 | 1.5 | `rrf_k`, `dense_weight` |
+
+**Why.** Equal-weight RRF at k=60 (the previous setup) let keyword matches on common
+words push down the right page for sentence questions: on the full corpus,
+embeddinggemma's meaning-only search (MRR 0.801) beat hybrid (0.733). But meaning-only
+search fails on bare identifiers. Of 20 real ones (`norm_score`, `bm25_k1`,
+`GITEA__database__DB_TYPE`…), it missed 2 entirely and ranked another 6th, while
+keyword search and hybrid put every one first.
+
+**Measured** (60 questions, full corpus, `api_weight` 0.6, sweep of k ∈ {5…100} and
+meaning weight ∈ {1…4} on all three models; k=10 × 1.5 was the one setting better
+than the old hybrid on every model):
+
+| Hybrid MRR | embeddinggemma | embeddinggemma-2 | qwen3-embedding:0.6b |
+|---|---|---|---|
+| Before: Milvus RRF, k=60, equal | 0.733 | 0.721 | 0.711 |
+| **Adaptive weighted RRF** | **0.778** | **0.749** | **0.726** |
+| Scoped to the question's library | 0.775 | 0.758 | 0.721 |
+| Meaning only, for comparison | 0.801 | 0.725 | 0.672 |
+
+Bare identifiers stay at 1.000 (each found first). The best setting for
+embeddinggemma alone (k=5 × 2: 0.785) was worse than the old hybrid on
+embeddinggemma-2, so the robust one is used. Milvus's `WeightedRanker` was not used:
+it rescales raw scores with arctan, and Milvus Lite returns negative BM25 scores.
+
 ## Results for agents
 
 Ideas adopted from the MiniMax (Mavis) local-docs search, each checked against the
@@ -96,11 +132,17 @@ question set (embeddinggemma, all 60 questions):
   Router / Pages Router twins. No loss (hybrid MRR 0.733 → 0.734, dense 0.801
   unchanged; a collapsed file still counts as found); the freed slots go to other pages.
 - **Clean cuts and provenance.** Long hits end at a code-block, paragraph or sentence
-  boundary with the lines still to read; each hit shows `<ref> @<commit>` for citing.
-- **Mode guidance**, from the by-kind scores: dense beats hybrid on how-to (MRR 0.745
-  vs 0.601), identifier (0.944 vs 0.750) and API (0.833 vs 0.773) questions; hybrid
-  wins on concepts (0.900 vs 0.798); BM25 alone is weakest for every kind. The
-  MCP tool and the lookup skill tell agents to retry with `dense` when hybrid misses.
+  boundary with the lines still to read (a long code block at the top of a hit is cut
+  at a line and closed, rather than dropped); each hit shows `<ref> @<commit>` for citing.
+- **Mode guidance**, from the by-kind scores (with [adaptive fusion](#hybrid-fusion)):
+  dense still edges hybrid on how-to (MRR 0.745 vs 0.690), API (0.833 vs 0.778) and
+  identifier *sentences* (0.944 vs 0.833); hybrid wins on concepts (0.911 vs 0.798);
+  BM25 alone is weakest for every kind. Each kind has only 9–17 questions. The MCP
+  tool and the lookup skill say to retry with `dense` when hybrid misses on a
+  sentence-style question, and never to use `dense` for a bare identifier.
+- **Identifier hits aren't labelled weak.** A bare identifier has little meaning to
+  embed (`norm_score` scores 0.36 against the page that defines it), so for an
+  identifier-shaped query, a hit containing it word for word is labelled strong.
 - **Page-intro demotion: tested, not adopted.** Mavis lowers the score of a page's
   intro chunk (the text before its first heading). Here it hurt: hybrid MRR 0.734 →
   0.724 at `intro_weight` 0.9 and 0.719 at 0.7. Our intro chunks carry the page title,

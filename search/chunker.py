@@ -5,7 +5,8 @@ carries its heading path ("Config Cheat Sheet › Service (service)") so a
 section called "Options" still says what it is about. Long sections are
 packed from whole blocks — paragraphs, lists, code fences, tables — so code
 and tables are never cut mid-way unless a single block is itself too long,
-in which case it is split by lines (tables repeat their header row).
+in which case it is split by lines (tables repeat their header row, and a
+code block is closed and reopened at the cut).
 Other text files (.rst, .txt, .adoc) use the same packing without headings.
 """
 from __future__ import annotations
@@ -22,7 +23,23 @@ TEXT_EXT = MD_EXT | {".rst", ".txt", ".adoc"}
 SKIP_NAMES = {"TOC.md"}
 
 HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
-FENCE = re.compile(r"^\s*(```|~~~)")
+FENCE = re.compile(r"^\s*(`{3,}|~{3,})(.*)$")
+
+
+def fence_step(opener: str | None, line: str) -> str | None:
+    """Track fenced code blocks line by line. `opener` is the line that opened the
+    block we're in (None outside one); returns the state after `line`. As in
+    CommonMark, only a fence of the same character, at least as long, with nothing
+    after it closes a block, so a ```` block can contain ``` examples."""
+    m = FENCE.match(line)
+    if not m:
+        return opener
+    if opener is None:
+        return line
+    run = FENCE.match(opener).group(1)
+    if m.group(1)[0] == run[0] and len(m.group(1)) >= len(run) and not m.group(2).strip():
+        return None
+    return opener
 FRONT = re.compile(r"\A---\n(.*?)\n---\n", re.S)
 
 
@@ -57,13 +74,10 @@ def _front_matter(text: str) -> tuple[dict, str, int]:
 
 def _blocks(lines: list[tuple[int, str]]) -> list[list[tuple[int, str]]]:
     """Group (line_no, text) into blocks separated by blank lines; fences stay whole."""
-    blocks, cur, in_fence = [], [], False
+    blocks, cur, fence = [], [], None
     for ln, s in lines:
-        if FENCE.match(s):
-            in_fence = not in_fence
-            cur.append((ln, s))
-            continue
-        if not in_fence and not s.strip():
+        before, fence = fence, fence_step(fence, s)
+        if before is None and fence is None and not s.strip():
             if cur:
                 blocks.append(cur)
                 cur = []
@@ -74,21 +88,43 @@ def _blocks(lines: list[tuple[int, str]]) -> list[list[tuple[int, str]]]:
     return blocks
 
 
-def _split_big(block: list[tuple[int, str]]) -> list[list[tuple[int, str]]]:
-    """Split one over-long block by lines; tables repeat their header."""
+def closing_fence(opener: str) -> str:
+    m = re.match(r"^(\s*)(`{3,}|~{3,})", opener)
+    return m.group(1) + m.group(2) if m else "```"
+
+
+def _split_big(block: list[tuple[int, str]]) -> list[list[tuple[int | None, str]]]:
+    """Split one over-long block by lines. Every piece stays readable on its own:
+    tables repeat their header row, and a code block cut in two is closed at the end
+    of one piece and reopened (with its language) at the start of the next.
+    Repeated lines are copies, numbered None, so they don't move a chunk's line range."""
     is_table = len(block) > 2 and block[0][1].lstrip().startswith("|") and re.match(r"^\s*\|?\s*:?-{2,}", block[1][1])
     header = block[:2] if is_table else []
     body = block[2:] if is_table else block
-    out, cur, size = [], list(header), sum(len(s) for _, s in header)
     # A single line longer than the limit (minified output, long tables cells) is cut.
     body = [(ln, s[i:i + MAX_CHARS]) for ln, s in body for i in range(0, max(len(s), 1), MAX_CHARS)]
+    out: list[list[tuple[int | None, str]]] = []
+    cur: list[tuple[int | None, str]] = list(header)
+    size, added = sum(len(s) + 1 for _, s in header), 0
+    opener: str | None = None          # the fence line of a code block open at this point
     for ln, s in body:
-        if size + len(s) > MAX_CHARS and len(cur) > len(header):
+        close = len(closing_fence(opener)) + 1 if opener else 0
+        if size + len(s) + close > MAX_CHARS and added:
+            carry = []
+            if opener and cur[-1] == (cur[-1][0], opener) and cur[-1][0] is not None and added > 1:
+                carry = [cur.pop()]    # don't end a piece on a block's opening line
+                added -= 1
+            elif opener:
+                cur.append((None, closing_fence(opener)))
             out.append(cur)
-            cur, size = list(header), sum(len(x) for _, x in header)
+            cur = [(None, x) for _, x in header]
+            cur += carry or ([(None, opener)] if opener else [])
+            size, added = sum(len(x) + 1 for _, x in cur), len(carry)
         cur.append((ln, s))
         size += len(s) + 1
-    if len(cur) > len(header):
+        added += 1
+        opener = fence_step(opener, s)
+    if added:
         out.append(cur)
     return out
 
@@ -129,11 +165,10 @@ def chunk_file(path: Path, rel: str) -> list[Chunk]:
     sections: list[tuple[list[str], list[tuple[int, str]]]] = []
     stack: list[tuple[int, str]] = []
     cur: list[tuple[int, str]] = []
-    in_fence = False
+    fence = None
     for ln, s in lines:
-        if FENCE.match(s):
-            in_fence = not in_fence
-        m = HEADING.match(s) if (is_md and not in_fence) else None
+        before, fence = fence, fence_step(fence, s)
+        m = HEADING.match(s) if (is_md and before is None and fence is None) else None
         if m and len(m.group(1)) <= 4:
             sections.append(([h for _, h in stack], cur))
             level = len(m.group(1))
@@ -156,7 +191,7 @@ def chunk_file(path: Path, rel: str) -> list[Chunk]:
             text = "\n".join(s for _, s in piece).strip()
             if len(re.sub(r"\s+", "", text)) < MIN_CHARS:
                 continue
-            nums = [ln for ln, _ in piece]
+            nums = [ln for ln, _ in piece if ln is not None]
             chunks.append(Chunk(path=rel, start_line=min(nums), end_line=max(nums),
                                 heading_path=[h for h in hpath if h != title] if hpath else [],
                                 text=text, title=title, source_url=source))
