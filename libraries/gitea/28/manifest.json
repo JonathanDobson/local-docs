@@ -1,0 +1,67 @@
+{
+  "name": "Gitea",
+  "slug": "gitea",
+  "version": "28",
+  "release": "28.3.0",
+  "requested": "gitea 28 or later",
+  "kind": "application",
+  "summary": "Self-hosted Git service, release line 28 (v28.3.0): install, admin, app.ini config cheat sheet, CLI, Actions + Gitea Runner 5.x, packages, webhooks, REST API (Swagger 2 + OpenAPI 3), 28.x release notes.",
+  "homepage": "https://about.gitea.com",
+  "docs_url": "https://docs.gitea.com/",
+  "license": "Docs: Apache-2.0 (gitea/docs repo). API spec and release notes: MIT (go-gitea/gitea).",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://gitea.com/gitea/docs.git",
+      "ref": "main",
+      "path": "versioned_docs/version-28",
+      "commit": "878c88505055216de35b04ff5e795a24425fba97",
+      "dest": "content/docs"
+    },
+    {
+      "type": "git",
+      "url": "https://gitea.com/gitea/docs.git",
+      "ref": "main",
+      "path": "runner-docs_versioned_docs/version-5",
+      "commit": "878c88505055216de35b04ff5e795a24425fba97",
+      "dest": "content/runner"
+    },
+    {
+      "type": "openapi",
+      "url": "https://raw.githubusercontent.com/go-gitea/gitea/v28.3.0/templates/swagger/v1-swagger.generated.json",
+      "ref": "v28.3.0",
+      "commit": "4f5a3e13e5f3aca85d830e3a9024c893b0bbf1e1",
+      "dest": "api/v1-swagger.generated.json"
+    },
+    {
+      "type": "openapi",
+      "url": "https://raw.githubusercontent.com/go-gitea/gitea/v28.3.0/templates/swagger/v1-openapi3.generated.json",
+      "ref": "v28.3.0",
+      "commit": "4f5a3e13e5f3aca85d830e3a9024c893b0bbf1e1",
+      "dest": "api/v1-openapi3.generated.json"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/go-gitea/gitea/releases (v28.0.0, v28.1.0, v28.2.0, v28.3.0, via gh release view)",
+      "dest": "content/release-notes"
+    }
+  ],
+  "ingested_at": "2026-11-09",
+  "coverage": "All English Gitea 28 docs as served on docs.gitea.com (installation, administration, usage, development, help; 99 pages), Gitea Runner 5.x docs (16 pages), the full v28.3.0 REST API spec in Swagger 2.0 and OpenAPI 3.0 with generated per-tag endpoint pages (537 operations) and schema page, and release notes v28.0.0-v28.3.0.",
+  "gaps": [
+    "Chinese (zh-cn, zh-tw) translations not included",
+    "Enterprise docs (/enterprise/ on docs.gitea.com) are built from a separate repository and are not included",
+    "gt (Gitea CLI client) docs not included: the docs repo has no released version of them yet, only 'develop'",
+    "Gitea Runner docs are the 5.x series only (latest 5.2.0); older runner series 0-4 not included",
+    "Older Gitea changelogs (1.x) and the Gitea blog are not included; only 28.x release notes",
+    "Images/screenshots were removed",
+    "The docs are taken from the main branch of the docs repo (the frozen version-28 folder), not from a tag; the docs repo is not tagged per release"
+  ],
+  "notes": "Constraint 'gitea 28 or later' read as the newest stable release >= 28: v28.3.0 (Gitea renumbered from 1.27.x to 28.0.0). docs.gitea.com versions its docs per release line ('28'), so the folder is '28' and the exact release is recorded in 'release'. go-gitea/docs on GitHub is an archived 2017 Hugo repo; the current docs source is gitea.com/gitea/docs (Astro/Starlight). The site's release placeholders (@version@, @dockerVersion@, @sourceVersion@, @sourceBranch@, @minGoVersion@, @minNodeVersion@) were substituted with the '28' values from packages/content-loader/src/products.ts in that repo. API specs kept byte-for-byte; the generated Markdown was built with tools/openapi2md.py --version 28.3.0 --base-path /api/v1. Sidebar _category_.json files were dropped.",
+  "stats": {
+    "files": 131,
+    "doc_files": 129,
+    "spec_files": 2,
+    "megabytes": 3.29
+  }
+}
