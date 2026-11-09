@@ -64,3 +64,9 @@ claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
 ## Layout
 
 See [CLAUDE.md](CLAUDE.md#layout).
+
+## Licence
+
+This project's own code and docs are [MIT](LICENSE). Everything under
+`libraries/` is third-party documentation redistributed under its own licence —
+see each docs set's `manifest.json` — and belongs to its authors.

@@ -355,6 +355,10 @@ downloaded from the internet. marked is the library that turns Markdown into HTM
 (`search/static/`) instead of downloaded at run time, so the page works offline
 and can't change under us. Recorded with its version and licence.
 
+**Licence (of a docs set)** — The terms under which a project's documentation
+may be copied. Recorded in each manifest; local-docs only mirrors docs whose
+licence allows redistribution. This project's own code is MIT (see `LICENSE`).
+
 **Content Security Policy (CSP)** — A rule the search page sends to the browser
 listing what the page may load. Here: only its own scripts, no remote images or
 other sites, so even a malicious doc page couldn't call out.
