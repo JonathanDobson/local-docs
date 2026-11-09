@@ -229,10 +229,19 @@ python3 tools/finalize.py <slug>/<version>
 
 It must print `OK`. It writes `TOC.md`, fills `stats`, and rebuilds `INDEX.md`.
 
+Then add it to the search index (re-embeds only new or changed files; a large
+set can take 10–30 minutes on this machine, so run it in the background if your
+tools allow):
+
+```bash
+.venv/bin/python -m search index <slug>/<version>
+```
+
 Then prove the set is usable — run 3–5 searches for questions a developer would
 really ask, and confirm each lands on a real answer:
 
 ```bash
+.venv/bin/python -m search search "<question>" -l <slug>
 rg -l -i "<term>" libraries/<slug>/<version>/
 ```
 

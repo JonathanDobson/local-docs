@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local Docs Search</title>
+<style>
+:root {
+  --bg: #fbfaf8; --surface: #ffffff; --text: #1d1d1f; --muted: #6b6b70; --border: #e4e2dd;
+  --accent: #2f5bd3; --accent-soft: #e8eefc; --mark: #fff0a8; --mark-text: #1d1d1f;
+  --range: #fff7d6; --code: #f4f2ee; --danger: #b42318; --on-accent: #ffffff;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416; --surface: #1c1c1f; --text: #ececee; --muted: #9a9aa2; --border: #2e2e33;
+    --accent: #8aa8ff; --accent-soft: #232b45; --mark: #5c4d00; --mark-text: #fff6cc;
+    --range: #2a2614; --code: #232327; --danger: #ff8a80; --on-accent: #10131c;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416; --surface: #1c1c1f; --text: #ececee; --muted: #9a9aa2; --border: #2e2e33;
+  --accent: #8aa8ff; --accent-soft: #232b45; --mark: #5c4d00; --mark-text: #fff6cc;
+  --range: #2a2614; --code: #232327; --danger: #ff8a80; --on-accent: #10131c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--sans); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 24px 16px 64px; }
+header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+header h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+header h1 a { color: var(--text); }
+header .meta { color: var(--muted); font-size: 13px; margin-left: auto; }
+form.search { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.qbox { position: relative; }
+input[type=search] {
+  width: 100%; padding: 12px 14px; font: inherit; font-size: 16px; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; outline: none;
+}
+input[type=search]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+button {
+  padding: 0 18px; font: inherit; font-weight: 600; color: var(--on-accent); background: var(--accent);
+  border: 0; border-radius: 10px; cursor: pointer;
+}
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+select {
+  font: inherit; font-size: 14px; padding: 6px 10px; color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; max-width: 100%;
+}
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg label { padding: 6px 10px; font-size: 14px; cursor: pointer; color: var(--muted); background: var(--surface); }
+.seg input { display: none; }
+.seg input:checked + span { color: var(--accent); font-weight: 600; }
+.seg label + label { border-left: 1px solid var(--border); }
+.hint { color: var(--muted); font-size: 13px; }
+.status { color: var(--muted); font-size: 13px; margin: 18px 0 8px; min-height: 1.5em; }
+.status.err { color: var(--danger); }
+.result {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 12px;
+}
+.result .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+.chip { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 1px 9px; font-weight: 600; }
+.rank { color: var(--muted); font-variant-numeric: tabular-nums; }
+.crumb { font-weight: 600; font-size: 15px; margin: 6px 0 2px; overflow-wrap: anywhere; }
+.path { font-family: var(--mono); font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.body {
+  margin-top: 10px; font-family: var(--mono); font-size: 13px; line-height: 1.55; white-space: pre-wrap;
+  overflow-wrap: anywhere; background: var(--code); border-radius: 8px; padding: 10px 12px;
+  max-height: 11.5em; overflow: hidden; position: relative;
+}
+.body.open { max-height: none; }
+.more { font-size: 13px; margin-top: 6px; background: none; color: var(--accent); padding: 0; font-weight: 500; }
+mark { background: var(--mark); color: var(--mark-text); border-radius: 3px; padding: 0 1px; }
+.actions { display: flex; gap: 14px; margin-top: 8px; font-size: 13px; flex-wrap: wrap; }
+.empty { text-align: center; color: var(--muted); padding: 48px 0; }
+.libs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-top: 20px; }
+.lib { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: var(--muted); }
+.lib b { color: var(--text); font-size: 15px; }
+/* file view */
+.viewhead { margin: 8px 0 14px; }
+.viewhead .path { font-size: 13px; }
+.file { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
+.file table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 13px; line-height: 1.55; }
+.file td { padding: 0 12px; vertical-align: top; }
+.file td.n { color: var(--muted); text-align: right; user-select: none; width: 1%; white-space: nowrap; border-right: 1px solid var(--border); }
+.file td.l { white-space: pre-wrap; overflow-wrap: anywhere; }
+.file tr.hit td { background: var(--range); }
+@media (max-width: 560px) {
+  form.search { grid-template-columns: 1fr; }
+  button { padding: 10px; }
+  header .meta { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><a href="/">Local docs</a></h1>
+    <span class="meta" id="meta"></span>
+  </header>
+
+  <div id="searchView">
+    <form class="search" id="form" autocomplete="off">
+      <div class="qbox"><input type="search" id="q" name="q" placeholder="Ask a question or paste an identifier…  (press / to focus)" autofocus></div>
+      <button type="submit">Search</button>
+      <div class="filters" style="grid-column: 1 / -1">
+        <select id="scope" aria-label="Library"></select>
+        <span class="seg" role="radiogroup" aria-label="Search mode">
+          <label title="Keyword + meaning (best)"><input type="radio" name="mode" value="hybrid" checked><span>Hybrid</span></label>
+          <label title="Meaning only"><input type="radio" name="mode" value="dense"><span>Meaning</span></label>
+          <label title="Keywords only (BM25)"><input type="radio" name="mode" value="bm25"><span>Keyword</span></label>
+        </span>
+        <select id="k" aria-label="Number of results">
+          <option value="5">5 results</option><option value="10" selected>10 results</option>
+          <option value="20">20 results</option><option value="50">50 results</option>
+        </select>
+      </div>
+    </form>
+    <div class="status" id="status"></div>
+    <div id="results"></div>
+  </div>
+
+  <div id="fileView" hidden>
+    <div class="viewhead">
+      <a href="#" id="back">← Back to results</a>
+      <div class="crumb" id="fileTitle"></div>
+      <div class="path" id="filePath"></div>
+    </div>
+    <div class="file"><table id="fileBody"></table></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+let libs = [];
+
+// Append text to a node, wrapping query words in <mark>. Uses text nodes only, never innerHTML.
+function highlight(node, text, words) {
+  if (!words.length) { node.append(text); return; }
+  const re = new RegExp("(" + words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "gi");
+  let last = 0;
+  for (const m of text.matchAll(re)) {
+    if (m.index > last) node.append(text.slice(last, m.index));
+    node.append(el("mark", null, m[0]));
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) node.append(text.slice(last));
+}
+
+const STOP = new Set("a an and are as at be by can do does for from how i if in is it me my of on or so that the this to what when where which why with you your".split(" "));
+function queryWords(q) {
+  const out = new Set();
+  for (const w of q.split(/[^A-Za-z0-9_.\-]+/)) {
+    if (w.length >= 3 && !STOP.has(w.toLowerCase())) out.add(w);
+    for (const p of w.split(/[_.\-]+/)) if (p.length >= 3 && !STOP.has(p.toLowerCase())) out.add(p);
+  }
+  return [...out].sort((a, b) => b.length - a.length);
+}
+
+async function api(path) {
+  const r = await fetch(path);
+  const body = await r.json();
+  if (!r.ok) throw new Error(body.error || r.statusText);
+  return body;
+}
+
+function readState() {
+  const p = new URLSearchParams(location.search);
+  return { q: p.get("q") || "", scope: p.get("scope") || "", mode: p.get("mode") || "hybrid", k: p.get("k") || "10",
+           path: p.get("path"), from: +p.get("from") || 0, to: +p.get("to") || 0 };
+}
+
+function fillControls(st) {
+  $("q").value = st.q;
+  $("scope").value = st.scope;
+  for (const r of document.querySelectorAll("input[name=mode]")) r.checked = r.value === st.mode;
+  $("k").value = st.k;
+}
+
+function showLibraries() {
+  const box = el("div", "libs");
+  for (const l of libs) {
+    const c = el("div", "lib");
+    c.append(el("b", null, `${l.name} ${l.version}`));
+    if (l.release && l.release !== l.version) c.append(` · release ${l.release}`);
+    c.append(el("div", null, l.summary || ""));
+    box.append(c);
+  }
+  const wrap = el("div");
+  wrap.append(el("div", "hint", `${libs.length} documentation set${libs.length === 1 ? "" : "s"} available:`), box);
+  $("results").replaceChildren(wrap);
+}
+
+async function runSearch(st) {
+  $("searchView").hidden = false; $("fileView").hidden = true;
+  if (!st.q) { $("status").textContent = ""; showLibraries(); return; }
+  const [library, version] = st.scope ? st.scope.split("@") : ["", ""];
+  const params = new URLSearchParams({ q: st.q, mode: st.mode, k: st.k });
+  if (library) params.set("library", library);
+  if (version) params.set("version", version);
+  $("status").className = "status"; $("status").textContent = "Searching…";
+  const t0 = performance.now();
+  let res;
+  try { res = await api("/api/search?" + params); }
+  catch (e) { $("status").className = "status err"; $("status").textContent = "Search failed: " + e.message; return; }
+  const ms = Math.round(performance.now() - t0);
+  $("status").textContent = `${res.hits.length} result${res.hits.length === 1 ? "" : "s"} · ${ms} ms · ${res.mode} · ${res.model}`;
+  const words = queryWords(st.q);
+  const list = el("div");
+  if (!res.hits.length) list.append(el("div", "empty", "No results. Try other words, or widen the library filter."));
+  res.hits.forEach((h, i) => {
+    const card = el("article", "result");
+    const top = el("div", "top");
+    top.append(el("span", "rank", `#${i + 1}`), el("span", "chip", `${h.library} ${h.version}`));
+    const crumb = el("div", "crumb"); highlight(crumb, h.breadcrumb || h.path, words);
+    const path = el("div", "path", `${h.path} : ${h.start_line}–${h.end_line}`);
+    const body = el("div", "body"); highlight(body, h.text, words);
+    const actions = el("div", "actions");
+    const view = el("a", null, "Open in file →");
+    const vp = new URLSearchParams({ path: h.path, from: h.start_line, to: h.end_line });
+    view.href = "/view?" + vp;
+    view.addEventListener("click", (e) => { e.preventDefault(); history.pushState(null, "", view.href); route(); });
+    actions.append(view);
+    if (h.source_url && /^https?:\/\//.test(h.source_url)) {
+      const web = el("a", null, "Web page ↗"); web.href = h.source_url; web.target = "_blank"; web.rel = "noopener noreferrer";
+      actions.append(web);
+    }
+    const copy = el("a", null, "Copy path"); copy.href = "#";
+    copy.addEventListener("click", (e) => { e.preventDefault(); navigator.clipboard?.writeText(`~/local-docs/${h.path}:${h.start_line}`); copy.textContent = "Copied"; });
+    actions.append(copy);
+    card.append(top, crumb, path, body);
+    if (h.text.length > 600 || h.text.split("\n").length > 7) {
+      const more = el("button", "more", "Show whole chunk");
+      more.type = "button";
+      more.addEventListener("click", () => { body.classList.toggle("open"); more.textContent = body.classList.contains("open") ? "Show less" : "Show whole chunk"; });
+      card.append(more);
+    }
+    card.append(actions);
+    list.append(card);
+  });
+  $("results").replaceChildren(list);
+}
+
+async function showFile(st) {
+  $("searchView").hidden = true; $("fileView").hidden = false;
+  $("fileTitle").textContent = "Loading…"; $("filePath").textContent = st.path; $("fileBody").replaceChildren();
+  let f;
+  try { f = await api("/api/file?" + new URLSearchParams({ path: st.path })); }
+  catch (e) { $("fileTitle").textContent = "Could not open file: " + e.message; return; }
+  $("fileTitle").textContent = st.path.split("/").pop();
+  $("filePath").textContent = st.from ? `${st.path} : lines ${st.from}–${st.to}` : st.path;
+  const frag = document.createDocumentFragment();
+  let first = null;
+  f.lines.forEach((line, i) => {
+    const n = i + 1;
+    const tr = el("tr", n >= st.from && n <= st.to ? "hit" : null);
+    tr.id = "L" + n;
+    tr.append(el("td", "n", String(n)), el("td", "l", line || " "));
+    if (n === st.from) first = tr;
+    frag.append(tr);
+  });
+  $("fileBody").replaceChildren(frag);
+  if (first) first.scrollIntoView({ block: "center" }); else window.scrollTo(0, 0);
+}
+
+function route() {
+  const st = readState();
+  if (location.pathname === "/view" && st.path) return showFile(st);
+  fillControls(st);
+  document.title = st.q ? `${st.q} – Local Docs Search` : "Local Docs Search";
+  return runSearch(st);
+}
+
+function submit() {
+  const p = new URLSearchParams();
+  const q = $("q").value.trim();
+  if (q) p.set("q", q);
+  if ($("scope").value) p.set("scope", $("scope").value);
+  const mode = document.querySelector("input[name=mode]:checked").value;
+  if (mode !== "hybrid") p.set("mode", mode);
+  if ($("k").value !== "10") p.set("k", $("k").value);
+  history.pushState(null, "", "/" + (p.toString() ? "?" + p : ""));
+  route();
+}
+
+$("form").addEventListener("submit", (e) => { e.preventDefault(); submit(); });
+$("scope").addEventListener("change", () => $("q").value.trim() && submit());
+$("k").addEventListener("change", () => $("q").value.trim() && submit());
+for (const r of document.querySelectorAll("input[name=mode]")) r.addEventListener("change", () => $("q").value.trim() && submit());
+$("back").addEventListener("click", (e) => { e.preventDefault(); history.length > 1 ? history.back() : (location.href = "/"); });
+window.addEventListener("popstate", route);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "/" && document.activeElement !== $("q") && !$("searchView").hidden) { e.preventDefault(); $("q").focus(); $("q").select(); }
+});
+
+(async () => {
+  try { libs = await api("/api/libraries"); } catch { libs = []; }
+  const scope = $("scope");
+  scope.append(new Option("All libraries", ""));
+  for (const l of libs) scope.append(new Option(`${l.name} ${l.version}${l.release && l.release !== l.version ? ` (${l.release})` : ""}`, `${l.slug}@${l.version}`));
+  $("meta").textContent = `${libs.length} docs set${libs.length === 1 ? "" : "s"}`;
+  route();
+})();
+</script>
+</body>
+</html>

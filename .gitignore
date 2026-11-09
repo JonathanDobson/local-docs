@@ -2,3 +2,4 @@
 .staging/
 __pycache__/
 *.pyc
+.search/

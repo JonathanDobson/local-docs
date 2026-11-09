@@ -22,8 +22,11 @@ libraries/<slug>/<version>/   one docs set
   content/                    the documentation (Markdown preferred)
   api/                        API specs + generated endpoint/schema pages
 skills/                       the two skills (linked into ~/.claude/skills)
-tools/                        fetch, convert and validate scripts
-.venv/  .staging/             local only, git-ignored
+tools/                        fetch, convert and validate scripts; docs-mcp.sh launches the MCP server
+search/                       the search engine (see search/README.md)
+  settings.json               chosen embedding model, ports
+  eval/questions.yaml         the retrieval test set; eval/bakeoff.sh compares models
+.venv/  .staging/  .search/   local only, git-ignored (.search/ = Milvus Lite data + eval results)
 ```
 
 ## Rules
@@ -38,4 +41,9 @@ tools/                        fetch, convert and validate scripts
 5. Don't delete or overwrite an existing docs set unless the user asked for a refresh.
 6. Python tools that parse HTML/YAML run with `.venv/bin/python` (create it with
    `tools/setup.sh`); `finalize.py` needs only the system `python3`.
-7. New project terminology goes into [GLOSSARY.md](GLOSSARY.md) in the same change.
+7. After finalizing a docs set, index it: `.venv/bin/python -m search index <slug>/<version>`.
+   Changing `search/settings.json` `model` means a new collection; index everything
+   again (`python -m search index`) and rerun `python -m search eval` before switching.
+8. The Milvus Lite server binds to 127.0.0.1 only. It has no authentication — never
+   expose it on another interface.
+9. New project terminology goes into [GLOSSARY.md](GLOSSARY.md) in the same change.

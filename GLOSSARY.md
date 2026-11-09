@@ -205,3 +205,144 @@ shallow skips history, sparse skips folders you didn't ask for. `git_docs.sh`
 uses both so fetching docs is fast.
 
 **`gh`** — GitHub's command-line tool, used to list a project's releases and tags.
+
+## Semantic search (proposed engine)
+
+**Semantic search** — Finding text by meaning rather than exact words, so
+"stop people signing up" finds `DISABLE_REGISTRATION`. The proposed local-docs
+search engine combines it with keyword search (see *hybrid search*).
+
+**Embedding / vector** — A list of numbers a model produces for a piece of text,
+placed so that texts with similar meaning get similar numbers. Searching means
+embedding the question and finding the stored chunks whose vectors are closest.
+
+**Embedding model** — The model that turns text into embeddings. Run locally
+through Ollama. Examples: `qwen3-embedding`, `embeddinggemma`, `nomic-embed-text`.
+
+**Dimensions** — How many numbers an embedding has (e.g. 768, 1024). More can
+capture more nuance but cost more storage and memory.
+
+**MRL (Matryoshka Representation Learning)** — A training method that lets you
+keep only the first N numbers of an embedding and still get useful results,
+trading a little quality for less storage. `qwen3-embedding` and
+`embeddinggemma` support it.
+
+**Instruction / task prefix** — Text some embedding models expect in front of a
+query or document (e.g. "Instruct: … Query: …"). Leaving it off quietly lowers
+quality, so the indexer and the search must add it the same way each time.
+
+**MTEB (Massive Text Embedding Benchmark)** — A public leaderboard that scores
+embedding models on many tasks. Useful as a first filter, but its scores come
+from separate tracks (English, multilingual, code) that can't be compared
+directly, and they aren't a test on our own docs.
+
+**Ollama** — A program that runs AI models locally and serves them over a local
+web API (`http://127.0.0.1:11434`). Provides the embedding model here.
+
+**Milvus** — An open-source database built for storing and searching vectors,
+which also does keyword (BM25) search. Docs: `libraries/milvus/3.0/`.
+
+**Milvus Lite** — Milvus as a Python library that runs inside your own program
+and stores data in a local folder. No Docker. Version 3.2.2 pairs with Milvus 3.0.
+Only one process may open its data folder at a time, but it can run as a small
+server (`milvus-lite server`) that many programs connect to.
+
+**Milvus Standalone** — The full Milvus server on one machine, run in Docker.
+More features than Lite, but needs more RAM (8 GB minimum per its docs).
+
+**Collection** — Milvus's word for a table: a set of records sharing one
+structure (*schema*).
+
+**Partition key** — A field Milvus uses to group records internally (here, the
+library slug) so a search limited to one library only looks at that library.
+
+**Chunk** — A small piece of a document (a section under one heading, an
+endpoint, a block of a long page) that is embedded and indexed on its own.
+Search results point at chunks, with file path and line numbers.
+
+**Heading path** — The chain of headings a chunk sits under, e.g.
+"Gitea 28 › Administration › Config Cheat Sheet › service". Added to each chunk
+so a section like "Options" still says what it is about.
+
+**BM25** — The standard keyword-ranking formula. It scores a document higher
+when it contains the query's words, especially rare ones. Excellent for exact
+identifiers (config keys, function names) where meaning-based search is weak.
+
+**IDF (inverse document frequency)** — The part of BM25 that rates rare words as
+more telling than common ones. In Milvus Lite it is counted per storage segment,
+not across the whole collection, so scores can be slightly off.
+
+**Sparse vector / dense vector** — Two ways of representing text. Dense: an
+embedding (every number used). Sparse: mostly zeros, one slot per word (how
+Milvus stores BM25). The engine stores both for every chunk.
+
+**Analyzer** — Milvus's rules for splitting text into words for BM25: a
+*tokenizer* (where words break) plus *filters* (lowercasing, stemming, stop
+words).
+
+**Hybrid search** — Running a keyword (BM25) search and a meaning (embedding)
+search together and merging the two result lists. Catches both "exact config
+key" and "how do I…" questions.
+
+**RRF (Reciprocal Rank Fusion)** — A simple, robust way to merge ranked lists:
+each result scores by its position in each list, so items ranked well by both
+searches rise to the top. Milvus: `RRFRanker`.
+
+**Reranker** — An optional second model that re-reads the top results next to
+the query and reorders them. More accurate, slower. Ollama has no rerank
+endpoint, so it would be added only if testing shows it's needed.
+
+**Recall@k / MRR (mean reciprocal rank)** — Scores for a search test set. Recall@5
+is "how often the right file is in the top 5". MRR rewards having it at rank 1
+over rank 5. Used to pick the embedding model on our own docs.
+
+**MCP (Model Context Protocol)** — The standard way to give Claude Code extra
+tools. The engine would expose `docs_search` and similar tools through an MCP
+server.
+
+**Collection per model** — Each embedding model (and dimension setting) gets its
+own Milvus collection, e.g. `docs_qwen3_embedding_0_6b`, because vectors from
+different models can't be mixed. Lets models be compared side by side.
+
+**Question set / eval** — `search/eval/questions.yaml`: 60 realistic questions,
+each with the file(s) that answer it, checked by hand. `python -m search eval`
+runs them and reports recall@k and MRR; `search/eval/bakeoff.sh` does that for
+every candidate model.
+
+**Scoped search** — A search limited to one library (and optionally version),
+using the partition key. Agents should scope when they know the library.
+
+**Milvus Lite server** — Milvus Lite running as its own background process
+(`python -m search up`), which the indexer and every MCP server connect to,
+since only one process may open the data folder. Listens on
+`127.0.0.1:19541`.
+
+**gRPC** — The network protocol pymilvus uses to talk to Milvus. It prints
+harmless "too_many_pings" warnings against Milvus Lite; the tools silence them
+with `GRPC_VERBOSITY=NONE`.
+
+**stdio (standard input/output)** — How Claude Code talks to a local MCP server:
+it starts the program (`tools/docs-mcp.sh`) and exchanges messages over its
+input and output streams. No network port involved.
+
+**Tokens / throughput** — A token is a word-piece, the unit models read (~4
+characters of English). Throughput here is chunks (or tokens) embedded per
+second; on this machine's GPU it decides how long indexing takes.
+
+**Search page** — The browser interface to the same search
+(`python -m search web`, http://127.0.0.1:7710). For people; agents use the MCP
+tools instead.
+
+**127.0.0.1 / localhost** — The address that means "this computer". A server
+listening only there can't be reached from other machines on the network. Both
+the Milvus Lite server and the search page listen only there.
+
+**Host header / DNS rebinding** — Every web request names the site it's meant for
+(the Host header). DNS rebinding is a trick where a malicious web page makes
+your browser send requests to a server on your own machine under the attacker's
+host name. The search page refuses any request not addressed to `127.0.0.1` or
+`localhost`, which blocks it.
+
+**AST (abstract syntax tree)** — A program's code parsed into its structure
+(functions, classes). Code-search tools use it to split code at function boundaries;
+docs don't need it, because headings already mark the sections.

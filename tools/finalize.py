@@ -159,6 +159,8 @@ def main(argv: list[str]) -> int:
         if m and not errors:
             stats_and_toc(d, m)
             print(f"{d.relative_to(ROOT)}: {m['stats']}")
+            print(f"next: index it for search -> .venv/bin/python -m search index "
+                  f"{d.parent.name}/{d.name}")
         errors = errors + [e for e in build_index() if e not in errors]
     for e in errors:
         print("ERROR", e)

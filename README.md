@@ -20,6 +20,26 @@ In any Claude Code session, in any project:
 Claude also consults local-docs on its own when a task depends on a tool listed
 in `INDEX.md` (see the pointer in `~/.claude/CLAUDE.md`).
 
+## Searching
+
+Every docs set is indexed for **hybrid search** — keyword (BM25) and meaning
+(embeddings from a local Ollama model), stored in Milvus Lite — so agents can ask
+plain questions *or* look up exact identifiers. Agents use it through the
+`local-docs` MCP server (`docs_search`, `docs_read`, `docs_list`); people can use
+the command line:
+
+```bash
+.venv/bin/python -m search search "how do I stop people signing up" -l gitea
+```
+
+Or search in a browser — start the page, then open http://127.0.0.1:7710:
+
+```bash
+.venv/bin/python -m search web
+```
+
+Details, model choice and test results: [search/README.md](search/README.md).
+
 ## How docs get in
 
 The ingest skill tries sources in this order and records which it used:
@@ -37,6 +57,8 @@ The ingest skill tries sources in this order and records which it used:
 ```bash
 tools/setup.sh          # Python virtualenv for crawl.py / openapi2md.py
 tools/install-skills.sh # link the two skills into ~/.claude/skills
+.venv/bin/python -m search index   # build the search index (Ollama must be running)
+claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
 ```
 
 ## Layout

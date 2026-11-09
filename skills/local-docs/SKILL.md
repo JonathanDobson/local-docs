@@ -22,7 +22,16 @@ training data may be older or for a different version.
 2. **Read the set's `OVERVIEW.md`** (`libraries/<slug>/<version>/OVERVIEW.md`).
    Its "Where to look for…" table often points straight at the file you need.
    Its "Version notes" warn about changes between versions.
-3. **Search**, from narrow to broad:
+3. **Search by meaning first.** If the `docs_search` tool (from the `local-docs`
+   MCP server) is available, use it with `library` (and `version`) set. It combines
+   keyword and meaning search, so plain questions and exact identifiers both work.
+   Without the tool, the same search runs from a shell:
+   ```bash
+   ~/local-docs/.venv/bin/python -m search search "question" -l <slug> -v <version>
+   ```
+   (run it from `~/local-docs`). If search finds nothing, check `stats`
+   (`python -m search stats`) — the set may not be indexed yet.
+4. **Then grep** to confirm details or find every occurrence, from narrow to broad:
    ```bash
    cd ~/local-docs/libraries/<slug>/<version>
    rg -n -i "exact_config_key|FunctionName" .        # exact identifiers first
@@ -33,8 +42,8 @@ training data may be older or for a different version.
    For APIs, `api/endpoints/<tag>.md` and `api/schemas.md` are summaries of the
    spec; the raw spec in `api/` is the source of truth for exact fields.
    Use the Grep and Read tools for the same searches if you prefer them to `rg`.
-4. **Read the actual pages** before answering; don't answer from a grep line.
-5. **Cite** the files you used as paths, e.g.
+5. **Read the actual pages** before answering; don't answer from a grep line.
+6. **Cite** the files you used as paths, e.g.
    `~/local-docs/libraries/gitea/28/content/docs/administration/config-cheat-sheet.md`,
    and name the version (the `release` in `manifest.json` when the folder is a
    release line like `28`). Crawled pages have a `source:` URL in their front-matter;

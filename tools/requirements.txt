@@ -1,3 +1,6 @@
 beautifulsoup4>=4.12
 markdownify>=0.13
 pyyaml>=6.0
+pymilvus[milvus-lite]==3.0.2
+milvus-lite==3.2.2
+mcp>=2.3,<3

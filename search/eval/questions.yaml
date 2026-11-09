@@ -1,0 +1,525 @@
+# Retrieval test set. One entry per question.
+# expect: file paths relative to the docs set folder (libraries/<slug>/<version>/); a hit on ANY listed file counts.
+
+# ---------------------------------------------------------------- Gitea 28
+
+- id: gitea-01
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "How do I stop people creating their own accounts on my Gitea server?"
+  expect:
+    - content/docs/administration/config-cheat-sheet.md
+    - content/docs/help/faq.md
+
+- id: gitea-02
+  library: gitea
+  version: "28"
+  kind: identifier
+  q: "Can I point GITEA__database__PASSWD at a Docker secret file instead of putting the password in the compose file?"
+  expect:
+    - content/docs/administration/config-cheat-sheet.md
+    - content/docs/installation/with-docker.md
+
+- id: gitea-03
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "Is there a way to let users make a new repo on the server just by git pushing to a URL that doesn't exist yet?"
+  expect:
+    - content/docs/usage/repository/push.md
+    - content/docs/administration/config-cheat-sheet.md
+
+- id: gitea-04
+  library: gitea
+  version: "28"
+  kind: identifier
+  q: "When I reset someone's password with gitea admin user change-password, how do I stop it forcing them to pick a new one at next login?"
+  expect:
+    - content/docs/administration/command-line.md
+
+- id: gitea-05
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "I need a runner registration token that only works for a single repository, ideally generated from a shell on the Gitea host. How?"
+  expect:
+    - content/docs/administration/command-line.md
+    - content/docs/usage/actions/runner.mdx
+
+- id: gitea-06
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "My runner only ever works on one CI job at a time and the rest sit queued. How do I let it run four in parallel?"
+  expect:
+    - content/runner/configuration.md
+    - content/runner/reference/config-example.md
+
+- id: gitea-07
+  library: gitea
+  version: "28"
+  kind: troubleshooting
+  q: "My workflow's postgres service container never comes up healthy and the job gets killed after about five minutes. Where is that wait configured?"
+  expect:
+    - content/runner/jobs.md
+    - content/runner/reference/config-example.md
+
+- id: gitea-08
+  library: gitea
+  version: "28"
+  kind: concept
+  q: "What happens to a job whose runs-on value doesn't match any label my runner was registered with?"
+  expect:
+    - content/runner/labels.md
+
+- id: gitea-09
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "We have three self-hosted runners and actions/cache misses whenever a job lands on a different machine. How do I make them share one cache?"
+  expect:
+    - content/runner/cache.md
+
+- id: gitea-10
+  library: gitea
+  version: "28"
+  kind: identifier
+  q: "Which scopes can I put under permissions: in a workflow to restrict what GITEA_TOKEN is allowed to do?"
+  expect:
+    - content/docs/usage/actions/token-permissions.md
+
+- id: gitea-11
+  library: gitea
+  version: "28"
+  kind: troubleshooting
+  q: "Since moving to Gitea 28 our older Actions run history seems to be disappearing on its own. What's deleting it and how do I keep it?"
+  expect:
+    - content/docs/administration/config-cheat-sheet.md
+    - content/release-notes/v28.0.0.md
+
+- id: gitea-12
+  library: gitea
+  version: "28"
+  kind: identifier
+  q: "What do I put in ALLOWED_HOST_LIST so webhooks can call a Jenkins box at 10.0.0.5 on port 8080?"
+  expect:
+    - content/docs/administration/config-cheat-sheet.md
+
+- id: gitea-13
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "In my Flask app that receives Gitea webhooks, how do I check a request genuinely came from Gitea and wasn't forged?"
+  expect:
+    - content/docs/usage/repository/webhooks.md
+
+- id: gitea-14
+  library: gitea
+  version: "28"
+  kind: api
+  q: "What exact Authorization header format does the Gitea REST API expect for a personal access token in curl?"
+  expect:
+    - content/docs/development/api-usage.md
+
+- id: gitea-15
+  library: gitea
+  version: "28"
+  kind: api
+  q: "As a site admin, can my script call the API on behalf of another user without having their token?"
+  expect:
+    - content/docs/development/api-usage.md
+
+- id: gitea-16
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "I picked SQLite when I installed Gitea and now want to move to Postgres. What's the migration path?"
+  expect:
+    - content/docs/administration/backup-and-restore.md
+
+- id: gitea-17
+  library: gitea
+  version: "28"
+  kind: troubleshooting
+  q: "docker push to our Gitea container registry keeps saying unauthorized even though my password is right. I have two-factor turned on."
+  expect:
+    - content/docs/usage/packages/container.md
+
+- id: gitea-18
+  library: gitea
+  version: "28"
+  kind: troubleshooting
+  q: "Pushing to refs/for/main to open a PR without forking gets rejected with 'topic-branch is not set'. What am I missing?"
+  expect:
+    - content/docs/usage/issues-prs/agit.md
+
+- id: gitea-19
+  library: gitea
+  version: "28"
+  kind: troubleshooting
+  q: "We copied our CODEOWNERS file from GitHub into .github/ but Gitea never requests reviews from the owners. Why?"
+  expect:
+    - content/docs/usage/repository/code-owners.md
+
+- id: gitea-20
+  library: gitea
+  version: "28"
+  kind: troubleshooting
+  q: "Behind nginx the unread notification badge only updates when I refresh the page. What does the proxy need?"
+  expect:
+    - content/docs/administration/reverse-proxies.md
+
+- id: gitea-21
+  library: gitea
+  version: "28"
+  kind: concept
+  q: "I already created a repo on Gitea. Can I turn it into one that automatically pulls from an upstream GitHub repo?"
+  expect:
+    - content/docs/usage/repository/repo-mirror.md
+
+- id: gitea-22
+  library: gitea
+  version: "28"
+  kind: troubleshooting
+  q: "Our Gitea is in an offline network and every workflow fails fetching actions/checkout@v4 from github.com. How do I make runners pull actions from our own instance?"
+  expect:
+    - content/docs/administration/config-cheat-sheet.md
+    - content/docs/usage/actions/faq.md
+    - content/docs/usage/actions/comparison.md
+
+- id: gitea-23
+  library: gitea
+  version: "28"
+  kind: concept
+  q: "If an org-level and a repo-level Actions variable share the same name, which value does the workflow see?"
+  expect:
+    - content/docs/usage/actions/variables.md
+
+- id: gitea-24
+  library: gitea
+  version: "28"
+  kind: api
+  q: "How do I squash-merge a pull request through the REST API and delete the branch afterwards?"
+  expect:
+    - api/endpoints/repository.md
+    - api/schemas.md
+
+- id: gitea-25
+  library: gitea
+  version: "28"
+  kind: api
+  q: "I trigger a workflow_dispatch run from a script via the API. Can the call hand back the ID of the run it started?"
+  expect:
+    - api/endpoints/repository.md
+
+- id: gitea-26
+  library: gitea
+  version: "28"
+  kind: api
+  q: "Is there an admin endpoint that lists every package on the whole instance, filterable by package type?"
+  expect:
+    - api/endpoints/admin.md
+
+- id: gitea-27
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "How can I get Prometheus to scrape stats like busy/idle state and job counts from a gitea-runner?"
+  expect:
+    - content/runner/monitoring.md
+    - content/runner/reference/config-example.md
+
+- id: gitea-28
+  library: gitea
+  version: "28"
+  kind: concept
+  q: "Does Gitea Actions honour the environment: key on a job the way GitHub deployment environments do?"
+  expect:
+    - content/docs/usage/actions/comparison.md
+
+- id: gitea-29
+  library: gitea
+  version: "28"
+  kind: troubleshooting
+  q: "After I enabled an authenticator app on my account, git clone over HTTPS rejects my password. How do I authenticate now?"
+  expect:
+    - content/docs/usage/user-setting/multi-factor-authentication.md
+
+- id: gitea-30
+  library: gitea
+  version: "28"
+  kind: howto
+  q: "Can I require every user on the instance to set up two-factor authentication?"
+  expect:
+    - content/docs/administration/config-cheat-sheet.md
+
+# --------------------------------------------------------------- Milvus 3.0
+
+- id: milvus-01
+  library: milvus
+  version: "3.0"
+  kind: troubleshooting
+  q: "After upgrading pymilvus, my existing Milvus Lite demo.db from last year won't open. How do I get the data into the new version?"
+  expect:
+    - content/docs/getstarted/milvus_lite.md
+    - content/milvus-lite/README.md
+
+- id: milvus-02
+  library: milvus
+  version: "3.0"
+  kind: troubleshooting
+  q: "I run two gunicorn workers that both open the same local Milvus Lite database and the second one fails. Is that supported?"
+  expect:
+    - content/docs/getstarted/milvus_lite.md
+    - content/milvus-lite/README.md
+
+- id: milvus-03
+  library: milvus
+  version: "3.0"
+  kind: concept
+  q: "With keyword (BM25) search, long articles keep outranking short ones. Which setting controls how much document length counts?"
+  expect:
+    - content/docs/userGuide/indexes/sparse/sparse-inverted-index.md
+    - content/docs/userGuide/search-query-get/full-text-search.md
+    - content/docs/reference/index.md
+    - content/docs/userGuide/search-query-get/metric.md
+
+- id: milvus-04
+  library: milvus
+  version: "3.0"
+  kind: howto
+  q: "Users misspell product names all the time. Can a keyword filter still match when a word is off by a letter?"
+  expect:
+    - content/docs/userGuide/search-query-get/keyword-match.md
+
+- id: milvus-05
+  library: milvus
+  version: "3.0"
+  kind: troubleshooting
+  q: "My full text search throws an error when I add the BM25 sparse vector field to output_fields. Why can't I return it?"
+  expect:
+    - content/docs/userGuide/search-query-get/full-text-search.md
+
+- id: milvus-06
+  library: milvus
+  version: "3.0"
+  kind: identifier
+  q: "What does the k argument to RRFRanker actually change, and what's the default and allowed range?"
+  expect:
+    - content/docs/userGuide/embeddings-reranking/reranking/rrf-ranker.md
+
+- id: milvus-07
+  library: milvus
+  version: "3.0"
+  kind: api
+  q: "Using plain HTTP with curl, how do I run a dense plus sparse search and fuse the results with reciprocal rank fusion?"
+  expect:
+    - "content/api-reference/restful/v2/Vector (v2)/Hybrid Search.md"
+    - content/docs/userGuide/embeddings-reranking/reranking/rrf-ranker.md
+    - content/docs/userGuide/search-query-get/multi-vector-search.md
+
+- id: milvus-08
+  library: milvus
+  version: "3.0"
+  kind: api
+  q: "In pymilvus hybrid_search, can each AnnSearchRequest carry its own filter expression, and what arguments does it take?"
+  expect:
+    - content/api-reference/pymilvus/MilvusClient/Vector/hybrid_search.md
+    - content/docs/userGuide/search-query-get/multi-vector-search.md
+
+- id: milvus-09
+  library: milvus
+  version: "3.0"
+  kind: identifier
+  q: "What's the syntax for client.query(order_by=...) to sort by rating descending and then price ascending?"
+  expect:
+    - content/docs/userGuide/search-query-get/get-and-scalar-query.md
+    - content/api-reference/pymilvus/MilvusClient/Vector/query.md
+
+- id: milvus-10
+  library: milvus
+  version: "3.0"
+  kind: howto
+  q: "I do a vector search for news articles but want the hits returned newest first instead of by similarity score. Possible?"
+  expect:
+    - content/docs/userGuide/search-query-get/single-vector-search.md
+    - content/api-reference/pymilvus/MilvusClient/Vector/search.md
+
+- id: milvus-11
+  library: milvus
+  version: "3.0"
+  kind: concept
+  q: "When should I use search aggregation instead of a grouping search? They sound like the same thing."
+  expect:
+    - content/docs/userGuide/search-query-get/search-aggregation.md
+
+- id: milvus-12
+  library: milvus
+  version: "3.0"
+  kind: troubleshooting
+  q: "Asking for 20,000 nearest neighbours in one search call fails. How do I pull back more results than that?"
+  expect:
+    - content/docs/userGuide/search-query-get/with-iterators.md
+    - content/docs/userGuide/search-query-get/single-vector-search.md
+    - content/docs/about/limitations.md
+
+- id: milvus-13
+  library: milvus
+  version: "3.0"
+  kind: identifier
+  q: "My embedding model produces 40,000-dimensional vectors. Will Milvus accept them, and which config raises the cap?"
+  expect:
+    - content/docs/faq/product_faq.md
+    - content/docs/reference/sys_config/configure_proxy.md
+    - content/docs/about/limitations.md
+
+- id: milvus-14
+  library: milvus
+  version: "3.0"
+  kind: troubleshooting
+  q: "On a fresh 3.0 install, create_collection rejects my schema as soon as I add a DataType.TEXT field. What do I need to switch on?"
+  expect:
+    - content/docs/userGuide/schema/text.md
+    - content/docs/reference/architecture/storage-v3.md
+    - content/docs/release_notes.md
+
+- id: milvus-15
+  library: milvus
+  version: "3.0"
+  kind: howto
+  q: "Each chat-session row should disappear at its own expiry time rather than after one fixed window for the whole collection. How do I set that up?"
+  expect:
+    - content/docs/userGuide/collections/set-collection-ttl.md
+    - content/docs/userGuide/collections/modify-collection.md
+
+- id: milvus-16
+  library: milvus
+  version: "3.0"
+  kind: concept
+  q: "We're building a SaaS app with about 100k customers, each with a small amount of data. Should each customer get its own collection, a partition, or something else?"
+  expect:
+    - content/docs/reference/multi_tenancy.md
+    - content/docs/userGuide/search-query-get/use-partition-key.md
+
+- id: milvus-17
+  library: milvus
+  version: "3.0"
+  kind: troubleshooting
+  q: "My integration test inserts a row and searches for it straight away, but sometimes it isn't found. Why, and how do I make it show up immediately?"
+  expect:
+    - content/docs/reference/tune_consistency.md
+    - content/docs/faq/product_faq.md
+
+- id: milvus-18
+  library: milvus
+  version: "3.0"
+  kind: identifier
+  q: "Searching an HNSW index with limit=100 and ef=64 returns an error. What's the rule for ef?"
+  expect:
+    - content/docs/userGuide/indexes/floating-vector/hnsw.md
+    - content/docs/reference/index.md
+
+- id: milvus-19
+  library: milvus
+  version: "3.0"
+  kind: concept
+  q: "Our vectors won't fit in the query nodes' RAM. Is there an ANN index that keeps most of the data on SSD, and what hardware does it expect?"
+  expect:
+    - content/docs/userGuide/indexes/floating-vector/diskann.md
+    - content/docs/reference/disk_index.md
+    - content/docs/userGuide/indexes/index-explained.md
+
+- id: milvus-20
+  library: milvus
+  version: "3.0"
+  kind: howto
+  q: "Before creating a collection, how can I see how a given tokenizer and filter setup splits a sample sentence into terms?"
+  expect:
+    - content/docs/userGuide/schema/analyzer/analyzer-overview.md
+    - content/api-reference/pymilvus/MilvusClient/Collections/CollectionSchema/run_analyzer.md
+    - "content/api-reference/restful/v2/Collection (v2)/Run Analyzer.md"
+
+- id: milvus-21
+  library: milvus
+  version: "3.0"
+  kind: howto
+  q: "I want a keyword search for 'laptop' to also match documents that say 'notebook', and I have thousands of such word pairs. How do I load them?"
+  expect:
+    - content/docs/userGuide/schema/analyzer/filter/synonym-filter.md
+    - content/docs/userGuide/schema/analyzer/manage-file-resources.md
+
+- id: milvus-22
+  library: milvus
+  version: "3.0"
+  kind: identifier
+  q: "What does the built-in COLL_RO privilege group allow, and does granting Cluster_RO automatically cover every collection?"
+  expect:
+    - content/docs/adminGuide/privilege_group.md
+
+- id: milvus-23
+  library: milvus
+  version: "3.0"
+  kind: howto
+  q: "I run Milvus standalone with docker compose. What are the steps to move it to 3.0.5 without losing data?"
+  expect:
+    - content/docs/adminGuide/upgrade_milvus_standalone-docker.md
+
+- id: milvus-24
+  library: milvus
+  version: "3.0"
+  kind: concept
+  q: "How can I spot near-duplicate web pages in a big crawl inside Milvus without running an embedding model?"
+  expect:
+    - content/docs/userGuide/embeddings-reranking/embedding-function/minhash-function.md
+    - content/docs/userGuide/indexes/binary/minhash-lsh.md
+
+- id: milvus-25
+  library: milvus
+  version: "3.0"
+  kind: concept
+  q: "Our embeddings are produced by a batch job hours after the record arrives. Can I insert the row now with no vector, and what does search do with those rows?"
+  expect:
+    - content/docs/userGuide/schema/nullable-and-default.md
+
+- id: milvus-26
+  library: milvus
+  version: "3.0"
+  kind: howto
+  q: "For news search I want recent articles to rank above equally relevant old ones. How do I factor publish time into the score?"
+  expect:
+    - content/docs/userGuide/embeddings-reranking/reranking/decay-ranker-overview.md
+    - content/docs/userGuide/embeddings-reranking/reranking/tutorial-implement-a-time-based-ranking-in-milvus.md
+
+- id: milvus-27
+  library: milvus
+  version: "3.0"
+  kind: howto
+  q: "I split documents into chunks and my top 10 is often five chunks of the same document. How do I get at most one hit per document?"
+  expect:
+    - content/docs/userGuide/search-query-get/grouping-search.md
+
+- id: milvus-28
+  library: milvus
+  version: "3.0"
+  kind: api
+  q: "Can I get matched-term highlighting back when calling search through the REST API rather than pymilvus?"
+  expect:
+    - content/docs/userGuide/search-query-get/text-highlighter.md
+
+- id: milvus-29
+  library: milvus
+  version: "3.0"
+  kind: api
+  q: "How do I make a Milvus REST call give up on the server side after 10 seconds instead of hanging?"
+  expect:
+    - content/api-reference/restful/About.md
+
+- id: milvus-30
+  library: milvus
+  version: "3.0"
+  kind: troubleshooting
+  q: "I indexed metadata['price'] with json_cast_type DOUBLE and now a price filter misses some rows. Some prices were stored as strings. What's going on?"
+  expect:
+    - content/docs/userGuide/schema/json-indexing.md
+    - content/docs/userGuide/schema/use-json-fields.md
