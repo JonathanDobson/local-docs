@@ -1,0 +1,22 @@
+---
+source: https://www.postgresql.org/docs/18/view-pg-policies.html
+title: "53.15. pg_policies"
+---
+
+
+## 53.15. `pg_policies`
+
+The view `pg_policies` provides access to useful information about each row-level security policy in the database.
+
+**Table 53.15. `pg_policies` Columns**
+
+| Column Type  Description |
+| --- |
+| `schemaname` `name` (references [`pg_namespace`](catalog-pg-namespace.html "52.32. pg_namespace").`nspname`)  Name of schema containing table policy is on |
+| `tablename` `name` (references [`pg_class`](catalog-pg-class.html "52.11. pg_class").`relname`)  Name of table policy is on |
+| `policyname` `name` (references [`pg_policy`](catalog-pg-policy.html "52.38. pg_policy").`polname`)  Name of policy |
+| `permissive` `text`  Is the policy permissive or restrictive? |
+| `roles` `name[]`  The roles to which this policy applies |
+| `cmd` `text`  The command type to which the policy is applied |
+| `qual` `text`  The expression added to the security barrier qualifications for queries that this policy applies to |
+| `with_check` `text`  The expression added to the WITH CHECK qualifications for queries that attempt to add rows to this table |

@@ -1,0 +1,9 @@
+---
+source: https://www.postgresql.org/docs/18/pgxlogdump.html
+title: "O.3. pg_xlogdump renamed to pg_waldump"
+---
+
+
+## O.3. `pg_xlogdump` renamed to `pg_waldump`
+
+PostgreSQL 9.6 and below provided a command named `pg_xlogdump`  to read write-ahead-log (WAL) files. This command was renamed to `pg_waldump`, see [pg\_waldump](pgwaldump.html "pg_waldump") for documentation of `pg_waldump` and see [the release notes for PostgreSQL 10](release-prior.html "E.7. Prior Releases") for details on this change.

@@ -1,0 +1,53 @@
+{
+  "name": "PostgreSQL",
+  "slug": "postgresql",
+  "version": "18",
+  "release": "18.6",
+  "requested": "latest postgresql docs, plus related docs recommended",
+  "kind": "application",
+  "summary": "PostgreSQL 18 manual: SQL language, data types, functions, indexes, performance, server administration (config, auth, backup, replication, upgrading), client apps (psql, pg_dump, pg_upgrade), internals, extensions; plus the official postgres Docker image docs.",
+  "homepage": "https://www.postgresql.org",
+  "docs_url": "https://www.postgresql.org/docs/18/",
+  "license": "PostgreSQL Licence (docs); MIT (Docker image docs)",
+  "companions": {
+    "postgres Docker Official Image docs": "docker-library/docs @547c31c (tags 18.6, 18-alpine, …)"
+  },
+  "sources": [
+    {
+      "type": "crawl",
+      "url": "https://www.postgresql.org/docs/18/",
+      "ref": "18.6 (the /docs/18/ pages show the newest 18.x), crawled 2026-11-10",
+      "dest": "content",
+      "license": "PostgreSQL"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://www.postgresql.org/docs/18/release.html",
+      "dest": "content/release-notes",
+      "license": "PostgreSQL"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/docker-library/docs.git",
+      "ref": "master",
+      "path": "postgres/README.md",
+      "commit": "547c31c28ee5bdc3c0285a3d2f820c72d4e5efa1",
+      "dest": "content/docker-image",
+      "license": "MIT"
+    }
+  ],
+  "ingested_at": "2026-11-10",
+  "coverage": "The complete PostgreSQL 18 manual (all 1,148 pages: tutorial, SQL language, server administration, client interfaces, server programming, SQL command reference, client and server applications, internals, appendixes incl. contrib modules) and release notes 18.0-18.6, plus the official postgres Docker image README (env vars, *_FILE secrets, initdb scripts, PGDATA, image variants).",
+  "gaps": [
+    "Diagrams (3 SVG figures) and the site stylesheet are not included.",
+    "Only version 18 is included. Older majors (e.g. 16, which this user's infrastructure runs) are on postgresql.org/docs/<major>/; the 18 release notes list what changed.",
+    "Extensions outside the core distribution (pgvector, PostGIS, PgBouncer…) are not included; contrib modules (pg_trgm, pg_stat_statements, …) are, in the appendix."
+  ],
+  "notes": "Latest stable on 2026-11-10: 18.6 (postgresql.org versions.json; 19 is at RC1; there was no 18.5 release). The docs source is DocBook SGML in postgres/postgres (doc/src/sgml), so the versioned HTML site was crawled instead (tools/crawl.py, selector #docContent, sitemap-seeded; 1,148 pages, 0 failed). Cleanup: removed the Prev/Up/Next navigation tables at the top and bottom of each page and the heading permalinks ([#](#ANCHOR)), dropped the 'PostgreSQL: Documentation: 18:' title prefix, and moved release*.md into content/release-notes/. Docker image README added because the user's stacks use postgres:16-alpine with POSTGRES_PASSWORD_FILE and PGDATA.",
+  "stats": {
+    "files": 1149,
+    "doc_files": 1149,
+    "spec_files": 0,
+    "megabytes": 8.17
+  }
+}

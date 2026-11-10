@@ -1,0 +1,31 @@
+---
+source: https://www.postgresql.org/docs/18/spi-spi-palloc.html
+title: "SPI_palloc"
+---
+
+
+## SPI\_palloc
+
+SPI\_palloc — allocate memory in the upper executor context
+
+## Synopsis
+
+```
+
+void * SPI_palloc(Size size)
+```
+
+## Description
+
+`SPI_palloc` allocates memory in the upper executor context.
+
+This function can only be used while connected to SPI. Otherwise, it throws an error.
+
+## Arguments
+
+`Size size`
+:   size in bytes of storage to allocate
+
+## Return Value
+
+pointer to new storage space of the specified size

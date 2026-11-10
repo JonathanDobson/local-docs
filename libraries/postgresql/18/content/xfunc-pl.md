@@ -1,0 +1,9 @@
+---
+source: https://www.postgresql.org/docs/18/xfunc-pl.html
+title: "36.8. Procedural Language Functions"
+---
+
+
+## 36.8. Procedural Language Functions
+
+PostgreSQL allows user-defined functions to be written in other languages besides SQL and C. These other languages are generically called *procedural languages* (PLs). Procedural languages aren't built into the PostgreSQL server; they are offered by loadable modules. See [Chapter 40](xplang.html "Chapter 40. Procedural Languages") and following chapters for more information.
