@@ -1,0 +1,57 @@
+{
+  "name": "Headscale",
+  "slug": "headscale",
+  "version": "0.29.7",
+  "requested": "headscale docs (latest)",
+  "kind": "application",
+  "summary": "Open-source, self-hosted implementation of the Tailscale control server: install, configuration (config.yaml), ACL/grants policy, OIDC, DERP, DNS, routes and exit nodes, tags, connecting clients, REST API.",
+  "homepage": "https://headscale.net",
+  "docs_url": "https://headscale.net/stable/",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/juanfont/headscale.git",
+      "ref": "v0.29.7",
+      "path": "docs",
+      "commit": "c9cf210b8bc84d13177e18b91f555788a44b47b6",
+      "dest": "content",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": "other",
+      "url": "https://raw.githubusercontent.com/juanfont/headscale/v0.29.7/config-example.yaml",
+      "ref": "v0.29.7",
+      "dest": "content/ref/examples",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": "openapi",
+      "url": "https://raw.githubusercontent.com/juanfont/headscale/v0.29.7/gen/openapiv2/headscale/v1/headscale.swagger.json",
+      "ref": "v0.29.7",
+      "dest": "api/headscale.swagger.json",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://raw.githubusercontent.com/juanfont/headscale/v0.29.7/CHANGELOG.md",
+      "ref": "v0.29.7",
+      "dest": "content/release-notes",
+      "license": "BSD-3-Clause"
+    }
+  ],
+  "ingested_at": "2026-11-10",
+  "coverage": "All English docs at tag v0.29.7 (the MkDocs source of headscale.net), the example server and DERP configs, the REST API (Swagger 2) spec with generated pages, and the 0.29.x changelog.",
+  "gaps": [
+    "No CLI reference page exists in the docs; run `headscale --help` / `headscale <command> --help`. CLI changes are in the changelog.",
+    "Tailscale client and policy-syntax docs are not included (they live on tailscale.com); Headscale's policy page links to them.",
+    "Images and logos removed."
+  ],
+  "notes": "Latest stable release on 2026-11-10: v0.29.7 (GitHub releases). Build-time handling: `{{ headscale.version }}` (MkDocs macros) replaced 6 times in ref/configuration.md with 0.29.5, the value mkdocs.yml `extra.headscale.version` holds at tag v0.29.7 (the site shows 0.29.5 although the release is 0.29.7); about/contributing.md's `include-markdown \"../../CONTRIBUTING.md\"` inlined from the same tag. Added config-example.yaml and derp-example.yaml, which ref/configuration.md and ref/derp.md point to. API pages generated with --version 0.29.7 because the spec says 'version not set'.",
+  "stats": {
+    "files": 39,
+    "doc_files": 36,
+    "spec_files": 1,
+    "megabytes": 0.25
+  }
+}
