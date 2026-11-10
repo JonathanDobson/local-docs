@@ -1,0 +1,97 @@
+{
+  "name": "Docker",
+  "slug": "docker",
+  "version": "29.9",
+  "release": "29.9.3",
+  "requested": "latest docker documentation",
+  "kind": "tool",
+  "summary": "Docker's official documentation (docs.docker.com): Engine install and daemon, CLI reference, Dockerfile and Compose file references, Build/BuildKit/Bake, Compose, Desktop, Docker Hub, Scout, Hardened Images, AI tools, Engine and Docker Hub APIs.",
+  "homepage": "https://www.docker.com",
+  "docs_url": "https://docs.docker.com/",
+  "license": "Apache-2.0",
+  "companions": {
+    "docker-cli (reference)": "29.9.2",
+    "engine-api": "1.56 (moby/moby/api v1.56.1)",
+    "compose": "5.7.0",
+    "buildx": "0.38.2",
+    "buildkit": "0.34.2",
+    "model-runner": "1.1.36",
+    "docker-agent": "1.152.0"
+  },
+  "sources": [
+    {
+      "type": "crawl",
+      "url": "https://docs.docker.com/sitemap.xml",
+      "ref": "live site, fetched 2026-11-10 (each page's published Markdown, <page>.md)",
+      "dest": "content",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/docker/docs.git",
+      "ref": "main",
+      "path": "content/reference/api/*/*.yaml, data/glossary.yaml",
+      "commit": "34992b922461d20cc97107b84056756802584571",
+      "dest": "api",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "openapi",
+      "url": "https://github.com/docker/docs/blob/34992b922461d20cc97107b84056756802584571/_vendor/github.com/moby/moby/api/docs/v1.56.yaml",
+      "ref": "moby/moby/api v1.56.1 (vendored in docker/docs)",
+      "dest": "api/engine-v1.56.yaml",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://docs.docker.com/engine/release-notes/",
+      "dest": "content/engine/release-notes",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/docker/compose/releases",
+      "ref": "v5.0.0-v5.7.0",
+      "dest": "content/compose/release-notes",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/docker/buildx/releases",
+      "ref": "v0.36.0-v0.38.2",
+      "dest": "content/build/release-notes",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/moby/buildkit/releases",
+      "ref": "dockerfile/1.26-1.28",
+      "dest": "content/build/buildkit/dockerfile-release-notes",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/docker/scout-cli/releases",
+      "ref": "latest 8 releases (to v1.29.0)",
+      "dest": "content/scout/release-notes/cli.md",
+      "license": "Apache-2.0"
+    }
+  ],
+  "ingested_at": "2026-11-10",
+  "coverage": "Every page in the docs.docker.com sitemap (1,701 pages) as the site publishes it in Markdown, so includes, tabs, settings and the generated CLI reference (541 pages, incl. Compose, Buildx, Model and sbx commands) are rendered exactly as on the site; release notes for Engine (17.03-29.9.3), Desktop, Compose, Build, Hub, Scout and more; and 7 OpenAPI specs with generated pages: Engine API v1.56, Docker Hub, DVP (Verified Publisher data), Registry, AI Governance, AI Governance Audit Logs, Sandboxes.",
+  "gaps": [
+    "The docs site is not versioned: this is a snapshot of docs.docker.com on 2026-11-10, describing Docker Engine 29.9 (newest release 29.9.3) and the component versions in `companions`. Desktop, Hub, Scout and other services are documented as they are now.",
+    "Only the newest Engine API version (v1.56) is included; the site's pages for v1.25-v1.55 are omitted. API changes between versions are in content/reference/api/engine/version-history.md.",
+    "The site's per-operation and per-schema API pages (reference/api/*/latest/operations|schemas) were skipped in favour of the specs in api/ and their generated pages.",
+    "8 CLI alias pages return 404 as Markdown: docker build, docker exec, docker images, docker info, docker ps, docker pull, docker push, docker run. They redirect to canonical pages (e.g. docker container exec, docker container ls, docker buildx build), which are included.",
+    "146 section landing pages are only a title: on the site their body is a generated list of child pages.",
+    "Images, diagrams and videos are not included; interactive widgets (e.g. the Desktop install buttons) appear only as text."
+  ],
+  "notes": "Version resolution (2026-11-10): Docker Engine latest stable 29.9.3 (moby/moby release docker-v29.9.3; v29.10.0-rc.1 skipped); the docs vendor docker/cli v29.9.2 for the CLI reference. Folder named for the Engine release line the docs describe, 29.9. Source choice: docker/docs is a Hugo site that assembles pages from content adapters (_content.gotmpl), YAML data (data/cli), module mounts of 7 other repos and shortcodes; docs.docker.com publishes the rendered Markdown of every page at <page>.md (robots.txt allows it: Content-Signal ai-input=yes), so that was fetched with tools/fetch_md_pages.py instead of re-implementing the Hugo build (llms-full.txt is only an index of URLs). The glossary page's terms come from data/glossary.yaml and were missing from its Markdown output; they were rendered into content/reference/glossary.md from the same commit. API specs copied unchanged from docker/docs at the commit above; content/reference/api/hub/dvp.yaml is a redirect stub and was skipped. Four release-notes pages are only links to GitHub on the site (Compose, Buildx, Dockerfile frontend, Scout CLI); their bodies were filled from those GitHub releases (stable only), with front matter kept.",
+  "stats": {
+    "files": 1758,
+    "doc_files": 1751,
+    "spec_files": 7,
+    "megabytes": 12.9
+  }
+}

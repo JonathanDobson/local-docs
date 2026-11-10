@@ -1,0 +1,541 @@
+---
+title: "Agent Configuration"
+source: https://docs.docker.com/ai/docker-agent/configuration/agents/
+---
+
+# Agent Configuration
+
+
+_Complete reference for defining agents in your YAML configuration._
+
+A configuration must define at least one agent under `agents`.
+
+## Full Schema
+
+<!-- yaml-lint:skip -->
+```yaml
+agents:
+  agent_name:
+    model: string # Required unless harness is set: model reference
+    description: string # Optional: what this agent does
+    instruction: string | [list] # Optional: system prompt, mutually exclusive with instruction_file; a list is joined by blank lines
+    instruction_file: string | [list] # Optional: load the system prompt from one or more files relative to this config (mutually exclusive with instruction)
+    sub_agents: [list] # Optional: local or external sub-agent references
+    toolsets: [list] # Optional: tool configurations (use `type: rag` for RAG sources)
+    fallback: # Optional: fallback config
+      models: [list]
+      retries: 2
+      cooldown: 1m
+    add_date: boolean # Optional: add date to context
+    add_environment_info: boolean # Optional: add env info to context
+    add_prompt_files: [list] # Optional: include additional prompt files
+    add_prompt_files_depth: int # Optional: also list (not load) the same files found N levels below the working dir
+    add_description_parameter: bool # Optional: add description to tool schema
+    redact_secrets: boolean # Optional: enabled by default; set false to disable secret scrubbing
+    code_mode_tools: boolean # Optional: let the agent write JavaScript to orchestrate tool calls (see Code Mode)
+    max_iterations: int # Optional: max tool-calling loops
+    max_consecutive_tool_calls: int # Optional: max identical consecutive tool calls
+    max_old_tool_call_tokens: int # Optional: token budget for old tool call content (disabled unless positive)
+    max_tool_result_tokens: int # Optional: per-tool-result token cap with middle-out truncation (disabled unless positive)
+    num_history_items: int # Optional: limit conversation history
+    session_compaction: boolean # Optional: disable automatic session compaction (default: true)
+    compaction_threshold: float # Optional: context-window fraction that triggers auto-compaction (0–1, default: 0.9)
+    compaction_model: string # Optional: model used for session-compaction (summary generation)
+    use_toolsets: [list] # Optional: names of top-level toolsets to merge into this agent
+    readonly: boolean # Optional: restrict all toolsets to read-only tools only
+    skills: boolean | [list] # Optional: enable skill discovery (true/false or list of names and/or sources)
+    use_commands: [list] # Optional: names of top-level commands groups to merge into this agent
+    use_skills: [list] # Optional: names of top-level skills groups to merge into this agent
+    commands: # Optional: named prompts
+      name: "prompt text" # or {instruction: "prompt", agent: "sub_agent_name"} or {url: "https://..."} (TUI only)
+    welcome_message: string # Optional: message shown at session start
+    handoffs: [list] # Optional: agent names this agent can hand off to
+    force_handoff: string # Optional: agent that always receives the conversation when this agent stops
+    routing: # Optional: agents this agent's before_agent_run/after_agent_complete hooks may route to
+      allowed_agents: [list]
+      default_agent: string
+    hooks: # Optional: lifecycle hooks
+      tool_input_transform: [list]
+      tool_guard: [list]
+      permission_request: [list]
+      pre_tool_use: [list]
+      tool_response_transform: [list]
+      post_tool_use: [list]
+      session_start: [list]
+      session_end: [list]
+      on_user_input: [list]
+      stop: [list]
+      notification: [list]
+    structured_output: # Optional: constrain output format
+      name: string
+      schema: object
+    cache: # Optional: response cache (skip the model on repeat questions)
+      enabled: boolean
+      case_sensitive: boolean
+      trim_spaces: boolean
+      path: string
+    harness: # Optional: delegate to an external coding CLI (Claude Code, Codex, opencode, pi, Command Code)
+      type: string # Required: claude-code | codex | opencode | pi | command-code
+      model: string # Optional: model override forwarded to the CLI (omit for the CLI's own default)
+      effort: string # claude-code and command-code only: low | medium | high | xhigh | max (omit for the CLI default)
+      agent: string # opencode only: agent profile name
+      thinking: boolean # opencode only: enable extended thinking
+```
+
+> [!TIP]
+> **See also**
+>
+> For model parameters, see [Model Config](/ai/docker-agent/configuration/models/). For tool details, see [Tool Config](/ai/docker-agent/configuration/tools/). For multi-agent patterns, see [Multi-Agent](/ai/docker-agent/concepts/multi-agent/).
+
+## Properties Reference
+
+| Property                    | Type    | Required | Description                                                                                                                                                                   |
+| --------------------------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`                     | string  | unless `harness` is set        | Model reference. Either inline (`openai/gpt-5`) or a named model from the `models` section.                                                                              |
+| `description`               | string  | ✗        | Brief description of the agent's purpose. Used by coordinators to decide delegation.                                                                                          |
+| `instruction`               | string \| array  | ✗        | System prompt that defines the agent's behavior, personality, and constraints. Accepts a single string or a list of strings; list items are concatenated in order, separated by a blank line (handy for a shared preamble, or for flavors to append to with `instruction+`).                                                      |
+| `instruction_file`          | string \| array  | ✗        | Path(s) to a file or files (relative to the config file's directory) whose contents become the agent's instruction, loaded at startup. Accepts a single path or a list; multiple files are concatenated in order, separated by a blank line. Mutually exclusive with `instruction`. Each path must be a local relative path inside the config directory (absolute paths and `..` traversal are rejected). Only supported for local file-based configs, not OCI/URL sources. See [External Instruction Files](#external-instruction-files) below. |
+| `sub_agents`                | array   | ✗        | List of agent names or external OCI references this agent can delegate to. Supports local agents, registry references (e.g., `myorg/agent:tag`), and named references (`name:reference`). Automatically enables the `transfer_task` tool. Pin external OCI references to a digest (`name@sha256:…`) to skip the per-run registry lookup that tag references incur. See [External Sub-Agents](/ai/docker-agent/concepts/multi-agent/#external-sub-agents-from-registries). |
+| `toolsets`                  | array   | ✗        | List of tool configurations. See [Tool Config](/ai/docker-agent/configuration/tools/).                                                                                                        |
+| `fallback`                  | object  | ✗        | Automatic model failover configuration.                                                                                                                                       |
+| `add_date`                  | boolean | ✗        | When `true`, injects the current date into the agent's context.                                                                                                               |
+| `add_environment_info`      | boolean | ✗        | When `true`, injects working directory, OS, CPU architecture, git info, and the resolved shell into context.                                                                  |
+| `add_prompt_files`          | array   | ✗        | List of file paths whose contents are appended to the system prompt. Useful for including coding standards, guidelines, or additional context.                                |
+| `add_prompt_files_depth`    | int     | ✗        | Also list, by path only, the `add_prompt_files` names found up to this many directory levels below the working directory (`1` = direct subdirectories). Contents are not loaded — the agent reads the ones it needs. Useful in monorepos. Default: `0` (no scan). See [Prompt Files](#prompt-files) below. |
+| `add_description_parameter` | boolean | ✗        | When `true`, adds agent descriptions as a parameter in tool schemas. Helps with tool selection in multi-agent scenarios.                                                      |
+| `redact_secrets`            | boolean | ✗        | Enabled by default; set `false` to opt out. Scrubs detected secrets (API keys, tokens, private keys, etc.) out of tool-call arguments, outgoing chat messages, and tool output before they reach a tool, the model, or downstream consumers. See [Redacting Secrets](#redacting-secrets) below.   |
+| `code_mode_tools`           | boolean | ✗        | When `true`, replaces the agent's individual tools with a single tool that runs a JavaScript script calling as many of them as needed in one turn. See [Code Mode](/ai/docker-agent/features/code-mode/). |
+| `max_iterations`            | int     | ✗        | Maximum number of tool-calling loops. Default: unlimited (0). Set this to prevent infinite loops.                                                                             |
+| `max_consecutive_tool_calls` | int     | ✗        | Maximum consecutive identical tool calls before the agent is terminated, preventing degenerate loops. Default: `5`.                                                          |
+| `max_old_tool_call_tokens`  | int     | ✗        | Maximum number of tokens to keep from old tool call arguments and results. Older tool calls beyond this budget have their content replaced with a placeholder, saving context space. Tokens are approximated as `len/4`. Truncation is disabled by default; set a positive value to enable it. Set to `-1` to disable truncation (unlimited). |
+| `max_tool_result_tokens`    | int     | ✗        | Maximum number of tokens to keep from each tool result when it is added to the session. Oversized results are truncated middle-out: the head and tail are kept and the removed middle is replaced with a truncation marker. Textual documents attached to the result share the same budget. Tokens are approximated as `len/4`. The cap is disabled by default; set a positive value to enable it. `0` and `-1` both leave tool results unbounded. |
+| `num_history_items`         | int     | ✗        | Limit the number of conversation history messages sent to the model. Useful for managing context window size with long conversations. Default: unlimited (all messages sent). |
+| `session_compaction`        | boolean | ✗        | When `false`, disables automatic session compaction for this agent: neither the proactive threshold trigger nor the post-overflow auto-recovery runs. The manual `/compact` command remains available. Default: `true`. See the [Context & Compaction guide](/ai/docker-agent/guides/compaction/). |
+| `compaction_threshold`      | float   | ✗        | Fraction of the model's context window at which proactive auto-compaction triggers. Must be greater than `0` and at most `1`. A `compaction_threshold` set on the agent's model takes precedence. Default: `0.9`. See the [Context & Compaction guide](/ai/docker-agent/guides/compaction/). |
+| `compaction_model`          | string  | ✗        | Model used for session compaction (summary generation). Can be a named model or an inline `provider/model` string. This agent-level value takes precedence over a `compaction_model` set on the agent's model or provider; when none is set, the agent's own model compacts. See the [Context & Compaction guide](/ai/docker-agent/guides/compaction/). |
+| `skills`                    | bool/array | ✗     | Enable automatic skill discovery. `true` loads all discovered local skills, `false` disables them. A list can mix skill sources (`local` or `https://…` URLs) and skill names to include — see [Skills](/ai/docker-agent/features/skills/).                                                     |
+| `commands`                  | object  | ✗        | Named prompts that can be run with `docker agent run config.yaml /command_name`. Can be simple strings or objects with `instruction` and/or `agent` fields for agent switching, or a `url` field to open a link in the browser (TUI only). See [Named Commands](#named-commands) below. |
+| `use_commands`              | list of string | ✗   | Names of top-level `commands` groups to merge into this agent. Inline `commands` entries take precedence on name conflicts. Default: `[]`. |
+| `use_skills`                | list of string | ✗   | Names of top-level `skills` groups to merge into this agent. Inline skills are deduplicated by name against merged entries. Default: `[]`. |
+| `use_toolsets`              | list of string | ✗   | Names of top-level `toolsets` groups to merge into this agent. See [Reusable Toolsets](/ai/docker-agent/configuration/overview/#reusable-toolsets-toolsets). Default: `[]`. |
+| `readonly`                  | boolean | ✗   | When `true`, every toolset on this agent is filtered to expose only read-only tools (those annotated with a read-only hint). Mutating tools are removed at load time and cannot be called even if the model tries. See [Read-Only Agents](#read-only-agents) below. |
+| `welcome_message`           | string  | ✗        | Message displayed to the user when a session starts. Rendered as Markdown in the TUI. **Not sent to the model** — it exists purely for the user's benefit. Useful for telling users what the agent can do and what commands are available. |
+| `handoffs`                  | array   | ✗        | List of agent names this agent can hand off the conversation to. Enables the `handoff` tool. See [Handoffs Routing](/ai/docker-agent/concepts/multi-agent/#handoffs-routing).                  |
+| `force_handoff`             | string  | ✗        | Name of an agent that unconditionally receives the conversation whenever this agent produces a final response. The runtime performs the switch itself, bypassing the LLM's tool-calling, guaranteeing deterministic pipelines. Must not reference the agent itself, and chains must not form a cycle. See [Forced Handoffs](/ai/docker-agent/concepts/multi-agent/#forced-handoffs). |
+| `routing`                   | object  | ✗        | Local agents that this agent's `before_agent_run` and `after_agent_complete` hooks may select: `allowed_agents` (required list of agent names) and `default_agent` (fallback for uncertain or failed evaluator assessments). Requires at least one of those hooks; the agent cannot route to itself or to harness agents. See [Agent Routing Hooks](/ai/docker-agent/configuration/hooks/#agent-routing-hooks). |
+| `hooks`                     | object  | ✗        | Lifecycle hooks for running commands at various points. See [Hooks](/ai/docker-agent/configuration/hooks/).                                                                                   |
+| `structured_output`         | object  | ✗        | Constrain agent output to match a JSON schema. See [Structured Output](/ai/docker-agent/configuration/structured-output/).                                                                    |
+| `cache`                     | object  | ✗        | Response cache. When the same user question is asked again, the previous answer is replayed verbatim and the model is not called. See [Response Cache](#response-cache) below.                  |
+| `harness`                   | object  | ✗        | Run this agent through an external coding CLI instead of a model. **Note:** Any `toolsets:` defined on the same agent are silently ignored when `harness:` is set — the external CLI brings its own tools. See [Coding Harnesses](/ai/docker-agent/features/harnesses/). |
+
+> [!WARNING]
+> **max_iterations**
+>
+> Default is `0` (unlimited). Always set `max_iterations` for agents with powerful tools like `shell` to prevent infinite loops. A value of 20–50 is typical for development agents.
+
+> [!TIP]
+> **Managing long sessions**
+>
+> `max_old_tool_call_tokens`, `max_tool_result_tokens`, `num_history_items`, `session_compaction`, and `compaction_threshold` all help keep long-running sessions inside the model's context window. See the [Context & Compaction guide](/ai/docker-agent/guides/compaction/) for how to combine them.
+
+## External Instruction Files
+
+Long system prompts can be kept in their own files instead of being inlined in
+the YAML, using `instruction_file`. This separates infrastructure configuration
+(models, providers, tools) from behavioral content (the prompt), which keeps
+version-control diffs focused, reduces merge conflicts on shared configs, and
+lets instruction content be edited without risking YAML syntax errors.
+
+```yaml
+agents:
+  coordinator:
+    model: openai/gpt-5-mini
+    description: Routes work between specialist agents
+    instruction_file: instructions/coordinator.md
+    sub_agents:
+      - writer
+  writer:
+    model: openai/gpt-5-mini
+    description: Drafts and edits written content
+    instruction_file: instructions/writer.md
+```
+
+The path is resolved relative to the config file's directory and the file's
+contents are loaded as the agent's instruction when the config is loaded. Notes:
+
+- **Mutually exclusive** with `instruction`. Setting both is an error.
+- Each path must be a **local relative path inside the config directory**.
+  Absolute paths and `..` traversal are rejected.
+- A **list** of files is also accepted; their contents are concatenated in
+  order, separated by a blank line. This lets a shared preamble be reused
+  across agents while each agent appends its own specifics:
+
+  ```yaml
+  agents:
+    writer:
+      model: openai/gpt-5-mini
+      description: Drafts and edits written content
+      instruction_file:
+        - instructions/shared-preamble.md
+        - instructions/writer.md
+  ```
+
+- Only supported for **local file-based configs**, not agents loaded from OCI
+  registries or URLs. When an agent is pushed with `docker agent share push`,
+  the file contents are inlined into the pushed artifact, so the published
+  agent stays self-contained.
+
+A runnable example lives in [`examples/instruction_file.yaml`](https://github.com/docker/docker-agent/blob/main/examples/instruction_file.yaml).
+
+## Prompt Files
+
+`add_prompt_files` injects the contents of one or more files into the agent's
+context at the start of every turn — handy for repo-wide conventions like
+`AGENTS.md` or `CLAUDE.md` that should stay available without being pasted
+into `instruction`:
+
+```yaml
+agents:
+  root:
+    model: anthropic/claude-sonnet-4-5
+    description: A helpful coding assistant
+    instruction: You are an expert software developer.
+    add_prompt_files:
+      - AGENTS.md
+```
+
+For each name, the agent loads the closest match found by walking up from the
+current working directory, plus (if it's a different file) a copy at that
+name directly under the user's home directory — so a personal `~/AGENTS.md`
+can layer on top of a repo-local one. Missing files are skipped rather than
+erroring. Because resolution and the read happen on every turn, edits to the
+file are picked up without restarting the agent.
+
+### Nested Prompt Files (Monorepos)
+
+The lookup above only ever walks *up*, so in a monorepo the `AGENTS.md` of the
+sub-project being worked on is invisible — and loading every one of them would
+be wasteful. `add_prompt_files_depth` scans *down* instead and injects a
+listing of what it finds, paths only:
+
+```yaml
+agents:
+  root:
+    model: anthropic/claude-sonnet-4-5
+    description: A coding assistant for a monorepo
+    instruction: You are an expert software developer.
+    add_prompt_files:
+      - AGENTS.md
+    add_prompt_files_depth: 2
+```
+
+The agent then sees, alongside the fully loaded root `AGENTS.md`:
+
+```text
+Prompt files found in subdirectories of /repo. Their contents are NOT loaded:
+
+- services/api/AGENTS.md
+- services/web/AGENTS.md
+
+Read the ones covering the files you are about to work on. For anything under
+its own directory, a nested file's instructions take precedence over the
+instructions loaded above.
+```
+
+The per-turn *context* cost is therefore proportional to the number of
+sub-projects, not to the size of their instructions, and the agent pulls the
+full text of a nested file only when it starts working in that directory. The
+*scan* cost is proportional to the number of directory entries visited, which
+is why the depth is opt-in and the traversal is bounded (see below).
+
+- Depth counts directory levels below the working directory: `1` lists
+  `<child>/AGENTS.md`, `2` also lists `<child>/<grandchild>/AGENTS.md`.
+- Hidden directories and, when the working directory is a git worktree root,
+  git-ignored paths are skipped — `node_modules/**/AGENTS.md` won't show up.
+- Symlinks pointing outside the working directory are never listed, so a
+  checked-out tree can't have the agent read `~/.ssh/id_rsa` as instructions.
+- The listing is capped at 100 entries and the traversal at 20,000 directory
+  entries; a truncated listing says so.
+- Files already loaded in full are never listed twice.
+- The scan runs at the start of every turn, so files added or removed
+  mid-session are reflected. Keep the depth small on very large trees.
+
+A runnable example lives in [`examples/monorepo_prompt_files.yaml`](https://github.com/docker/docker-agent/blob/main/examples/monorepo_prompt_files.yaml).
+
+Use `--prompt-file` to add files for a single run without editing the
+config. It's merged with any `add_prompt_files` already set on the agent,
+with duplicates dropped:
+
+```bash
+$ docker agent run agent.yaml --prompt-file CONTRIBUTING.md
+```
+
+Resolved prompt files show up as their own entries in the `/context` dialog — see [File Attachments](/ai/docker-agent/features/tui/#file-attachments) in the Terminal UI guide.
+
+See [Choosing a Large-Input Strategy](/ai/docker-agent/guides/headless/#choosing-a-large-input-strategy) for how prompt files compare to `@`/`/attach` attachments, the `rag` toolset, and sending content over the API/chat server.
+
+## Response Cache
+
+The response cache short-circuits the model when the same user question is asked again. The first time a question is asked, the agent calls the model normally and stores the assistant's reply. Subsequent identical questions skip the model entirely and replay the stored reply verbatim.
+
+```yaml
+agents:
+  root:
+    model: openai/gpt-5
+    description: Cached assistant
+    instruction: You are a helpful assistant.
+    cache:
+      enabled: true          # required to turn the cache on
+      case_sensitive: false  # default: false ("Hello" == "hello")
+      trim_spaces: true      # default: false ("  hello  " == "hello")
+      path: ./cache.json     # optional: persist to disk; omit for in-memory
+```
+
+| Property         | Type    | Default | Description                                                                                                                                                                                                                       |
+| ---------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`        | boolean | `false` | Master switch. When `false` (or when the `cache` section is omitted), no caching is performed.                                                                                                                                     |
+| `case_sensitive` | boolean | `false` | When `true`, questions must match exactly (including case) to hit the cache.                                                                                                                                                       |
+| `trim_spaces`    | boolean | `false` | When `true`, leading and trailing whitespace is stripped from the question before it is compared.                                                                                                                                  |
+| `path`           | string  | _empty_ | When set, cache entries are persisted to a JSON file at the given path and reloaded on startup so the cache survives restarts. Relative paths resolve against the agent config directory. When empty, the cache lives in memory only. |
+
+**How it works**
+
+- The cache key is the latest user message in the session, normalized according to `case_sensitive` and `trim_spaces`.
+- On a hit, the cached reply is added to the session as the assistant message and stop hooks fire normally — the rest of the agent (tools, sub-agents, the model) is bypassed.
+- On a miss, the agent runs normally; the final assistant message produced by the first stop of the run is then stored under the question's key.
+- Only the response to the original user question of a run is cached; follow-up turns inside the same `RunStream` are not.
+
+**File-backed storage**
+
+When `path` is set, every `Store` rewrites the entire cache file. Writes are **atomic**: the new content is written to a sibling temp file, `fsync`'d, and renamed over the destination, so a concurrent reader (or a process that crashes mid-write) will always see either the previous content or the new content in full — never a partially written file. The parent directory is also `fsync`'d after the rename so the rename itself is durable.
+
+**Cross-process sharing**
+
+Multiple processes can share the same `path:` cache file safely. Every `Store` takes an exclusive advisory lock on a sibling `<path>.lock` file (POSIX `flock(2)` on Unix, `LockFileEx` on Windows), reloads the current on-disk state under the lock, merges the new entry, and writes back atomically. Two processes that store *different* keys at the same time both see their writes preserved on disk; the lock window is short (one read + one fsync'd write).
+
+`Lookup` watches the file's modification time and reloads the in-memory map when the file has advanced since its last load, so writes from a sibling process become visible without a restart. The `<path>.lock` sentinel file is created on first write and never deleted: removing it would let two processes lock different inodes and lose mutual exclusion.
+
+## Redacting Secrets
+
+Secret redaction is enabled by default. The `redact_secrets` field controls scrubbing of detected credentials, tokens, and private keys from an agent's I/O; set it to `false` to opt out. It wires up three complementary defenses:
+
+1. A `tool_input_transform` built-in hook that scrubs detected secrets from the **arguments of every tool call**, before the tool sees them.
+2. A `before_llm_call` built-in hook that scrubs the same patterns from **outgoing chat messages** — message content, multi-part text content, prior reasoning content, and the JSON-encoded arguments of any tool call still in the conversation — before they reach the model provider.
+3. A `tool_response_transform` built-in hook that scrubs **tool output at the source**, so the secret never reaches event consumers, the persisted session file, the `post_tool_use` hook input, or the next LLM call.
+
+```yaml
+agents:
+  root:
+    model: openai/gpt-5
+    description: A helpful assistant that scrubs secrets before they leak
+    instruction: |
+      You are a helpful assistant. If the user accidentally pastes a token,
+      do your best work without echoing the secret back.
+    redact_secrets: true
+    toolsets:
+      - type: shell
+```
+
+Detection uses the [portcullis](https://github.com/docker/portcullis) ruleset, which recognises common secret patterns including:
+
+- GitHub Personal Access Tokens (`ghp_*`, `gho_*`, `ghu_*`, `ghs_*`, `ghr_*`, fine-grained `github_pat_*`)
+- AWS access keys (`AKIA*`, `ASIA*`, …) and secret access keys
+- GitLab PATs (`glpat-*`), Hugging Face tokens (`hf_*`)
+- Stripe (`sk_live_*`, `pk_test_*`, …), Slack (`xoxb-*`, …), Shopify, Twilio, Discord, Atlassian, Mailchimp, SendGrid, and many more
+- JWTs, GCP service-account JSON, Heroku keys, Docker Hub PATs (`dckr_pat_*`)
+- PEM-encoded private keys (`-----BEGIN … PRIVATE KEY-----` blocks)
+
+Each detected span is replaced with the literal string `[REDACTED]`; the surrounding text is preserved so a redacted argument still looks like a legitimate flag (e.g. `--token=[REDACTED]`). Redaction is idempotent — applying it twice yields the same result.
+
+> [!NOTE]
+> **False positives vs. false negatives**
+>
+> False positives are extremely rare: every rule pairs a regex with a discriminating keyword, so plain English never trips detection. **False negatives are possible** — only patterns the ruleset recognises are scrubbed, so this is a defense-in-depth feature, not a substitute for keeping secrets out of the conversation in the first place. Pair it with a proper [secret manager](/ai/docker-agent/guides/secrets/) for the credentials your agent actually needs.
+
+> [!NOTE]
+> **Equivalent hook entry**
+>
+> The default redaction behavior (or an explicit `redact_secrets: true`) auto-registers all three legs of the feature as hook entries. They share the _same_ built-in name (`type: builtin`, `command: redact_secrets`) on `tool_input_transform`, `before_llm_call`, and `tool_response_transform` respectively — the implementation dispatches on the hook event. Set `redact_secrets: false` before wiring hooks manually to avoid also registering the default hooks. You can spell them out by hand to scope a leg to a subset of tools (set `matcher:` to a regex), stack them with other rewriters in a specific order, or enable just one or two legs. See [`examples/redact_secrets_hooks.yaml`](https://github.com/docker/docker-agent/blob/main/examples/redact_secrets_hooks.yaml) for a complete manual wiring and the [Hooks reference](/ai/docker-agent/configuration/hooks/#available-built-ins) for the builtin's event coverage.
+
+## Welcome Message
+
+Display a message when users start a session:
+
+```yaml
+agents:
+  assistant:
+    model: openai/gpt-5
+    description: Development assistant
+    instruction: You are a helpful coding assistant.
+    welcome_message: |
+      👋 Welcome! I'm your development assistant.
+
+      I can help you with:
+      - Writing and reviewing code
+      - Running tests and debugging
+      - Explaining concepts
+
+      What would you like to work on?
+```
+
+## Deferred Tool Loading
+
+Toolsets support `defer` to load tools on-demand and speed up agent startup. See [Deferred Tool Loading](/ai/docker-agent/configuration/tools/#deferred-tool-loading) for details.
+
+```yaml
+agents:
+  root:
+    model: anthropic/claude-sonnet-4-5
+    description: Multi-purpose assistant
+    instruction: You have access to many tools.
+    toolsets:
+      - type: mcp
+        ref: docker:github-official
+        defer: true
+      - type: filesystem
+```
+
+## Fallback Configuration
+
+Automatically switch to backup models when the primary fails:
+
+| Property   | Type   | Default | Description                                                |
+| ---------- | ------ | ------- | ---------------------------------------------------------- |
+| `models`   | array  | `[]`    | Fallback models to try in order                            |
+| `retries`  | int    | `2`     | Retries per model for 5xx errors. `-1` to disable.         |
+| `cooldown` | string | `1m`    | How long to stick with a fallback after a rate limit (429) |
+
+**Error handling:**
+
+- **Retryable** (same model with backoff): HTTP 5xx, 408, network timeouts
+- **Non-retryable** (skip to next model): HTTP 429, 4xx client errors
+
+```yaml
+agents:
+  root:
+    model: anthropic/claude-sonnet-4-5
+    fallback:
+      models:
+        - openai/gpt-5
+        - google/gemini-3.5-flash
+      retries: 2
+      cooldown: 1m
+```
+
+## Named Commands
+
+Define prompt shortcuts under an agent's `commands:` field:
+
+```yaml
+agents:
+  root:
+    model: openai/gpt-5
+    instruction: You are a system administrator.
+    commands:
+      df: "Check how much free space I have on my disk"
+      greet: "Say hello to ${env.USER}"
+```
+
+Invoke them in the TUI with `/df` or from the CLI with `docker agent run agent.yaml /df`. Named commands execute immediately, even while the agent is processing another message.
+
+### Command Formats
+
+Commands can send prompts, switch agents, or open URLs. See [Custom Commands](/ai/docker-agent/configuration/commands/) for the field reference, argument and tool-call expansion, reusable groups, and frontend-specific behavior. Environment interpolation in other config fields is covered by [Variable Expansion](/ai/docker-agent/configuration/overview/#variable-expansion-in-config-fields).
+
+### Agent-Switching Commands
+
+An `agent:` command switches to any agent in the team, in the same session. See [Agent-Switching Commands](/ai/docker-agent/configuration/commands/#agent-switching-commands) for examples and the comparison with `handoff` and `transfer_task`.
+
+### URL Commands
+
+A `url:` command opens a browser in the full TUI. See [URL Commands](/ai/docker-agent/configuration/commands/#url-commands) for session-ID substitution, validation, and CLI/lean-TUI behavior.
+
+## Read-Only Agents
+
+Set `readonly: true` on an agent to restrict all of its toolsets to tools that are annotated as read-only. Mutating tools are filtered out at load time — the agent cannot list or call them, even if the model hallucinates a call.
+
+You can also set `readonly: true` on an individual toolset to restrict only that toolset while leaving others unrestricted.
+
+```yaml
+agents:
+  # Agent-level readonly: every toolset is restricted to read-only tools.
+  inspector:
+    model: anthropic/claude-sonnet-4-5
+    description: Read-only inspector that can explore but never modify.
+    instruction: Explore the project. Do not make changes.
+    readonly: true
+    toolsets:
+      - type: filesystem
+      - type: shell
+
+  # Toolset-level readonly: only the filesystem toolset is restricted;
+  # the shell toolset keeps all of its tools.
+  mixed:
+    model: anthropic/claude-sonnet-4-5
+    description: Read-only file access, full shell access.
+    instruction: You can read files and run any shell command.
+    toolsets:
+      - type: filesystem
+        readonly: true
+      - type: shell
+```
+
+See [`examples/readonly.yaml`](https://github.com/docker/docker-agent/blob/main/examples/readonly.yaml) for a complete example.
+
+> [!NOTE]
+> **Which tools are read-only?**
+>
+> Whether a tool is read-only is determined by its `ReadOnlyHint` annotation. For built-in tools, read-only operations (list/read/search) carry the hint; mutating operations (write/delete/execute) do not. Custom and MCP tools expose the hint via their own annotations.
+
+## Complete Example
+
+```yaml
+models:
+  claude:
+    provider: anthropic
+    model: claude-sonnet-4-5
+    max_tokens: 64000
+
+agents:
+  root:
+    model: claude
+    description: Technical lead coordinating development
+    instruction: |
+      You are a technical lead. Analyze requests and delegate
+      to the right specialist. Always review work before responding.
+    welcome_message: "👋 I'm your tech lead. How can I help today?"
+    sub_agents: [developer, researcher]
+    add_date: true
+    add_environment_info: true
+    fallback:
+      models: [openai/gpt-5]
+    toolsets:
+      - type: think
+    commands:
+      review: "Review all recent code changes for issues"
+    hooks:
+      session_start:
+        - type: command
+          command: "./scripts/setup.sh"
+
+  developer:
+    model: claude
+    description: Expert software developer
+    instruction: Write clean, tested, production-ready code.
+    max_iterations: 30
+    toolsets:
+      - type: filesystem
+      - type: shell
+      - type: think
+      - type: todo
+
+  researcher:
+    model: openai/gpt-5
+    description: Web researcher with memory
+    instruction: Search for information and remember findings.
+    toolsets:
+      - type: mcp
+        ref: docker:duckduckgo
+      - type: memory
+        path: ./research.db
+```

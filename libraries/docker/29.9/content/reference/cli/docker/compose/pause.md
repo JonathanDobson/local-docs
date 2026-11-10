@@ -1,0 +1,23 @@
+---
+title: "docker compose pause"
+source: https://docs.docker.com/reference/cli/docker/compose/pause/
+---
+
+# docker compose pause
+
+**Description:** Pause services
+
+**Usage:** `docker compose pause [SERVICE...]`
+
+
+
+
+
+
+
+
+
+
+## Description
+
+Pauses running containers of a service. They can be unpaused with `docker compose unpause`.

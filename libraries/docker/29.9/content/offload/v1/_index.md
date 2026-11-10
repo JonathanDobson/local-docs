@@ -1,0 +1,44 @@
+---
+title: "Docker Offload v1"
+source: https://docs.docker.com/offload/v1/
+---
+
+# Docker Offload v1
+
+
+
+
+Docker Offload v1 is the version of Docker Offload that organizations subscribe
+to and that you start with `docker offload start` or the toggle in the Docker
+Desktop Dashboard header. It runs builds and containers in an ephemeral cloud
+environment that's removed when your session ends.
+
+These pages are for you if any of the following apply:
+
+- Your organization has a Docker Offload v1 subscription.
+- You see a **Docker Offload** toggle in the Docker Desktop Dashboard header.
+- **Enable Docker Offload** is visible and on in Docker Desktops settings.
+
+For the version that individual developers subscribe to and start with
+`docker offload create`, see [Docker Offload](/offload/).
+
+## Key features
+
+Docker Offload v1 includes the following capabilities to support modern container
+workflows:
+
+- Ephemeral cloud runners: Automatically provision and tear down cloud
+  environments for each container session.
+- Secure communication: Use encrypted tunnels between Docker Desktop and cloud
+  environments with support for secure secrets and image pulling.
+- Port forwarding and bind mounts: Retain a local development experience even
+  when running containers in the cloud.
+- VDI-friendly: [Use Docker Desktop](/desktop/setup/vm-vdi/) in virtual
+  desktop environments or systems that don't support nested virtualization.
+
+## Fair use
+
+Docker Offload v1 enforces a fair use policy to prevent resource abuse. Fair use is
+defined as up to 8 compute hours per named user per day, totaled across all user
+sessions. Usage in excess of this threshold may be subject to session management
+at Docker's discretion.
