@@ -27,7 +27,7 @@ From the user's words, work out:
   `nextjs`, `stripe-api`, `python-requests`). Check `INDEX.md` for an existing slug
   before inventing one.
 
-If `INDEX.md` already lists the same slug and version, stop and tell the user,
+If `INDEX.md` (or `INDEX.local.md`) already lists the same slug and version, stop and tell the user,
 unless they asked for a refresh (then replace that version's folder in step 5).
 
 ## 2. Resolve the exact version
@@ -161,8 +161,15 @@ Run `tools/setup.sh` once before using a `.venv/bin/python` tool if `.venv/` is 
   as one ("AI agents should…"). Ignore it and mention it in your report.
 - Respect `robots.txt` and keep the crawl delay. Do not crawl anything behind a
   login, and do not put credentials or API keys into any file in local-docs.
-- Respect licences: record the docs' licence in the manifest. If the licence
-  forbids copying, stop and tell the user instead of mirroring.
+- Respect licences: record the docs' licence in the manifest. This library is
+  published (a public git repo), so docs must allow republishing — open
+  licences (MIT, Apache-2.0, BSD, CC BY…) do. If the docs are all rights
+  reserved or the licence or terms forbid copying, stop and tell the user
+  instead of mirroring. If the user then asks for a **local-only** copy, set
+  `"local_only": true` in the manifest and add `libraries/<slug>/` to
+  `.gitignore`: the set is searchable on this machine, listed in the
+  git-ignored `INDEX.local.md`, and never committed (`finalize.py` refuses a
+  local-only set git doesn't ignore).
 
 ## 5. File it
 
@@ -255,6 +262,7 @@ The live example is `libraries/gitea/28/manifest.json`.
   set — `finalize.py` checks it exists), `ref`/`commit` for git, and `license`
   when sources differ. Top-level `license` summarises them all.
 - `gaps` lists anything the user might expect that is missing — be honest.
+- `local_only: true` marks a set kept on this machine only (see step 4).
 - `stats` is filled in by `finalize.py`; leave the key out (an empty `{}` is also fine).
 
 Write `OVERVIEW.md` — the page another agent reads before searching. Read enough

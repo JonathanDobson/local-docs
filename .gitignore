@@ -3,3 +3,7 @@
 __pycache__/
 *.pyc
 .search/
+
+# Docs sets kept on this machine only (manifest "local_only": true) and their index
+INDEX.local.md
+libraries/tailscale/

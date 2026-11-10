@@ -3,7 +3,7 @@
 Tools:
   docs_search  — hybrid (keyword + meaning) search, optionally limited to a library/version
   docs_read    — read a line range of a file under libraries/
-  docs_list    — the catalogue (INDEX.md)
+  docs_list    — the catalogue (INDEX.md, plus INDEX.local.md for sets kept on this machine)
 """
 from __future__ import annotations
 
@@ -99,7 +99,9 @@ def docs_read(path: str, start_line: int = 1, end_line: int | None = None) -> st
 @server.tool()
 def docs_list() -> str:
     """List the documentation sets available (name, version, path, summary)."""
-    return (config.ROOT / "INDEX.md").read_text()
+    out = (config.ROOT / "INDEX.md").read_text()
+    local = config.ROOT / "INDEX.local.md"
+    return out + ("\n" + local.read_text() if local.exists() else "")
 
 
 def run() -> None:

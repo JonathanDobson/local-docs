@@ -44,6 +44,12 @@ another while building the site (e.g. `{{fragments/x.md}}`, or a Next.js page
 that only says `source: other/page`). Ingest copies the text in, so each stored
 page is complete on its own.
 
+**Local-only docs set** — A docs set kept on this machine and never committed,
+because its licence doesn't allow republishing it in this public repository (e.g.
+Tailscale's docs, © Tailscale Inc.). Its manifest says `"local_only": true`, its
+folder is in `.gitignore`, and it is listed in `INDEX.local.md` (also git-ignored)
+instead of `INDEX.md`. Search and `docs_list` include it on this machine only.
+
 **Coverage / gaps** — Fields in the manifest. Coverage says what was ingested;
 gaps says what a user might expect but isn't there (e.g. "blog not included").
 

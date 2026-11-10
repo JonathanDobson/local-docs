@@ -55,6 +55,10 @@ The ingest skill tries sources in this order and records which it used:
 
 `tools/finalize.py` validates each set, writes its `TOC.md`, and rebuilds `INDEX.md`.
 
+Docs whose licence doesn't allow republishing can be kept on one machine only:
+`"local_only": true` in the manifest and the folder in `.gitignore`. Such sets are
+searchable locally and listed in the git-ignored `INDEX.local.md`, never in `INDEX.md`.
+
 ## Setup (already done on this machine)
 
 ```bash

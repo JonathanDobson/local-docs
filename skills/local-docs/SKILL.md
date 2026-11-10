@@ -12,7 +12,8 @@ training data may be older or for a different version.
 
 ## Procedure
 
-1. **Read the index:** `~/local-docs/INDEX.md`. Find the row for the tool you need.
+1. **Read the index:** `~/local-docs/INDEX.md`, plus `~/local-docs/INDEX.local.md` if it
+   exists (sets kept on this machine only). Find the row for the tool you need.
    - Several versions? Use the one the current project actually uses — check its
      lockfile or manifest (`package.json`, `go.mod`, `pyproject.toml`, Docker image
      tags). If the project uses none of them, use the newest and say so.
