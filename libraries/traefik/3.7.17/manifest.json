@@ -1,0 +1,44 @@
+{
+  "name": "Traefik Proxy",
+  "slug": "traefik",
+  "version": "3.7.17",
+  "requested": "latest traefik documentation",
+  "kind": "application",
+  "summary": "Cloud-native reverse proxy and load balancer: install (static) configuration, routing (dynamic) configuration, Docker/Swarm/Kubernetes/file providers, middlewares, TLS and ACME, observability, migration guides.",
+  "homepage": "https://traefik.io/traefik/",
+  "docs_url": "https://doc.traefik.io/traefik/",
+  "license": "MIT",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/traefik/traefik.git",
+      "ref": "v3.7.17",
+      "path": "docs/content",
+      "commit": "04e8ccf84ada1dcb450cec06554fe27812903134",
+      "dest": "content",
+      "license": "MIT"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://raw.githubusercontent.com/traefik/traefik/v3.7.17/CHANGELOG.md",
+      "ref": "v3.7.17",
+      "dest": "content/release-notes",
+      "license": "MIT"
+    }
+  ],
+  "ingested_at": "2026-11-10",
+  "coverage": "Every English documentation page at tag v3.7.17 (the MkDocs source the doc.traefik.io site is built from), with the reference config files and Kubernetes CRD/RBAC YAML it links to, plus the v3.7.x section of CHANGELOG.md.",
+  "gaps": [
+    "Images and diagrams removed (docs/content/assets).",
+    "reference/static-configuration/cli-ref.md and env-ref.md are empty files in the source at this tag and were dropped; every install option (with its CLI flag and environment-variable form) is in reference/install-configuration/configuration-options.md.",
+    "Traefik Hub (commercial) docs are a separate site and not included; some middleware pages here (jwt, oidc, apikey, waf, ldap, opa, hmac, distributed-ratelimit, oauth2-*) describe Hub-only features and say so.",
+    "v3.8 is a release candidate (v3.8.0-rc.1) and not included; v2.11 docs not included."
+  ],
+  "notes": "Latest stable release resolved from GitHub releases on 2026-11-10: v3.7.17 (v3.8.0-rc.1 skipped as a pre-release). Docs are taken from the exact release tag, so the folder is named for it. Build-time includes resolved: 58 `{% include-markdown \"includes/...\" %}` lines (four shared fragments, incl. a Traefik-for-business promo box) and one MkDocs snippet line (`--8<--`, the Consul KV provider page reuses the HashiCorp Consul page) were inlined; content/includes/ then removed. Removed include-*.md fragments in https/ and operations/ that mkdocs.yml excludes from the site and no page references, plus ref-acme example files only those fragments used, .markdownlint.json files and empty folders.",
+  "stats": {
+    "files": 193,
+    "doc_files": 163,
+    "spec_files": 0,
+    "megabytes": 2.84
+  }
+}
