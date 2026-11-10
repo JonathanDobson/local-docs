@@ -139,6 +139,17 @@ for code). Preferred here because it is small, readable and easy to search.
 content as plain text for AI tools: `llms.txt` is usually an index of links,
 `llms-full.txt` the full text. A good source when it exists and matches the version.
 
+**Per-page Markdown (`<page>.md`)** — Some docs sites publish a Markdown copy of
+every page next to the web page (`https://docs.docker.com/engine/install/ubuntu.md`).
+The site renders it with its own build, so shared snippets, tabs and generated
+reference pages arrive already assembled. `tools/fetch_md_pages.py` fetches every
+page listed in the site's sitemap this way. Used for the Docker docs set.
+
+**Snapshot (of an unversioned site)** — Some docs sites, like docs.docker.com,
+always show the current release and keep no older versions. A docs set taken from
+one is a snapshot of a date, filed under the version the docs describe that day
+(`docker/29.9`) and labelled as a snapshot in its manifest's `gaps`.
+
 **Crawl** — Automatically visiting a website's pages by following links, saving
 each one. `tools/crawl.py` does this politely (with a delay, obeying `robots.txt`)
 and converts each page from HTML to Markdown.

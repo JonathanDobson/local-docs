@@ -105,6 +105,20 @@ repository usually reveals where the docs are written.
    `<site>/llms-full.txt`, `<site>/<version>/llms-full.txt`). Check it is the
    right version and not just an index of links.
    → `curl -fsSL <url> -o <dest>/llms-full.txt`
+
+   **Per-page Markdown.** Many sites also serve each page as Markdown at
+   `<page URL>.md` (Docker, Next.js, Mintlify sites; `llms.txt` often says so).
+   It is rendered by the site's own build, so includes, tabs, version variables
+   and generated reference pages (CLI options from YAML, say) are already
+   resolved — prefer it over the git source when the site assembles pages from
+   data and templates you would otherwise have to re-implement, and the site is
+   for the version you want (an unversioned site is a dated snapshot; say so in
+   `gaps`). Check `robots.txt` allows it, then:
+   → `.venv/bin/python tools/fetch_md_pages.py --sitemap <site>/sitemap.xml --prefix <site>/ --out <dest>/content [--exclude <regex>]`
+   Afterwards look for pages that came out as just a title: the site may fill
+   them from a data file (render it from the repo at the same commit) or only
+   link elsewhere (e.g. "release notes" pages that redirect to GitHub releases —
+   fetch those releases into the page).
 3. **Docs shipped inside the package** (e.g. `node_modules/<pkg>/docs`, or
    `npm pack <pkg>@<ver>` then extract; `pip download <pkg>==<ver> --no-deps`).
 4. **Crawl the versioned HTML docs site** — when nothing above exists.

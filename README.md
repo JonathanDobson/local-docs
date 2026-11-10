@@ -47,7 +47,8 @@ Details, model choice and test results: [search/README.md](search/README.md).
 The ingest skill tries sources in this order and records which it used:
 
 1. Markdown docs in the project's git repo at the release tag/branch (`tools/git_docs.sh`)
-2. An `llms-full.txt` file published by the docs site
+2. An `llms-full.txt` file published by the docs site, or the Markdown version of
+   every page when the site publishes one (`tools/fetch_md_pages.py`)
 3. Docs bundled inside the released package
 4. A polite crawl of the versioned docs website, converted to Markdown (`tools/crawl.py`)
 5. For APIs, also the OpenAPI/Swagger spec, plus generated per-endpoint pages (`tools/openapi2md.py`)
