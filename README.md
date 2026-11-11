@@ -13,19 +13,22 @@ In any Claude Code session, in any project:
 
 | You say | What happens |
 |---|---|
-| "ingest the gitea 28 or later documentation into local-docs" | The `local-docs-ingest` skill works out the exact release, finds the official docs source, downloads and cleans it, writes a manifest and overview, and updates `INDEX.md`. |
-| "refresh the zod docs in local-docs" | Same, replacing that version's copy. |
-| "check local-docs for how Gitea Actions runners register" | The `local-docs` skill finds the right docs set and version, searches it, and cites the files it used. |
+| "ingest the gitea 28 or later documentation into the docs library" | The `docs-library-ingest` skill works out the exact release, finds the official docs source, downloads and cleans it, writes a manifest and overview, and updates `INDEX.md`. |
+| "refresh the zod docs in the docs library" | Same, replacing that version's copy. |
+| "check the docs library for how Gitea Actions runners register" | The `docs-library` skill finds the right docs set and version, searches it, and cites the files it used. |
 
-Claude also consults local-docs on its own when a task depends on a tool listed
-in `INDEX.md` (see the pointer in `~/.claude/CLAUDE.md`).
+This library is not the default docs source. Ordinary "current API" lookups go to
+the `local-docs` skill (a weekly-synced mirror of each project's latest docs, in
+`~/.mavis/docs.local`). Claude uses this library when you ask for it by name, or
+when a task needs the docs for one specific release. The skills and MCP server are
+named `docs-library` so they never collide with the mirror's `local-docs`.
 
 ## Searching
 
 Every docs set is indexed for **hybrid search** — keyword (BM25) and meaning
 (embeddings from a local Ollama model), stored in Milvus Lite — so agents can ask
 plain questions *or* look up exact identifiers. Agents use it through the
-`local-docs` MCP server (`docs_search`, `docs_read`, `docs_list`); people can use
+`docs-library` MCP server (`docs_search`, `docs_read`, `docs_list`); people can use
 the command line:
 
 ```bash
@@ -65,7 +68,7 @@ searchable locally and listed in the git-ignored `INDEX.local.md`, never in `IND
 tools/setup.sh          # Python virtualenv for crawl.py / openapi2md.py
 tools/install-skills.sh # link the two skills into ~/.claude/skills
 .venv/bin/python -m search index   # build the search index (Ollama must be running)
-claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
+claude mcp add --scope user docs-library -- ~/local-docs/tools/docs-mcp.sh
 ```
 
 ## Layout

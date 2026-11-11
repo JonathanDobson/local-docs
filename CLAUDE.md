@@ -5,11 +5,11 @@ packages, products and APIs, filed by name and version so any agent can search
 it instead of guessing from memory. Plain-language definitions of every term
 used here: **[GLOSSARY.md](GLOSSARY.md)**.
 
-- **Looking something up?** Follow the `local-docs` skill
-  ([skills/local-docs/SKILL.md](skills/local-docs/SKILL.md)). Start at
+- **Looking something up?** Follow the `docs-library` skill
+  ([skills/docs-library/SKILL.md](skills/docs-library/SKILL.md)). Start at
   [INDEX.md](INDEX.md).
-- **Adding or refreshing docs?** Follow the `local-docs-ingest` skill
-  ([skills/local-docs-ingest/SKILL.md](skills/local-docs-ingest/SKILL.md)).
+- **Adding or refreshing docs?** Follow the `docs-library-ingest` skill
+  ([skills/docs-library-ingest/SKILL.md](skills/docs-library-ingest/SKILL.md)).
 
 ## Layout
 
