@@ -14,8 +14,8 @@ agents pick a docs set from [INDEX.md](INDEX.md), then search inside it.
 spacing. Each slug is one folder under `libraries/`.
 
 **Ingest** — Find, download, clean and file a product's official docs as a new
-docs set. Done by the `local-docs-ingest` skill
-([skills/local-docs-ingest/SKILL.md](skills/local-docs-ingest/SKILL.md)).
+docs set. Done by the `docs-library-ingest` skill
+([skills/docs-library-ingest/SKILL.md](skills/docs-library-ingest/SKILL.md)).
 
 **Refresh** — Re-ingest a docs set that already exists, replacing its contents
 (for example after the docs were corrected upstream).
@@ -102,8 +102,9 @@ until it prints `OK`.
 ## Claude Code terms
 
 **Skill** — A folder with a `SKILL.md` file of instructions that Claude Code loads
-when a request matches the skill's description. This project has two: `local-docs`
-(look things up) and `local-docs-ingest` (add docs). They live in `skills/` and
+when a request matches the skill's description. This project has two: `docs-library`
+(look things up) and `docs-library-ingest` (add docs). They are not named
+`local-docs`, which is the separate weekly-synced mirror skill. They live in `skills/` and
 are linked into `~/.claude/skills` by `tools/install-skills.sh` so they work in
 every project.
 

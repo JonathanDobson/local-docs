@@ -1,9 +1,9 @@
 ---
-name: local-docs-ingest
-description: Research, download and file a library's, package's, product's or API's official documentation into the local docs library at ~/local-docs so other agents can search it offline. Use when asked to "ingest", "add", "pull in", "mirror", "download" or "refresh" docs into local-docs — e.g. "ingest the gitea 28 or later documentation into local-docs", "add the Stripe API docs to local-docs", "refresh the zod docs in local-docs".
+name: docs-library-ingest
+description: "Add or refresh a docs set in the exact-version docs library (~/local-docs, the 186-local-docs repo): resolve the release, download the official docs, write the manifest and overview, and index them. Use when the user asks to ingest, add or refresh docs in the docs library or versioned docs (\"ingest gitea 28 docs into the docs library\"), or wants one specific release's docs kept. To add a package to the default `local-docs` mirror (latest docs, weekly sync), use `local-docs-onboard` instead."
 ---
 
-# Ingest documentation into local-docs
+# Ingest documentation into the docs library
 
 The library lives at `~/local-docs` (clone it there, or adjust the paths). Read its
 `CLAUDE.md` first: it holds the layout and rules this skill relies on. Everything
@@ -325,7 +325,7 @@ Tell the user, briefly:
 - Size (`doc_files`, `spec_files`, MB) and the folder path.
 - Gaps, anything odd (e.g. crawl hit `--max-pages`, docs only exist for an older
   minor version, instructions embedded in fetched text).
-- How to use it: "say *check local-docs for gitea …* in any session".
+- How to use it: "say *check the docs library for gitea …* in any session".
 
 Older versions stay in place when a new one is ingested; delete one only if the
 user asks.

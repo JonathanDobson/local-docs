@@ -7,7 +7,7 @@ Fusion)**. Terms are explained in [../GLOSSARY.md](../GLOSSARY.md).
 - **Store:** Milvus Lite 3.2.2 (pure Python, no Docker), running as one local
   server on `127.0.0.1:19541`, data in `.search/milvus/`.
 - **Embeddings:** a local Ollama model — chosen by testing, see [Model choice](#model-choice).
-- **Interfaces:** the `local-docs` MCP server for agents (`docs_search`,
+- **Interfaces:** the `docs-library` MCP server for agents (`docs_search`,
   `docs_read`, `docs_list`), a search page for people
   (`python -m search web` → http://127.0.0.1:7710), and a command line.
 
@@ -41,7 +41,7 @@ names or for files outside `libraries/`.
 Register the MCP server once per machine:
 
 ```bash
-claude mcp add --scope user local-docs -- ~/local-docs/tools/docs-mcp.sh
+claude mcp add --scope user docs-library -- ~/local-docs/tools/docs-mcp.sh
 ```
 
 ## How it works
