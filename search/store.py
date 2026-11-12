@@ -66,6 +66,15 @@ def client(s: Settings) -> MilvusClient:
     return MilvusClient(uri=s.uri)
 
 
+def ensure_loaded(c: MilvusClient, name: str) -> None:
+    """Load the collection into memory if it isn't. A restarted Milvus Lite server starts with
+    every collection released, and searches then fail with "call load() before search"
+    (2026-11-13). The MCP and web servers keep one client for their whole life, so this runs
+    before each search rather than only at connect time."""
+    if "Loaded" not in str(c.get_load_state(name).get("state")):
+        c.load_collection(name)
+
+
 def create_collection(c: MilvusClient, name: str, dim: int) -> None:
     schema = c.create_schema(auto_id=False)
     schema.add_field("id", DataType.VARCHAR, is_primary=True, max_length=32)
@@ -255,6 +264,7 @@ def search(c: MilvusClient, s: Settings, query_vec: list[float] | None, query_te
       like an API question or doc_type is set; page-intro chunks by intro_weight;
     - every mode: near-identical hits are collapsed (dedupe), and each hit gets its
       meaning-similarity `sim` and a `confidence` label when the model has thresholds."""
+    ensure_loaded(c, s.collection)
     expr = scope_filter(library, version, doc_type=doc_type)
     out = FIELDS_OUT + ["dense"]
     fetch = min(max(limit * 3, 30), candidates)
