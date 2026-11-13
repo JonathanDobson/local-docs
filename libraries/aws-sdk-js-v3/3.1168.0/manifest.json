@@ -1,0 +1,46 @@
+{
+  "name": "AWS SDK for JavaScript v3",
+  "slug": "aws-sdk-js-v3",
+  "version": "3.1168.0",
+  "requested": "AWS SDK docs for the clients this user's projects use",
+  "kind": "library",
+  "summary": "AWS SDK for JavaScript v3: client configuration, credentials, errors, retries, TypeScript, Lambda use, v2→v3 upgrade; full API reference (every operation, member, error, example) for S3, Lambda, Secrets Manager, CloudWatch and Bedrock Runtime.",
+  "homepage": "https://github.com/aws/aws-sdk-js-v3",
+  "docs_url": "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/",
+  "license": "Apache-2.0",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/aws/aws-sdk-js-v3.git",
+      "ref": "v3.1168.0",
+      "path": "supplemental-docs, README.md, UPGRADING.md, clients/client-{s3,lambda,secrets-manager,cloudwatch,bedrock-runtime}/README.md, packages/{credential-providers,s3-request-presigner}/README.md, packages-internal/credential-provider-node/README.md, lib/lib-storage/README.md",
+      "commit": "59af875ae427b36ee184ef7315682c1f3be07b35",
+      "dest": "content",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "other",
+      "url": "https://github.com/aws/aws-sdk-js-v3/tree/v3.1168.0/codegen/sdk-codegen/aws-models",
+      "ref": "v3.1168.0",
+      "commit": "59af875ae427b36ee184ef7315682c1f3be07b35",
+      "path": "s3.json, lambda.json, secrets-manager.json, cloudwatch.json, bedrock-runtime.json (Smithy 2.0 API models)",
+      "dest": "api",
+      "license": "Apache-2.0"
+    }
+  ],
+  "ingested_at": "2026-11-13",
+  "coverage": "The SDK's own guides (clients and constructor options, credentials, error handling, effective practices, Lambda, TypeScript, schemas, performance), README, v2→v3 upgrade notes, READMEs of the clients and packages the user's projects use (credential providers, S3 presigner, lib-storage Upload), and the API reference of S3 (112 operations), Lambda (88), Secrets Manager (26), CloudWatch (59) and Bedrock Runtime (11) generated from the exact Smithy models this release was built from.",
+  "gaps": [
+    "Only five services' API references; other @aws-sdk/client-* packages are not included (their models are in the SDK repo at codegen/sdk-codegen/aws-models/).",
+    "The generated TypeDoc site (docs.aws.amazon.com/AWSJavaScriptSDK/v3/) is not included; operation pages here give the command name and every input/output member instead of TypeScript signatures.",
+    "The SDK for JavaScript v3 Developer Guide and the services' user guides are AWS-copyrighted and not included here (a separate local-only set may hold them).",
+    "Per-client CHANGELOGs not included (they list generated model updates per release)."
+  ],
+  "notes": "Latest release on 2026-11-13: v3.1168.0 (npm @aws-sdk/client-s3; tag v3.1168.0 is an annotated tag for commit 59af875). The user's projects use @aws-sdk/client-{s3,lambda,secrets-manager,cloudwatch,bedrock-runtime}, @aws-sdk/s3-request-presigner and @aws-sdk/credential-provider-node. API pages generated with tools/smithy2md.py from the models vendored in the SDK at this tag (the same text as the service API references on docs.aws.amazon.com); documentation HTML converted to Markdown. The models are kept unchanged as api/<service>/<service>.json.",
+  "stats": {
+    "files": 336,
+    "doc_files": 331,
+    "spec_files": 5,
+    "megabytes": 9.23
+  }
+}

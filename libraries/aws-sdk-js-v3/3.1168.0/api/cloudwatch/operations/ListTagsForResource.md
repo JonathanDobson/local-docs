@@ -1,0 +1,39 @@
+# ListTagsForResource
+
+Service: Amazon CloudWatch · SDK for JavaScript v3: `ListTagsForResourceCommand` from `@aws-sdk/client-cloudwatch`
+
+Displays the tags associated with a CloudWatch resource. Currently, alarms,
+dashboards, metric streams and Contributor Insights rules support tagging.
+
+## Input (`ListTagsForResourceInput`)
+
+### `ResourceARN` — string · **required**
+
+The ARN of the CloudWatch resource that you want to view tags for.
+
+The ARN format of an alarm is
+`arn:aws:cloudwatch:Region:account-id:alarm:alarm-name`
+
+The ARN format of a Contributor Insights rule is
+`arn:aws:cloudwatch:Region:account-id:insight-rule/insight-rule-name`
+
+The ARN format of a dashboard is
+`arn:aws:cloudwatch::account-id:dashboard/dashboard-name`
+
+The ARN format of a metric stream is
+`arn:aws:cloudwatch:Region:account-id:metric-stream/metric-stream-name`
+
+For more information about ARN format, see  [Resource Types Defined by Amazon CloudWatch](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazoncloudwatch.html#amazoncloudwatch-resources-for-iam-policies) in the *Amazon Web
+Services General Reference*.
+
+## Output (`ListTagsForResourceOutput`)
+
+### `Tags` — list<Tag>
+
+The list of tag keys and values associated with the resource you specified.
+
+## Errors
+
+- `InternalServiceFault` — Request processing has failed due to some unknown error, exception, or failure.
+- `InvalidParameterValueException` — The value of an input parameter is bad or out-of-range.
+- `ResourceNotFoundException` — The named resource does not exist.
