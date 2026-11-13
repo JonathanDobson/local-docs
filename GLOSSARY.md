@@ -200,6 +200,12 @@ describing every endpoint, parameter and data shape of a REST API. Swagger 2.0
 is the older version, OpenAPI 3 the newer. Stored unchanged in `api/`;
 `tools/openapi2md.py` turns it into searchable pages.
 
+**Smithy model** — The machine-readable description of an AWS service's API (every
+operation, its inputs, outputs, errors and documentation) in AWS's Smithy format,
+stored as JSON. The AWS SDKs are generated from these models, and so is the API
+reference text on docs.aws.amazon.com. `tools/smithy2md.py` turns one into one
+Markdown page per operation; used for the AWS SDK for JavaScript v3 docs set.
+
 **Schema / model** — The described shape of a piece of data (which fields, what
 types). Listed in `api/schemas.md`.
 

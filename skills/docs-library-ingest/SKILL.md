@@ -131,6 +131,9 @@ repository usually reveals where the docs are written.
    the repo), GraphQL schema (SDL), or protobuf files. Save the spec unchanged in
    `api/`, then generate searchable pages:
    → `.venv/bin/python tools/openapi2md.py api/<spec> api/ [--base-path /api/v1] [--version X]`
+   For AWS services, the API model is a Smithy JSON file (vendored in the SDK at
+   `codegen/sdk-codegen/aws-models/<service>.json`, or in `aws/api-models-aws`):
+   → `.venv/bin/python tools/smithy2md.py <model.json> api/<service> [--js-client @aws-sdk/client-<service>]`
    Use the overrides when the spec carries build-time placeholders instead of a
    real version or path; never edit the spec file itself. If the spec comes in
    both Swagger 2 and OpenAPI 3, keep both and generate pages from OpenAPI 3.

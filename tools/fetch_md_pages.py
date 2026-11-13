@@ -2,7 +2,7 @@
 """Fetch the Markdown version of every page of a docs site that publishes one.
 
 Many docs sites serve each page as Markdown at "<page URL>.md" (Docker, Next.js,
-Mintlify sites); it is rendered by the site itself, so includes, tabs and
+Mintlify sites; for ".html" pages, "page.html" becomes "page.md", as on docs.aws.amazon.com); it is rendered by the site itself, so includes, tabs and
 generated reference pages come out exactly as published. This reads the page
 list from --sitemap (filtered by --prefix and --exclude), fetches each page's
 Markdown, and writes it to <out>/<url path>.md with front matter recording the
@@ -50,17 +50,18 @@ def sitemap_urls(url: str, depth: int = 0) -> list[str]:
 
 
 def page_path(url: str, prefix: str) -> str:
-    """URL path below the prefix, without slashes at either end ('' for the root)."""
-    return urllib.parse.unquote(url[len(prefix):].split("#")[0].split("?")[0]).strip("/")
+    """URL path below the prefix, without slashes at either end or a .html ending ('' for the root)."""
+    path = urllib.parse.unquote(url[len(prefix):].split("#")[0].split("?")[0]).strip("/")
+    return re.sub(r"\.html?$", "", path)
 
 
 def md_url(url: str) -> str:
-    """'<page>.md'; the site root is '/index.md'."""
+    """'<page>.md' ('page.html' becomes 'page.md'); the site root is '/index.md'."""
     base = url.split("#")[0].split("?")[0]
     parts = urllib.parse.urlparse(base)
     if parts.path in ("", "/"):
         return f"{parts.scheme}://{parts.netloc}/index.md"
-    return base.rstrip("/") + ".md"
+    return re.sub(r"\.html?$", "", base.rstrip("/")) + ".md"
 
 
 def main() -> int:
