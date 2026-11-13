@@ -11,3 +11,9 @@ each package against the registry's checksum) so the search page works offline.
 marked turns Markdown into HTML; DOMPurify then removes anything unsafe from that
 HTML (scripts, event handlers, `javascript:` links) before it is shown, because the
 docs are downloaded content.
+
+## Tab icon
+
+`favicon.svg` (an open book with a search lens on a blue tile) is drawn for this project.
+`favicon.ico` holds it at 16, 32 and 48 pixels as PNGs, rendered from the SVG in a headless
+browser; browsers use the SVG where they can and the ICO otherwise (and for `/favicon.ico`).

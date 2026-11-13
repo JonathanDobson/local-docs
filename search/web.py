@@ -23,7 +23,9 @@ from search import config  # noqa: E402
 PAGE = Path(__file__).with_name("web.html")
 STATIC = Path(__file__).with_name("static")
 STATIC_FILES = {"marked.umd.js": "text/javascript; charset=utf-8",
-                "purify.min.js": "text/javascript; charset=utf-8"}
+                "purify.min.js": "text/javascript; charset=utf-8",
+                "favicon.ico": "image/x-icon",
+                "favicon.svg": "image/svg+xml"}
 _lock = threading.Lock()
 _deps: dict = {}
 
@@ -98,6 +100,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if url.path in ("/", "/view"):
                 return self._send(200, PAGE.read_bytes(), "text/html; charset=utf-8")
+            if url.path == "/favicon.ico":  # browsers ask for it here whatever the page says
+                return self._send(200, (STATIC / "favicon.ico").read_bytes(), STATIC_FILES["favicon.ico"])
             if url.path.startswith("/static/"):
                 name = url.path.removeprefix("/static/")
                 if name not in STATIC_FILES:
