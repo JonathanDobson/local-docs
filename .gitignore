@@ -7,3 +7,4 @@ __pycache__/
 # Docs sets kept on this machine only (manifest "local_only": true) and their index
 INDEX.local.md
 libraries/tailscale/
+libraries/aws-guides/

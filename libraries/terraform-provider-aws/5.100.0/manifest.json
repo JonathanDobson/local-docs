@@ -1,0 +1,43 @@
+{
+  "name": "Terraform AWS Provider",
+  "slug": "terraform-provider-aws",
+  "version": "5.100.0",
+  "requested": "Terraform AWS provider docs for this user's infra (pinned ~> 5.0)",
+  "kind": "tool",
+  "summary": "HashiCorp's Terraform AWS provider 5.x: every resource (aws_*) and data source with arguments, attributes, import syntax and examples; ephemeral resources, provider functions, provider configuration and upgrade guides (v2–v5); 5.x changelog.",
+  "homepage": "https://registry.terraform.io/providers/hashicorp/aws/5.100.0",
+  "docs_url": "https://registry.terraform.io/providers/hashicorp/aws/5.100.0/docs",
+  "license": "MPL-2.0",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/hashicorp/terraform-provider-aws.git",
+      "ref": "v5.100.0",
+      "path": "website/docs/{r,d,guides,ephemeral-resources,functions}, website/docs/index.html.markdown",
+      "commit": "f7a3b98da589ab1d52756b0dcee0dbf2de83d635",
+      "dest": "content",
+      "license": "MPL-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/hashicorp/terraform-provider-aws/blob/v5.100.0/CHANGELOG.md",
+      "ref": "v5.100.0",
+      "dest": "content/release-notes",
+      "license": "MPL-2.0"
+    }
+  ],
+  "ingested_at": "2026-11-13",
+  "coverage": "All provider docs at tag v5.100.0, the last 5.x release (2025-06-12): 1,521 resource pages (content/r), 606 data sources (content/d), 7 ephemeral resources, 3 provider functions, 8 guides (provider configuration, resource tagging, custom endpoints, version 2-5 upgrade guides), the provider index page, and the 5.0.0-5.100.0 changelog.",
+  "gaps": [
+    "This is the 5.x line the user's Terraform pins (~> 5.0). The newest provider is 6.73.0 (2026-11); 6.x docs and the version-6 upgrade guide are not included.",
+    "CDKTF translations (website/docs/cdktf, 4,457 Python/TypeScript variants of the same pages) are not included.",
+    "The changelog's top heading reads '5.100.0 (Unreleased)' as it did when the tag was cut; 5.100.0 was published on 2025-06-12."
+  ],
+  "notes": "Resolved with `git ls-remote --tags`: newest 5.x tag v5.100.0 (latest overall v6.73.0). Docs are Markdown with Registry front matter (subcategory, page_title); kept unchanged. The four `{{ }}` occurrences are literal content (e.g. SES template syntax), not build placeholders.",
+  "stats": {
+    "files": 2145,
+    "doc_files": 2145,
+    "spec_files": 0,
+    "megabytes": 9.54
+  }
+}
