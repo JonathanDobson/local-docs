@@ -1,0 +1,45 @@
+{
+  "name": "Playwright (Node.js)",
+  "slug": "playwright",
+  "version": "1.65.0",
+  "requested": "playwright 1.65 Node.js docs at the v1.65.0 tag (project pins playwright-core 1.65.0)",
+  "kind": "library",
+  "summary": "Browser automation for Node.js, v1.65.0: library API reference (Browser, BrowserContext, Page, Locator, BrowserType.launch), actionability/auto-waiting, web-first assertions, Playwright Test runner guides and config, release notes.",
+  "homepage": "https://playwright.dev",
+  "docs_url": "https://playwright.dev/docs/intro",
+  "license": "CC-BY-4.0 (playwright.dev rendered docs); Apache-2.0 (microsoft/playwright source docs and release notes)",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/microsoft/playwright.dev.git",
+      "ref": "main",
+      "path": "nodejs/versioned_docs/version-stable",
+      "commit": "7cda53d919735a9075cf5432442857a6e3400d85",
+      "dest": "content",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/microsoft/playwright/releases/tag/v1.65.0",
+      "ref": "v1.65.0",
+      "commit": "a1f35e1955976e84411f9c10358228a80b763ebe",
+      "dest": "content/release-notes/v1.65.0.md",
+      "license": "Apache-2.0"
+    }
+  ],
+  "ingested_at": "2026-11-23",
+  "coverage": "All 148 English Node.js pages of playwright.dev for 1.65: 73 guides (library usage, locators, actionability, assertions, network, auth, test runner: config, fixtures, timeouts, projects, parallelism, reporters, CI, sharding, UI mode, trace viewer) and 74 API class pages under content/api (library classes, assertion classes, test-runner and reporter classes). Full release-notes history plus the GitHub v1.65.0 release body.",
+  "gaps": [
+    "playwright.dev keeps only the current release (version-stable), not per-tag folders. It was taken at main 7cda53d; the last change to that folder is commit dc98db2 ('roll to 1.65', PR microsoft/playwright.dev#2182), generated from upstream microsoft/playwright commit a1f35e1 = the v1.65.0 tag. The docs changes in v1.65.1 touch only C#/Java/Python pages.",
+    "Python, Java and .NET docs not included (Node.js only).",
+    "MDX site components (<Tabs>/<TabItem> TypeScript vs JavaScript variants, <HTMLCard> HTML samples, <LiteYouTube> videos) left as-is; images not included.",
+    "Links in pages are site-relative (/api/class-page.mdx#...) and point at content/ paths."
+  ],
+  "notes": "Chose the playwright.dev rendered Node.js docs over microsoft/playwright docs/src at v1.65.0 because docs/src is multi-language source with langs: conditionals that the site's generator resolves; the rendered set is the exact Node.js output for that tag (verified via the roll PR's 'Upstream commit' line). Moved release-notes.mdx into content/release-notes/ so search classifies it as release notes. No build-time placeholders found.",
+  "stats": {
+    "files": 149,
+    "doc_files": 149,
+    "spec_files": 0,
+    "megabytes": 3.87
+  }
+}

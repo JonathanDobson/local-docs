@@ -1,0 +1,54 @@
+{
+  "name": "Jest",
+  "slug": "jest",
+  "version": "29.7",
+  "release": "29.7.0",
+  "requested": "jest 29.7 (legacy API pins jest 29.7.0 with supertest)",
+  "kind": "framework",
+  "summary": "JavaScript test framework, 29.7 (v29.7.0): Globals API (test/it/describe, test.each, hooks), expect matchers, jest object (jest.spyOn, jest.mock, timers, setTimeout), mock functions, CLI (--runInBand, --forceExit, --detectOpenHandles, --testTimeout), configuration, async testing, setup/teardown, jest-each README, 29.x changelog.",
+  "homepage": "https://jestjs.io",
+  "docs_url": "https://jestjs.io/docs/29.7/getting-started",
+  "license": "MIT",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/jestjs/jest.git",
+      "ref": "main",
+      "path": "website/versioned_docs/version-29.7",
+      "commit": "aa88f7cf0bfc7a3a2efbfcab97914886b22d4454",
+      "dest": "content/docs",
+      "license": "MIT"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/jestjs/jest.git",
+      "ref": "v29.7.0",
+      "path": "packages/jest-each/README.md",
+      "commit": "4347e098f5c6559f4abff329f7597eaf0eadbbac",
+      "dest": "content/packages/jest-each/README.md",
+      "license": "MIT"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/jestjs/jest/blob/v29.7.0/CHANGELOG.md",
+      "ref": "v29.7.0",
+      "commit": "4347e098f5c6559f4abff329f7597eaf0eadbbac",
+      "dest": "content/release-notes/CHANGELOG-29.x.md",
+      "license": "MIT"
+    }
+  ],
+  "ingested_at": "2026-11-23",
+  "coverage": "All 37 English pages of the jestjs.io 29.7 versioned docs, the jest-each package README at v29.7.0 (documents the extra done argument for each-tests), and the 29.0–29.7.0 sections of CHANGELOG.md.",
+  "gaps": [
+    "jestjs.io keeps 29.7 docs under website/versioned_docs/version-29.7 on main (no per-release tag); taken from main aa88f7c.",
+    "The 29.7 site docs do not spell out that an each-test receives done as the argument after the row values; that is documented in content/packages/jest-each/README.md (v29.7.0).",
+    "Blog posts and API docs for other packages (e.g. jest-circus internals) not included; supertest is not part of Jest and not included."
+  ],
+  "notes": "Inlined the _TypeScriptExamplesNote.md fragment (imported by GlobalAPI, JestObjectAPI, ExpectAPI, MockFunctionAPI, UpgradingToJest29) and removed the fragment file. No build-time placeholders found (the one ${{ }} is a GitHub Actions expression in Troubleshooting.md). <TOCInline> components left as-is.",
+  "stats": {
+    "files": 39,
+    "doc_files": 39,
+    "spec_files": 0,
+    "megabytes": 0.48
+  }
+}
