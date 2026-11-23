@@ -17,11 +17,15 @@ In any Claude Code session, in any project:
 | "refresh the zod docs in the docs library" | Same, replacing that version's copy. |
 | "check the docs library for how Gitea Actions runners register" | The `docs-library` skill finds the right docs set and version, searches it, and cites the files it used. |
 
-This library is not the default docs source. Ordinary "current API" lookups go to
-the `local-docs` skill (a weekly-synced mirror of each project's latest docs, in
-`~/.mavis/docs.local`). Claude uses this library when you ask for it by name, or
-when a task needs the docs for one specific release. The skills and MCP server are
-named `docs-library` so they never collide with the mirror's `local-docs`.
+Whether this library is the default docs source depends on the machine. Where the
+separate `local-docs` skill is installed (a weekly-synced mirror of each project's
+latest docs, in `~/.mavis/docs.local`), ordinary "current API" lookups go to that
+mirror, and Claude uses this library when you ask for it by name or when a task
+needs the docs for one specific release. Without the mirror, this library is the
+default for any tool listed in [INDEX.md](INDEX.md). The skills and MCP server are
+named `docs-library` so they never collide with the mirror's `local-docs`; on a
+machine without the mirror the server may be registered as `local-docs` instead,
+and the skills work with either name.
 
 ## Searching
 

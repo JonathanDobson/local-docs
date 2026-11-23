@@ -1,6 +1,6 @@
 ---
 name: docs-library-ingest
-description: "Add or refresh a docs set in the exact-version docs library (~/local-docs, the 186-local-docs repo): resolve the release, download the official docs, write the manifest and overview, and index them. Use when the user asks to ingest, add or refresh docs in the docs library or versioned docs (\"ingest gitea 28 docs into the docs library\"), or wants one specific release's docs kept. To add a package to the default `local-docs` mirror (latest docs, weekly sync), use `local-docs-onboard` instead."
+description: "Add or refresh a docs set in the exact-version docs library (~/local-docs, the 186-local-docs repo): resolve the release, download the official docs, write the manifest and overview, and index them. Use when the user asks to ingest, add or refresh docs in the docs library or versioned docs (\"ingest gitea 28 docs into the docs library\"), or wants one specific release's docs kept. On a machine that also has the separate weekly-synced `local-docs` mirror (~/.mavis/docs.local), adding a package to that mirror is `local-docs-onboard` instead; without the mirror, \"ingest X into local-docs\" means this skill."
 ---
 
 # Ingest documentation into the docs library

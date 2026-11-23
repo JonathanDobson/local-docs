@@ -104,7 +104,8 @@ until it prints `OK`.
 **Skill** — A folder with a `SKILL.md` file of instructions that Claude Code loads
 when a request matches the skill's description. This project has two: `docs-library`
 (look things up) and `docs-library-ingest` (add docs). They are not named
-`local-docs`, which is the separate weekly-synced mirror skill. They live in `skills/` and
+`local-docs`, which is the separate weekly-synced mirror skill (installed on some
+machines only; where it's missing, `docs-library` is the default way to look docs up). They live in `skills/` and
 are linked into `~/.claude/skills` by `tools/install-skills.sh` so they work in
 every project.
 

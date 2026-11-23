@@ -1,14 +1,21 @@
 ---
 name: docs-library
-description: "Exact-version documentation library (~/local-docs, the 186-local-docs repo): offline copies of official docs pinned to specific releases (e.g. PostgreSQL 18.6, Docker Engine 29.9, Traefik 3.7.17, Gitea 28), each with provenance. Use when the user asks for it by name (\"docs library\", \"check the docs library\", \"versioned docs\", \"186-local-docs\"), or when a task needs the docs for one specific release and the default `local-docs` mirror (latest docs, synced weekly) has the wrong version or lacks the package. For ordinary current-API lookups use `local-docs`."
+description: "Exact-version documentation library (~/local-docs, the 186-local-docs repo): offline copies of official docs pinned to specific releases (e.g. PostgreSQL 18.6, Docker Engine 29.9, Traefik 3.7.17, Gitea 28), each with provenance. Use when the user asks for it by name (\"docs library\", \"check the docs library\", \"versioned docs\", \"186-local-docs\", or \"local-docs\" on a machine without the separate mirror), or when a task needs the docs for one specific release. On a machine without the separate weekly-synced `local-docs` mirror skill (~/.mavis/docs.local), this library is the default: use it for any task that depends on a tool listed in ~/local-docs/INDEX.md. Where that mirror is installed, ordinary current-API lookups go to it."
 ---
 
 # Look things up in the docs library
 
-This is the exact-version library in `~/local-docs` (the 186-local-docs repo). It is
-not the default: ordinary "current API" lookups go to the `local-docs` skill, a
-weekly-synced mirror of each project's latest docs. Use this library when the user
-asks for it, or when the task needs the docs for one specific release.
+This is the exact-version library in `~/local-docs` (the 186-local-docs repo). Some
+machines also have a separate `local-docs` *skill*: a weekly-synced mirror of each
+project's latest docs in `~/.mavis/docs.local`. Which is the default depends on the
+machine:
+
+- **Mirror installed** (a `local-docs` skill is listed and `~/.mavis/docs.local`
+  exists): ordinary "current API" lookups go to the mirror. Use this library when
+  the user asks for it, or when the task needs the docs for one specific release.
+- **No mirror:** this library is the default. Use it for any task that depends on
+  the exact behaviour, config or API of a tool listed in `INDEX.md`, and when the
+  user says "local-docs".
 
 `~/local-docs` holds versioned copies of
 official documentation, each with a record of where it came from. Answers built
@@ -28,9 +35,16 @@ training data may be older or for a different version.
 2. **Read the set's `OVERVIEW.md`** (`libraries/<slug>/<version>/OVERVIEW.md`).
    Its "Where to look for…" table often points straight at the file you need.
    Its "Version notes" warn about changes between versions.
-3. **Search by meaning first.** If the `docs_search` tool (from the `docs-library`
-   MCP server) is available, use it with `library` (and `version`) set. It combines
-   keyword and meaning search, so plain questions and exact identifiers both work.
+3. **Search by meaning first** with the `docs_search` tool, `library` (and
+   `version`) set. It combines keyword and meaning search, so plain questions and
+   exact identifiers both work; `docs_read` reads around a hit and `docs_list`
+   lists the sets. The tools come from the MCP server that runs
+   `tools/docs-mcp.sh`. Its name is whatever it was registered as: `docs-library`
+   in the README's setup, but some machines register it as `local-docs` (where no
+   mirror claims that name). Check `claude mcp list` if unsure.
+   The tools are often deferred, and the server may still be connecting when a
+   session starts: load them with ToolSearch (query `docs_search`), which waits for
+   it. Don't conclude they're missing until that has failed.
    Without the tool, the same search runs from a shell:
    ```bash
    ~/local-docs/.venv/bin/python -m search search "question" -l <slug> -v <version>
