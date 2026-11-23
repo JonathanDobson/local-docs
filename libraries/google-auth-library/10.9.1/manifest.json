@@ -1,0 +1,78 @@
+{
+  "name": "Google Auth Library for Node.js (google-auth-library)",
+  "slug": "google-auth-library",
+  "version": "10.9.1",
+  "requested": "google-auth-library 10.9.1 (the version the legacy deletemyinfo API uses), README/docs and the API reference for OAuth2Client.verifyIdToken / LoginTicket.getPayload; note 11.x differences",
+  "kind": "library",
+  "summary": "Google's official Node.js auth client, release 10.9.1 (last 10.x, npm dist-tag legacy-18): README (ADC, OAuth2, JWT, Compute, workload identity, ID tokens), samples, full TypeScript type declarations (OAuth2Client, LoginTicket, TokenPayload, GoogleAuth…), oauth2client.ts/loginticket.ts source, changelog incl. 11.x entries.",
+  "homepage": "https://github.com/googleapis/google-cloud-node/tree/main/core/packages/google-auth-library-nodejs",
+  "docs_url": "https://docs.cloud.google.com/nodejs/docs/reference/google-auth-library/latest",
+  "license": "Apache-2.0",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/googleapis/google-cloud-node.git",
+      "ref": "google-auth-library-v10.9.1",
+      "commit": "6b9fd1af346a20479615704d40435f6ae0ecfba6",
+      "path": "core/packages/google-auth-library-nodejs/README.md",
+      "dest": "content/README.md",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/googleapis/google-cloud-node.git",
+      "ref": "google-auth-library-v10.9.1",
+      "commit": "6b9fd1af346a20479615704d40435f6ae0ecfba6",
+      "path": "core/packages/google-auth-library-nodejs/samples",
+      "dest": "content/samples",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "package",
+      "url": "https://registry.npmjs.org/google-auth-library/-/google-auth-library-10.9.1.tgz",
+      "ref": "10.9.1",
+      "path": "package/build/src/**/*.d.ts",
+      "dest": "content/api-reference",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/googleapis/google-cloud-node.git",
+      "ref": "google-auth-library-v10.9.1",
+      "commit": "6b9fd1af346a20479615704d40435f6ae0ecfba6",
+      "path": "core/packages/google-auth-library-nodejs/src/auth/{oauth2client,loginticket}.ts",
+      "dest": "content/api-reference/source",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/googleapis/google-cloud-node/blob/google-auth-library-v10.9.1/core/packages/google-auth-library-nodejs/CHANGELOG.md",
+      "ref": "google-auth-library-v10.9.1",
+      "commit": "6b9fd1af346a20479615704d40435f6ae0ecfba6",
+      "dest": "content/release-notes/CHANGELOG.md",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/googleapis/google-cloud-node/blob/google-auth-library-v11.3.4/core/packages/google-auth-library-nodejs/CHANGELOG.md",
+      "ref": "google-auth-library-v11.3.4",
+      "dest": "content/release-notes/CHANGELOG-11.x.md",
+      "license": "Apache-2.0"
+    }
+  ],
+  "ingested_at": "2026-11-23",
+  "coverage": "README and samples at the 10.9.1 release tag, every TypeScript declaration file shipped in the 10.9.1 npm package (the typed API reference with its doc comments), the source of OAuth2Client and LoginTicket, the full changelog to 10.9.1, and the 11.0.0–11.3.4 changelog entries for comparison.",
+  "gaps": [
+    "Google's generated HTML API reference (docs.cloud.google.com/nodejs/docs/reference/google-auth-library) is not hosted for 10.9.1 (the 10.9.1 URL redirects to 'latest', i.e. 11.x), so the API reference here is built from the package's own .d.ts files instead: same doc comments, no HTML formatting.",
+    "The standalone repo github.com/googleapis/google-auth-library-nodejs is archived (last tag v10.5.0); 10.6+ is released from the google-cloud-node monorepo, which is the source used.",
+    "Only 13 of the ~30 samples are included (ID-token, OAuth2, ADC, JWT, key-file, header and compute ones); workload-identity/downscoping/IAP-only samples were left out.",
+    "Browser-test, system tests and build config are not included."
+  ],
+  "notes": "10.9.1 is the newest 10.x release (npm dist-tag legacy-18, released 2026-07-23, engines node >=18). Latest at ingest is 11.3.4 (engines node >=22). The README links still point at the archived github.com/googleapis/google-auth-library-nodejs repo; that is upstream text, left as is. Samples (.js), .d.ts files and the two .ts sources are wrapped verbatim in Markdown code blocks (with title and source front matter) so search indexes them. 11.x comparison: diff -r of every .d.ts in build/src between the 10.9.1 and 11.3.4 npm tarballs found no differences; package.json differs in engines (node >=22) and dependency majors (gaxios ^8.3.1, gcp-metadata ^9.2.1, google-logging-utils ^2.1.0).",
+  "stats": {
+    "files": 65,
+    "doc_files": 65,
+    "spec_files": 0,
+    "megabytes": 0.5
+  }
+}

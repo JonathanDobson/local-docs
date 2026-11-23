@@ -1,0 +1,57 @@
+{
+  "name": "Google Identity Services: Sign in with Google for Web",
+  "slug": "google-identity",
+  "version": "2026-11-23",
+  "requested": "Sign in with Google for Web (developers.google.com/identity/gsi/web): JS + HTML API reference, CredentialResponse, server-side ID token verification, FedCM migration, setup (origins, CSP, COOP), branding guidelines. Unversioned site, so a dated snapshot.",
+  "kind": "service",
+  "summary": "Sign in with Google for Web (Google Identity Services JS library, gsi/client): One Tap and the button, google.accounts.id JS API and data-* HTML API reference, IdConfiguration, CredentialResponse, verifying the ID token server-side, FedCM migration, setup (client ID, authorized JavaScript origins, CSP, COOP), branding guidelines, Google OpenID Connect.",
+  "homepage": "https://developers.google.com/identity",
+  "docs_url": "https://developers.google.com/identity/gsi/web/guides/overview",
+  "license": "CC BY 4.0 (page content), Apache-2.0 (code samples), per the developers.google.com page footer",
+  "sources": [
+    {
+      "type": "other",
+      "url": "https://developers.google.com/identity/gsi/web/",
+      "ref": "fetched 2026-11-23 (Google's published per-page Markdown, <page>.md.txt; page list from a link crawl of /identity/gsi/web/ cross-checked against the site navigation)",
+      "dest": "content/gsi-web",
+      "license": "CC BY 4.0 / Apache-2.0"
+    },
+    {
+      "type": "other",
+      "url": "https://developers.google.com/identity/branding-guidelines",
+      "ref": "fetched 2026-11-23 (<page>.md.txt)",
+      "dest": "content/branding",
+      "license": "CC BY 4.0"
+    },
+    {
+      "type": "other",
+      "url": "https://developers.google.com/identity/openid-connect/openid-connect",
+      "ref": "fetched 2026-11-23 (<page>.md.txt)",
+      "dest": "content/openid-connect",
+      "license": "CC BY 4.0 / Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://developers.google.com/identity/gsi/web/reference/release-notes",
+      "ref": "fetched 2026-11-23",
+      "dest": "content/gsi-web/reference/release-notes.md",
+      "license": "CC BY 4.0"
+    }
+  ],
+  "ingested_at": "2026-11-23",
+  "coverage": "Every page in the Sign in with Google for Web section (guides, JS and HTML API references, AMP pages, release notes; 24 pages), the Sign in with Google branding guidelines, and Google's OpenID Connect page (ID token claims, discovery document). 26 pages.",
+  "gaps": [
+    "The site is not versioned and the GIS JavaScript library (accounts.google.com/gsi/client) has no version number: this is a snapshot of the docs as published on 2026-11-23 (the overview page footer said 'Last updated 2026-02-10 UTC').",
+    "The interactive HTML code generator (/identity/gsi/web/tools/configurator) is not included; it is a web tool, not documentation.",
+    "Six old guide URLs (itp, subdomains, change-sign-in-context, handle-credential-responses-js-functions, receive-notifications-prompt-ui-status, toggle-display-with-cookies) now redirect into other pages (mostly display-google-one-tap and automatic-sign-in-sign-out), so they are not separate files.",
+    "Button images and branding asset downloads (icons, PNG/SVG zips) are not included; only the text of the branding guidelines.",
+    "The wider Google Identity pages (OAuth 2.0 authorization via google.accounts.oauth2, the Chrome FedCM developer docs) are linked but not mirrored."
+  ],
+  "notes": "Pages were first crawled from HTML with tools/crawl.py (selector div.devsite-article-body), then each page was replaced by the Markdown Google itself publishes at <page URL>.md.txt (linked from each page as rel=alternate type=text/markdown); it keeps code-block languages and tabbed code samples the HTML extraction dropped. Front matter records source, markdown_source and fetch date. Links inside pages are absolute developers.google.com URLs, some pointing at .md.txt variants. crawl-report-branding.json is the report of the branding crawl; the 30-page gsi/web crawl report was overwritten (30 saved, 0 failed, 1 skipped). No embedded instructions aimed at AI agents were found.",
+  "stats": {
+    "files": 26,
+    "doc_files": 26,
+    "spec_files": 0,
+    "megabytes": 0.36
+  }
+}

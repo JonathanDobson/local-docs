@@ -1,0 +1,14 @@
+{
+  "crawled_at": "2026-11-23T02:19:47+00:00",
+  "prefix": "https://developers.google.com/identity/branding-guidelines",
+  "saved": 1,
+  "failed": [],
+  "skipped": [],
+  "hit_max_pages": false,
+  "pages": [
+    {
+      "url": "https://developers.google.com/identity/branding-guidelines",
+      "file": "index.md"
+    }
+  ]
+}
