@@ -55,7 +55,8 @@ The ingest skill tries sources in this order and records which it used:
 3. Docs bundled inside the released package
 4. A polite crawl of the versioned docs website, converted to Markdown (`tools/crawl.py`)
 5. For APIs, also the OpenAPI/Swagger spec, plus generated per-endpoint pages (`tools/openapi2md.py`);
-   for AWS services, the Smithy API model, with one page per operation (`tools/smithy2md.py`)
+   for AWS services, the Smithy API model, with one page per operation (`tools/smithy2md.py`);
+   for Stripe, its OpenAPI spec, with one page per resource (`tools/stripe_openapi2md.py`)
 
 `tools/finalize.py` validates each set, writes its `TOC.md`, and rebuilds `INDEX.md`.
 

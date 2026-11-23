@@ -1,0 +1,42 @@
+{
+  "name": "Stripe API (REST) reference",
+  "slug": "stripe-api",
+  "version": "2023-10-16",
+  "release": "stripe/openapi v934",
+  "companions": {
+    "stripe (Node.js SDK)": "14.25.0"
+  },
+  "requested": "Stripe API reference matching the legacy API's Node `stripe` 14.25.0 package (Events incl. Retrieve an event, Customers, Subscriptions, Invoices, Prices, Coupons, Payment Methods, Payment Intents, Webhook Endpoints, Payment Method Configurations)",
+  "kind": "api",
+  "summary": "Stripe REST API reference for API version 2023-10-16 (the version stripe-node 14.x sends): every /v1 endpoint grouped by resource (customers, subscriptions, invoices, prices, coupons, payment_intents, payment_methods, events, webhook_endpoints, payment_method_configurations, ...), with every query and form-body parameter, enums and descriptions, plus every object's fields; generated from Stripe's official OpenAPI spec.",
+  "homepage": "https://stripe.com",
+  "docs_url": "https://docs.stripe.com/api",
+  "license": "MIT (stripe/openapi repository)",
+  "sources": [
+    {
+      "type": "openapi",
+      "url": "https://github.com/stripe/openapi",
+      "ref": "v934",
+      "commit": "0ba185f3d96c3fee739b01aaa46fa86245da1f0b",
+      "path": "openapi/spec3.json, openapi/spec3.sdk.json, openapi/fixtures3.json",
+      "dest": "api",
+      "license": "MIT"
+    }
+  ],
+  "ingested_at": "2026-11-23",
+  "coverage": "The whole public v1 REST API as of spec tag v934 (info.version 2023-10-16): 521 operations in 75 resource pages (api/resources/), 808 sub-object pages (api/objects/), the raw spec3.json, the SDK-annotated spec3.sdk.json and Stripe's example fixtures (fixtures3.json).",
+  "gaps": [
+    "Version choice: the legacy API calls Stripe through stripe-node 14.25.0, which sends Stripe-Version 2023-10-16 (cjs/apiVersion.js in the package) but was generated from spec v938, which already describes 2024-04-10. v934 is the last spec tag whose info.version is 2023-10-16 (v935 moved to 2024-04-10), so it matches what the API actually returns. Fields added in v935-v938 that stripe-node 14.25.0's TypeScript types know about are missing here.",
+    "Webhook event payloads are rendered in the webhook endpoint's own api_version (or the account default), not necessarily 2023-10-16; check the endpoint's api_version before relying on a field.",
+    "The spec has no prose guides, curl/Node examples or per-event-type payload docs; those are in the local-only stripe-guides set (docs.stripe.com, current API version 2026-11-18.endive).",
+    "The beta and private-preview specs (spec3.beta.sdk.json, ...) are not included.",
+    "Event types: the spec lists them only as the enum of webhook_endpoints `enabled_events` (api/resources/webhook_endpoints.md)."
+  ],
+  "notes": "Stripe publishes the spec in github.com/stripe/openapi with one tag per spec release (v1..v2602+); each stripe-node release records the tag it was generated from in OPENAPI_VERSION (14.25.0 -> v938, 15.0.0 -> v940). Checked info.version on tags v878-v938: v934 is the last 2023-10-16 spec. The generic tools/openapi2md.py put all operations into one untagged file and named form bodies only as 'object' (Stripe's spec has no tags and inlines request parameters in an application/x-www-form-urlencoded schema), so the pages were generated with the new tools/stripe_openapi2md.py: one page per first path segment under /v1 (test helpers per sub-resource), request-body fields flattened to form names (items[].price, payment_settings.save_default_payment_method), and Stripe's HTML descriptions converted to Markdown with relative /docs links made absolute. The spec files are unmodified.",
+  "stats": {
+    "files": 886,
+    "doc_files": 883,
+    "spec_files": 3,
+    "megabytes": 15.25
+  }
+}

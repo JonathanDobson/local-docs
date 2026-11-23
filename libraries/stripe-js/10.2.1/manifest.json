@@ -1,0 +1,64 @@
+{
+  "name": "Stripe.js (@stripe/stripe-js) and React Stripe.js (@stripe/react-stripe-js)",
+  "slug": "stripe-js",
+  "version": "10.2.1",
+  "companions": {
+    "@stripe/react-stripe-js": "7.0.1",
+    "Stripe.js release": "endive"
+  },
+  "requested": "@stripe/stripe-js 10.x and @stripe/react-stripe-js 7.x; the customer portal installs 10.2.1 and 7.0.1",
+  "kind": "library",
+  "summary": "Stripe's browser SDK loader and TypeScript definitions (@stripe/stripe-js 10.2.1, pinned to the Stripe.js 'endive' release) and React Stripe.js 7.0.1 (Elements provider, useStripe/useElements, CardElement, PaymentElement and other Element components): READMEs, full type definitions for every Stripe.js method (confirmPayment, confirmCardPayment, createPaymentMethod, handleNextAction, confirmSetup, ...) and option, React source and examples, 10.x/7.x release notes.",
+  "homepage": "https://github.com/stripe/stripe-js",
+  "docs_url": "https://docs.stripe.com/js",
+  "license": "MIT (stripe/stripe-js and stripe/react-stripe-js repositories)",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/stripe/stripe-js.git",
+      "ref": "v10.2.1",
+      "commit": "6287f71df6b1c27e1921c6e39b32ce7a21a89641",
+      "path": "README.md, types/, src/{index,pure,shared}.ts",
+      "dest": "content/stripe-js",
+      "license": "MIT"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/stripe/react-stripe-js.git",
+      "ref": "v7.0.1",
+      "commit": "ee4edbcd46348fd5ac8818de5267369f2a6265b3",
+      "path": "README.md, docs/migrating.md, src/, examples/hooks, examples/class-components",
+      "dest": "content/react-stripe-js",
+      "license": "MIT"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/stripe/stripe-js/releases",
+      "ref": "v10.0.0..v10.2.1",
+      "dest": "content/release-notes/stripe-js",
+      "license": "MIT"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/stripe/react-stripe-js/releases",
+      "ref": "v7.0.0..v7.0.1",
+      "dest": "content/release-notes/react-stripe-js",
+      "license": "MIT"
+    }
+  ],
+  "ingested_at": "2026-11-23",
+  "coverage": "Both packages at the exact versions the customer portal installs: READMEs, every TypeScript definition file of @stripe/stripe-js (types/, the de-facto API reference with JSDoc for each method), the loader source, every React Stripe.js source file (components, hooks, types), its hooks and class-component examples, the migration guide from react-stripe-elements, and GitHub release notes for 10.0.0-10.2.1 and 7.0.0-7.0.1.",
+  "gaps": [
+    "The prose Stripe.js reference (docs.stripe.com/js, incl. react_stripe_js pages) and the Payment Element / 3-D Secure guides are not open-licensed; they are in the local-only stripe-guides set.",
+    "Source and type files are wrapped verbatim in Markdown code fences (<file>.md) so search can index them; no other changes.",
+    "Newer releases exist (@stripe/stripe-js 10.3.0, @stripe/react-stripe-js 7.1.0) and are not included; react-stripe-js CHANGELOG.md only points to GitHub releases.",
+    "Test files, Storybook stories, build config and lockfiles were left out."
+  ],
+  "notes": "Versions are the ones the customer portal project installs (@stripe/stripe-js 10.2.1, @stripe/react-stripe-js 7.0.1, read from its node_modules); the newest releases in those lines are 10.3.0 and 7.1.0. Repos shallow-cloned at the release tags; nothing executed. stripe-js v10 loads https://js.stripe.com/endive/stripe.js (RELEASE_TRAIN in src/shared.ts).",
+  "stats": {
+    "files": 109,
+    "doc_files": 109,
+    "spec_files": 0,
+    "megabytes": 0.74
+  }
+}

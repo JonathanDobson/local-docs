@@ -8,3 +8,4 @@ __pycache__/
 INDEX.local.md
 libraries/tailscale/
 libraries/aws-guides/
+libraries/stripe-guides/

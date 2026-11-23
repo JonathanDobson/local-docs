@@ -206,6 +206,18 @@ stored as JSON. The AWS SDKs are generated from these models, and so is the API
 reference text on docs.aws.amazon.com. `tools/smithy2md.py` turns one into one
 Markdown page per operation; used for the AWS SDK for JavaScript v3 docs set.
 
+**Form-encoded body** — A way of sending request parameters as `key=value` pairs
+joined by `&`, the same format an HTML form submits
+(`application/x-www-form-urlencoded`). Stripe's API takes its parameters this way,
+writing nested fields as `items[0][price]=...`. `tools/stripe_openapi2md.py`
+shows them as `items[].price`, and the generic `openapi2md.py` can't list them
+at all, which is why Stripe gets its own converter.
+
+**API version (dated)** — Some APIs, Stripe's among them, are versioned by release
+date (`2023-10-16`) rather than by number, and each client chooses the version it
+talks to. The `stripe-api` docs set is filed under the API version, not a package
+version, because that date decides which fields a response contains.
+
 **Schema / model** — The described shape of a piece of data (which fields, what
 types). Listed in `api/schemas.md`.
 
