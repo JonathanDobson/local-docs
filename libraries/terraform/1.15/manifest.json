@@ -1,0 +1,47 @@
+{
+  "name": "Terraform (CLI and configuration language)",
+  "slug": "terraform",
+  "version": "1.15",
+  "release": "1.15.9",
+  "requested": "Terraform core docs pinned to the installed Terraform 1.15.5 (customer portal infra/)",
+  "kind": "tool",
+  "summary": "Terraform core, release line 1.15 (docs as of v1.15.9; installed here: 1.15.5): CLI commands (init, plan, apply, validate, fmt, state, workspace, test, import), CLI config and environment variables, the configuration language (blocks, variables and .tfvars, outputs, locals, expressions, functions, meta-arguments, modules, providers), state and backends incl. S3 (use_lockfile, encrypt, partial configuration with -backend-config), Stacks, internals, 1.15 upgrade guide and 1.15.x changelog.",
+  "homepage": "https://www.terraform.io",
+  "docs_url": "https://developer.hashicorp.com/terraform/language",
+  "license": "BUSL-1.1 (HashiCorp/IBM; web-unified-docs and the terraform repo's CHANGELOG)",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/hashicorp/web-unified-docs.git",
+      "ref": "main",
+      "path": "content/terraform/v1.15.x/docs",
+      "commit": "af88f7b6b47cee18c8641043f8d4c5b7664690b7",
+      "dest": "content/docs",
+      "license": "BUSL-1.1"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/hashicorp/terraform/blob/v1.15.9/CHANGELOG.md",
+      "ref": "v1.15.9",
+      "commit": "87488977e32a400445e0c0b4d95c0713a5eee941",
+      "dest": "content/release-notes",
+      "license": "BUSL-1.1"
+    }
+  ],
+  "ingested_at": "2026-11-25",
+  "coverage": "Every page of the v1.15.x Terraform docs as developer.hashicorp.com builds them: CLI (docs/cli: commands, config, init, run, state, workspaces, import, test, cloud, auth, plugins), language (docs/language: block reference, backends, state, values/variables, expressions, functions, meta-arguments, modules, providers, tests, Stacks, upgrade guide), intro and internals; plus the 1.15.0-1.15.9 changelog.",
+  "gaps": [
+    "HashiCorp publishes the docs per minor line (v1.15.x folder in web-unified-docs, branch main), not per patch; they describe the latest 1.15 patch (1.15.9). The installed CLI is 1.15.5: the changelog lists what 1.15.6-1.15.9 changed (bug fixes and init output only).",
+    "The terraform repo no longer keeps docs under website/docs at v1.15.5 (only website/README.md), so web-unified-docs is the source.",
+    "Navigation data (data/*.json) and images are not included.",
+    "HCP Terraform / Terraform Enterprise product docs (terraform-docs-common, terraform-enterprise) are not included; only CLI pages that mention them.",
+    "Newer lines exist (1.16, 1.17.2); not included."
+  ],
+  "notes": "Version resolved from `terraform version` (v1.15.5) and `git ls-remote --tags` on hashicorp/terraform (newest 1.15 patch v1.15.9, 2026-08-19). Resolved build-time includes: 8 `@include` lines inlined, from docs/partials (module-block-source-arg-git-details, premium-deployment-groups) and content/global/partials/terraform-stacks-migrate-experiment.mdx at the same commit; the docs/partials folder was then removed. The four `{{ }}` strings in backend/gcs.mdx are literal example content. MDX components (<CodeBlockConfig>, <Note>, <Tabs>) left as is. Licence: BUSL-1.1 permits copying and redistribution (non-production use plus an additional use grant for non-competing production use); a docs mirror is not a competing hosted offering.",
+  "stats": {
+    "files": 385,
+    "doc_files": 385,
+    "spec_files": 0,
+    "megabytes": 2.15
+  }
+}

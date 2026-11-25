@@ -1,0 +1,237 @@
+## 1.15.9 (August 19, 2026)
+
+
+BUG FIXES:
+
+* validate: Child module validation has been fixed and will now raise errors or warning diagnostics for invalid blocks. (`list`, `import`, `backend`, and `cloud`) ([#38994](https://github.com/hashicorp/terraform/issues/38994))
+
+
+NOTES:
+
+* Update go-slug to v0.18.3 to mitigate CVE-2026-14978, which is a Unicode normalization issue that could lead to files not being correctly excluded via `.terraformignore` from upload to a Terraform Enterprise or HCP Terraform during a run ([#39036](https://github.com/hashicorp/terraform/issues/39036))
+
+
+## 1.15.8 (July 8, 2026)
+
+
+BUG FIXES:
+
+* Fix `terraform init` error when installing providers sourced from a service-discovery alias advertised by the configured backend (such as `localterraform.com`)
+
+
+NOTES:
+
+* command/init: Provider installation was changed to enable future enhancements in the area. This effectively reverses the log message changes from v1.15. `initializing_provider_plugin_message` is being re-introduced to replace the short-lived two message types `initializing_provider_plugin_from_config_message` & `initializing_provider_plugin_from_state_message`. The change should not have any significant end-user impact aside from the command output. ([#38838](https://github.com/hashicorp/terraform/issues/38838))
+
+* command/init: Provider installation was changed to enable future enhancements in the area. This partially reverses the init event order changes from v1.15; module installation will now occur after the backend is initialized. The change should not have any significant end-user impact aside from the command output. ([#38838](https://github.com/hashicorp/terraform/issues/38838))
+
+
+## 1.15.7 (June 24, 2026)
+
+
+BUG FIXES:
+
+* Add concurrency safety to configs.Parser and SourceBundleParser ([#38745](https://github.com/hashicorp/terraform/issues/38745))
+
+* Fix submodule variable validation during init ([#38770](https://github.com/hashicorp/terraform/issues/38770))
+
+
+## 1.15.6 (June 10, 2026)
+
+
+BUG FIXES:
+
+* Fixed an issue where resources being removed from state via `removed` block were incorrectly listed under `planned_values` in json representations of the plan file. ([#38665](https://github.com/hashicorp/terraform/issues/38665))
+
+* console: Fixed a panic caused by evaluating an expression involving deprecated values ([#38676](https://github.com/hashicorp/terraform/issues/38676))
+
+* Fix exit code for plan, query, and refresh commands for variable-related errors ([#38685](https://github.com/hashicorp/terraform/issues/38685))
+
+* Fix two module installation edge cases with `null` and sensitive/ephemeral module sources ([#38704](https://github.com/hashicorp/terraform/issues/38704))
+
+
+## 1.15.5 (May 27, 2026)
+
+
+ENHANCEMENTS:
+
+* Support for module version evaluating to `null` (in the context of dynamic module sources) ([#38632](https://github.com/hashicorp/terraform/issues/38632))
+
+
+BUG FIXES:
+
+* Fix crash on `init` for modules with empty source ([#38628](https://github.com/hashicorp/terraform/issues/38628))
+
+
+## 1.15.4 (May 20, 2026)
+
+
+NEW FEATURES:
+
+* We now produce builds for Linux s390x (zLinux) ([#38615](https://github.com/hashicorp/terraform/issues/38615))
+
+
+BUG FIXES:
+
+* init: Prevent provider binaries from being installed into symlinked directories ([#38611](https://github.com/hashicorp/terraform/issues/38611))
+
+
+## 1.15.3 (May 13, 2026)
+
+
+BUG FIXES:
+
+* stacks: Fixed a bug that prevented migrating resources under multiple layers of module nesting with implicit provider configuration. ([#38528](https://github.com/hashicorp/terraform/issues/38528))
+
+* cloud backend will now forward -generate-config-out flag usage to query create request ([#38539](https://github.com/hashicorp/terraform/issues/38539))
+
+* Fix crash during provider installation when there is no config ([#38560](https://github.com/hashicorp/terraform/issues/38560))
+
+
+## 1.15.2 (May 6, 2026)
+
+
+ENHANCEMENTS:
+
+* stacks: add ouput values to plan component instance change description ([#38360](https://github.com/hashicorp/terraform/issues/38360))
+
+
+BUG FIXES:
+
+* Avoid printing warnings from 'terraform output -json' ([#38530](https://github.com/hashicorp/terraform/issues/38530))
+
+
+## 1.15.1 (May 1, 2026)
+
+
+BUG FIXES:
+
+* Fixed crash when configuration has an invalid `action_trigger` nested block in `data` or `ephemeral` lifecycle blocks ([#38402](https://github.com/hashicorp/terraform/issues/38402))
+
+* validate: Removed validation of attributes inside `backend` blocks due to incompatibility with workflows using the `-backend-config` flag. ([#38466](https://github.com/hashicorp/terraform/issues/38466))
+
+* Fix non-const variable checks on `init` ([#38470](https://github.com/hashicorp/terraform/issues/38470))
+
+* Avoid warnings in 'terraform output -raw' ([#38487](https://github.com/hashicorp/terraform/issues/38487))
+
+* Ignore undeclared variable values from the cloud backend ([#38490](https://github.com/hashicorp/terraform/issues/38490))
+
+* Fix panic for types modules with no expanded instances ([#38491](https://github.com/hashicorp/terraform/issues/38491))
+
+* Fixed "unknown provider function" errors occurring during init ([#38472](https://github.com/hashicorp/terraform/issues/38472))
+
+* init: Fixed a bug that impacted use of provider pre-releases during init ([#38496](https://github.com/hashicorp/terraform/issues/38496))
+
+
+## 1.15.0 (April 29, 2026)
+
+
+NEW FEATURES:
+
+* We now produce builds for Windows ARM64 ([#32719](https://github.com/hashicorp/terraform/issues/32719))
+
+* You can set a `deprecated` attribute on variable and output blocks to indicate that they are deprecated. This will produce warnings when passing in a value for a deprecated variable or when referencing a deprecated output. ([#38001](https://github.com/hashicorp/terraform/issues/38001))
+
+* backend/s3: Support authentication via `aws login` ([#37976](https://github.com/hashicorp/terraform/issues/37976))
+
+* validate: The validate command now checks the `backend` block. This ensures the backend type exists, that all required attributes are present, and that the backend's own validation logic passes. ([#38021](https://github.com/hashicorp/terraform/issues/38021))
+
+* `convert` function, which allows for precise inline type conversions ([#38160](https://github.com/hashicorp/terraform/issues/38160))
+
+* Terraform now supports variables and locals in module source and version attributes ([#38217](https://github.com/hashicorp/terraform/issues/38217))
+
+
+ENHANCEMENTS:
+
+* config: `output` blocks now can have an explicit type constraints ([#36411](https://github.com/hashicorp/terraform/issues/36411))
+
+* ssh-based provisioner (file + remote-exec): Re-enable support for PowerShell ([#37794](https://github.com/hashicorp/terraform/issues/37794))
+
+* terraform init log timestamps include millisecond precision ([#37818](https://github.com/hashicorp/terraform/issues/37818))
+
+* init: skip dependencies declared in development override. This allows you to use `terraform init` with developer overrides and install dependencies that are not declared in the override file. ([#37884](https://github.com/hashicorp/terraform/issues/37884))
+
+* Terraform Test: Allow functions within mock blocks ([#34672](https://github.com/hashicorp/terraform/issues/34672))
+
+* improve detection of deprecated resource attributes / blocks ([#38077](https://github.com/hashicorp/terraform/issues/38077))
+
+* Deprecation messages providers set on resources / blocks / attributes are now part of the deprecation warning ([#38135](https://github.com/hashicorp/terraform/issues/38135))
+
+* Include which attribute paths are marked as sensitive in list_start JSON logs ([#38197](https://github.com/hashicorp/terraform/issues/38197))
+
+* Add input variable validation for Stacks ([#38240](https://github.com/hashicorp/terraform/issues/38240))
+
+* When comparing a container value to null, only top level marks are now considered for the result. ([#38270](https://github.com/hashicorp/terraform/issues/38270))
+
+* As part of supporting variables in module sources, most commands now accept variable values ([#38276](https://github.com/hashicorp/terraform/issues/38276))
+
+
+BUG FIXES:
+
+* testing: File-level error diagnostics are now included in JUnit XML skipped test elements, ensuring CI/CD pipelines can detect validation failures ([#37801](https://github.com/hashicorp/terraform/issues/37801))
+
+* A refresh-only plan could result in a non-zero exit code with no changes ([#37406](https://github.com/hashicorp/terraform/issues/37406))
+
+* cli: Fixed crash in `terraform show -json` when plan contains ephemeral resources with preconditions or postconditions ([#37834](https://github.com/hashicorp/terraform/issues/37834))
+
+* cli: Fixed `terraform init -json` to properly format all backend configuration messages as JSON instead of plain text ([#37911](https://github.com/hashicorp/terraform/issues/37911))
+
+* `state show`: The `state show` command will now explicitly fail and return code 1 when it fails to render the named resources state ([#37933](https://github.com/hashicorp/terraform/issues/37933))
+
+* apply: Terraform will raise an explicit error if a plan file intended for one workspace is applied against another workspace ([#37954](https://github.com/hashicorp/terraform/issues/37954))
+
+* lifecycle: `replace_triggered_by` now reports an error when given an invalid attribute reference that does not exist in the target resource ([#36740](https://github.com/hashicorp/terraform/issues/36740))
+
+* backend: Fix nil pointer dereference crash during `terraform init` when the destination backend returns an error ([#38027](https://github.com/hashicorp/terraform/issues/38027))
+
+* stacks: send progress events if the plan fails for better UI integration ([#38039](https://github.com/hashicorp/terraform/issues/38039))
+
+* stacks: component instances should report no-op plan/apply. This solves a UI inconsistency with convergence destroy plans  ([#38049](https://github.com/hashicorp/terraform/issues/38049))
+
+* backend/http: Return conflicting lock info from HTTP backend instead of the lock that failed to be taken ([#38144](https://github.com/hashicorp/terraform/issues/38144))
+
+* states: fixed a bug that caused Terraform to be unable to identify when two states had different output values. This may have caused issues in specific circumstances like backend migrations. ([#38181](https://github.com/hashicorp/terraform/issues/38181))
+
+* cloud: terraform cloud and registry discovery network requests are now more resilient, making temporary network or service related errors less common ([#38064](https://github.com/hashicorp/terraform/issues/38064))
+
+* Enable formatting of `.tfquery.hcl` files by `terraform fmt` ([#38398](https://github.com/hashicorp/terraform/issues/38398))
+
+* Fix `validate` not returning JSON for some early diagnostics ([#38400](https://github.com/hashicorp/terraform/issues/38400))
+
+* Fix Terraform Stacks plugin installation error ([#38406](https://github.com/hashicorp/terraform/issues/38406))
+
+
+NOTES:
+
+* command/init: Provider installation was refactored to enable future enhancements in the area. This results in different order of operations during init and 2 new log messages replacing one (`initializing_provider_plugin_message`). The change should not have any end-user impact aside from the `init` command output. ([#38227](https://github.com/hashicorp/terraform/issues/38227))
+
+
+UPGRADE NOTES:
+
+* backend/s3: The `AWS_USE_FIPS_ENDPOINT` and `AWS_USE_DUALSTACK_ENDPOINT` environment variables now only respect `true` or `false` values, aligning with the AWS SDK for Go. This replaces the previous behavior which treated any non-empty value as `true`. ([#37601](https://github.com/hashicorp/terraform/issues/37601))
+
+
+## Previous Releases
+
+For information on prior major and minor releases, refer to their changelogs:
+
+- [v1.14](https://github.com/hashicorp/terraform/blob/v1.14/CHANGELOG.md)
+- [v1.13](https://github.com/hashicorp/terraform/blob/v1.13/CHANGELOG.md)
+- [v1.12](https://github.com/hashicorp/terraform/blob/v1.12/CHANGELOG.md)
+- [v1.11](https://github.com/hashicorp/terraform/blob/v1.11/CHANGELOG.md)
+- [v1.10](https://github.com/hashicorp/terraform/blob/v1.10/CHANGELOG.md)
+- [v1.9](https://github.com/hashicorp/terraform/blob/v1.9/CHANGELOG.md)
+- [v1.8](https://github.com/hashicorp/terraform/blob/v1.8/CHANGELOG.md)
+- [v1.7](https://github.com/hashicorp/terraform/blob/v1.7/CHANGELOG.md)
+- [v1.6](https://github.com/hashicorp/terraform/blob/v1.6/CHANGELOG.md)
+- [v1.5](https://github.com/hashicorp/terraform/blob/v1.5/CHANGELOG.md)
+- [v1.4](https://github.com/hashicorp/terraform/blob/v1.4/CHANGELOG.md)
+- [v1.3](https://github.com/hashicorp/terraform/blob/v1.3/CHANGELOG.md)
+- [v1.2](https://github.com/hashicorp/terraform/blob/v1.2/CHANGELOG.md)
+- [v1.1](https://github.com/hashicorp/terraform/blob/v1.1/CHANGELOG.md)
+- [v1.0](https://github.com/hashicorp/terraform/blob/v1.0/CHANGELOG.md)
+- [v0.15](https://github.com/hashicorp/terraform/blob/v0.15/CHANGELOG.md)
+- [v0.14](https://github.com/hashicorp/terraform/blob/v0.14/CHANGELOG.md)
+- [v0.13](https://github.com/hashicorp/terraform/blob/v0.13/CHANGELOG.md)
+- [v0.12](https://github.com/hashicorp/terraform/blob/v0.12/CHANGELOG.md)
+- [v0.11 and earlier](https://github.com/hashicorp/terraform/blob/v0.11/CHANGELOG.md)
