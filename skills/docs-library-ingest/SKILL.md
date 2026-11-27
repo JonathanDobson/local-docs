@@ -137,6 +137,8 @@ repository usually reveals where the docs are written.
    Stripe's spec (`github.com/stripe/openapi`) has no tags and puts request
    parameters in an inline form body, so use the Stripe-specific converter:
    → `python3 tools/stripe_openapi2md.py api/spec3.json api/` (one page per resource)
+   The Chrome DevTools Protocol publishes protocol JSON instead of OpenAPI:
+   → `python3 tools/cdp2md.py api/browser_protocol.json api/browser-protocol` (one page per domain)
    Use the overrides when the spec carries build-time placeholders instead of a
    real version or path; never edit the spec file itself. If the spec comes in
    both Swagger 2 and OpenAPI 3, keep both and generate pages from OpenAPI 3.

@@ -207,6 +207,14 @@ stored as JSON. The AWS SDKs are generated from these models, and so is the API
 reference text on docs.aws.amazon.com. `tools/smithy2md.py` turns one into one
 Markdown page per operation; used for the AWS SDK for JavaScript v3 docs set.
 
+**Protocol JSON (Chrome DevTools Protocol)** — The machine-readable definition of
+the Chrome DevTools Protocol (CDP), the message format tools such as Puppeteer use
+to remote-control Chrome. It lists every *domain* (a group of related features,
+e.g. `Network`), and in each one the commands you can send, the events Chrome sends
+back, and the data types both use. Published as `browser_protocol.json` and
+`js_protocol.json`; `tools/cdp2md.py` turns each into one Markdown page per domain.
+Used for the `chrome-devtools-protocol` docs set.
+
 **Form-encoded body** — A way of sending request parameters as `key=value` pairs
 joined by `&`, the same format an HTML form submits
 (`application/x-www-form-urlencoded`). Stripe's API takes its parameters this way,
