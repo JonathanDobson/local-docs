@@ -137,6 +137,14 @@ repository usually reveals where the docs are written.
    Stripe's spec (`github.com/stripe/openapi`) has no tags and puts request
    parameters in an inline form body, so use the Stripe-specific converter:
    → `python3 tools/stripe_openapi2md.py api/spec3.json api/` (one page per resource)
+   The Chrome DevTools Protocol is defined in PDL files at each Chromium release
+   tag (`third_party/blink/public/devtools_protocol/browser_protocol.pdl`, which
+   includes `domains/*.pdl`, plus V8's `include/js_protocol.pdl` at the
+   `v8_revision` in that tag's `DEPS`):
+   → `python3 tools/pdl2md.py api/cdp api/pdl/browser_protocol.pdl api/pdl/js_protocol.pdl`
+   Chrome's command-line switches have no official reference; generate one from
+   the Chromium `*_switches.{h,cc}` source files at the release tag:
+   → `python3 tools/switches2md.py <chromium-checkout> content/01-command-line-switches <file>...`
    Use the overrides when the spec carries build-time placeholders instead of a
    real version or path; never edit the spec file itself. If the spec comes in
    both Swagger 2 and OpenAPI 3, keep both and generate pages from OpenAPI 3.

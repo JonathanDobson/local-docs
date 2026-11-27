@@ -207,6 +207,29 @@ stored as JSON. The AWS SDKs are generated from these models, and so is the API
 reference text on docs.aws.amazon.com. `tools/smithy2md.py` turns one into one
 Markdown page per operation; used for the AWS SDK for JavaScript v3 docs set.
 
+**Chrome DevTools Protocol (CDP)** — The message format programs use to
+remote-control Chrome or Chromium: start the browser with
+`--remote-debugging-port`, connect over a WebSocket, then send commands such as
+`Page.navigate` and receive events such as `Page.loadEventFired`. Puppeteer,
+ChromeDriver and Chrome DevTools itself are built on it. It is grouped into
+*domains* (a set of related features, e.g. `Network`), each with commands,
+events and data types. The `chrome` docs set has one page per domain in
+[libraries/chrome/158/api/cdp](libraries/chrome/158/api/cdp/README.md).
+
+**PDL (protocol definition language)** — The indented plain-text format the
+Chromium and V8 source code use to define the Chrome DevTools Protocol: every
+domain, command, event, parameter and type, with a comment describing each.
+It is the source the protocol's JSON and documentation are generated from.
+Stored unchanged in `api/pdl/` of the `chrome` docs set; `tools/pdl2md.py`
+turns it into one Markdown page per domain.
+
+**Command-line switch (Chrome)** — An option given when starting the browser,
+written `--name` or `--name=value` (e.g. `--headless`, `--user-data-dir=/tmp/p`).
+Chrome publishes no official list of them; each is defined in the Chromium
+source as a named constant with a comment, in files ending `_switches.h` or
+`_switches.cc`. `tools/switches2md.py` turns those files into reference pages;
+see [ALL-SWITCHES.md](libraries/chrome/158/content/01-command-line-switches/ALL-SWITCHES.md).
+
 **Form-encoded body** — A way of sending request parameters as `key=value` pairs
 joined by `&`, the same format an HTML form submits
 (`application/x-www-form-urlencoded`). Stripe's API takes its parameters this way,
