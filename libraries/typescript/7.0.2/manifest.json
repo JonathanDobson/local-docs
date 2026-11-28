@@ -1,0 +1,74 @@
+{
+  "name": "TypeScript",
+  "slug": "typescript",
+  "version": "7.0.2",
+  "requested": "the latest TypeScript docs",
+  "kind": "language",
+  "summary": "TypeScript language and compiler, latest stable 7.0.2 (the native Go port, 'Corsa'): full handbook (everyday types, narrowing, generics, type manipulation, modules theory/reference, declaration files, JSDoc/JavaScript), TSConfig reference (every compiler option), tsc CLI options, tsconfig JSON schema, release notes 1.1–6.0 (6.0 breaking changes and deprecations removed in 7.0), and the 7.0 CHANGES.md of intentional differences from 6.0.",
+  "homepage": "https://www.typescriptlang.org/",
+  "docs_url": "https://www.typescriptlang.org/docs/",
+  "license": "CC-BY-4.0 (website docs), Apache-2.0 (typescript-go CHANGES.md and README)",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/microsoft/TypeScript-Website.git",
+      "ref": "v2",
+      "path": "packages/documentation/copy/en",
+      "commit": "bfee36f956e2f15cc48b5a10516dfd857a1607ba",
+      "dest": "content/handbook",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/microsoft/TypeScript-Website.git",
+      "ref": "v2",
+      "path": "packages/documentation/copy/en/release-notes",
+      "commit": "bfee36f956e2f15cc48b5a10516dfd857a1607ba",
+      "dest": "content/release-notes",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/microsoft/TypeScript-Website.git",
+      "ref": "v2",
+      "path": "packages/tsconfig-reference/copy/en",
+      "commit": "bfee36f956e2f15cc48b5a10516dfd857a1607ba",
+      "dest": "content/tsconfig-reference",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "type": "other",
+      "url": "https://github.com/microsoft/TypeScript-Website/blob/v2/packages/tsconfig-reference/scripts/schema/result/schema.json",
+      "ref": "v2",
+      "commit": "bfee36f956e2f15cc48b5a10516dfd857a1607ba",
+      "dest": "api/tsconfig.schema.json",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/microsoft/typescript-go.git",
+      "ref": "typescript/v7.0.2",
+      "path": "CHANGES.md, README.md",
+      "commit": "2bd066d87f5bafd315be9f40889d0a60b9e58e0b",
+      "dest": "content/typescript-7",
+      "license": "Apache-2.0"
+    }
+  ],
+  "ingested_at": "2026-11-28",
+  "coverage": "Every English page of the typescriptlang.org documentation (handbook v2 and v1, get-started, declaration files, JavaScript/JSDoc, modules reference, project configuration, reference, tutorials), the TSConfig reference copy for all 136 options plus its sections and categories, the generated tsc CLI options page, the tsconfig.json JSON schema, release notes for TypeScript 1.1 to 6.0, and the TypeScript 7 CHANGES.md and README at the 7.0.2 tag.",
+  "gaps": [
+    "typescriptlang.org is not versioned and has not yet been updated for 7.0: at the ingested commit the site builds against typescript 6.0.3 (root package.json), and it has no 'TypeScript 7.0' release-notes page. The handbook and TSConfig reference therefore describe 6.0; 7.0 is meant to type-check identically to 6.0, and its differences are in content/typescript-7/CHANGES.md.",
+    "The TypeScript 7.0 announcement post (devblogs.microsoft.com/typescript/announcing-typescript-7-0/), which is the official 7.0 release notes, is not included: the blog is Microsoft copyright with no open licence, so it can't go in this public library.",
+    "content/typescript-7/README.md at the 7.0.2 tag still shows the pre-release 'What Works So Far?' status table (e.g. API 'not ready', watch mode 'prototype'); it was not updated for the stable release.",
+    "Some TSConfig option pages predate the 6.0 default changes (e.g. options/rootDir.md still gives the pre-6.0 default; release-notes/TypeScript 6.0.md says rootDir now defaults to '.'). Trust the 6.0 release notes on defaults.",
+    "The TSConfig reference's per-option default/allowed-values/'Released' tables and the category grouping are generated at site build time from compiler data that isn't committed; they are not in these pages. Defaults and types for CLI flags are in handbook/project-config/Compiler Options.md and api/tsconfig.schema.json.",
+    "The Playground, the 'TypeScript in 5 minutes' marketing pages, the community pages and non-English translations are not included. Mermaid diagram SVGs in modules-reference/diagrams were removed (their Mermaid sources remain)."
+  ],
+  "notes": "Latest stable resolved from npm dist-tags (latest 7.0.2; 7.1.0-beta skipped) and GitHub releases of microsoft/TypeScript (v7.0.2, 2026-08-20, which points at typescript-go's typescript/v7.0.2 tag). The docs site source repo is microsoft/TypeScript-Website, default branch v2, not tagged per release, so it was taken at the latest commit. microsoft/typescript-go is now archived (merged into microsoft/TypeScript), but its tag is the source of the 7.0.2 release. handbook/release-notes was moved to content/release-notes so search classifies it. Code samples use the site's twoslash comments (// @errors:, // ^?) which the site renders as inline compiler output; left as-is. No build-time placeholders found.",
+  "stats": {
+    "files": 302,
+    "doc_files": 301,
+    "spec_files": 1,
+    "megabytes": 2.17
+  }
+}
