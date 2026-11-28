@@ -14,6 +14,7 @@ removes the options 6.0 deprecated. These docs come from three places:
   intentional differences between 7.0 and 6.0
 
 The 7.0 announcement blog post is **not** included because of its licence (see `manifest.json` gaps).
+On machines that have it, the **local-only** set `libraries/typescript-blog/7.0/` (listed in `INDEX.local.md`, not in git) holds that post and the other official TypeScript 7 posts. Search it with `-l typescript-blog` for questions about adopting 7.0: the missing compiler API, running 7.0 alongside 6.0 for typescript-eslint, `--checkers`/`--builders`, editor support, and Vue, Svelte and Angular.
 
 ## Layout
 
