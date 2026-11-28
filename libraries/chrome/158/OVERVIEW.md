@@ -18,6 +18,8 @@ pages are the source comments, often terse, and many switches are
 developer- or test-only. Puppeteer is a separate set
 (`libraries/puppeteer/25.19.0`, which drives Chrome 158.0.8127.88).
 Playwright is `libraries/playwright/1.65.0`.
+The latest development (tip-of-tree, Chrome 160) protocol and the protocol
+changelog are in `libraries/chrome-devtools-protocol/0.0.1756183`.
 
 ## Layout
 

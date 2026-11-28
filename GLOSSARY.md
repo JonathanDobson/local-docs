@@ -213,13 +213,25 @@ remote-control Chrome or Chromium: start the browser with
 `Page.navigate` and receive events such as `Page.loadEventFired`. Puppeteer,
 ChromeDriver and Chrome DevTools itself are built on it. It is grouped into
 *domains* (a set of related features, e.g. `Network`), each with commands,
-events and data types. The `chrome` docs set has one page per domain in
-[libraries/chrome/158/api/cdp](libraries/chrome/158/api/cdp/README.md).
+events and data types. Two docs sets cover it: `chrome` has the protocol of one
+Chrome release, one page per domain in
+[libraries/chrome/158/api/cdp](libraries/chrome/158/api/cdp/README.md);
+`chrome-devtools-protocol` has the latest development ("tip-of-tree") protocol
+and its changelog.
+
+**Protocol JSON (Chrome DevTools Protocol)** — The machine-readable definition of
+the Chrome DevTools Protocol (CDP), the message format tools such as Puppeteer use
+to remote-control Chrome. It lists every *domain* (a group of related features,
+e.g. `Network`), and in each one the commands you can send, the events Chrome sends
+back, and the data types both use. Published as `browser_protocol.json` and
+`js_protocol.json`; `tools/cdp2md.py` turns each into one Markdown page per domain.
+Used for the `chrome-devtools-protocol` docs set.
 
 **PDL (protocol definition language)** — The indented plain-text format the
 Chromium and V8 source code use to define the Chrome DevTools Protocol: every
 domain, command, event, parameter and type, with a comment describing each.
-It is the source the protocol's JSON and documentation are generated from.
+It is the source the protocol JSON and documentation are generated from, and,
+unlike the JSON, it is available at every Chrome release tag.
 Stored unchanged in `api/pdl/` of the `chrome` docs set; `tools/pdl2md.py`
 turns it into one Markdown page per domain.
 

@@ -137,9 +137,13 @@ repository usually reveals where the docs are written.
    Stripe's spec (`github.com/stripe/openapi`) has no tags and puts request
    parameters in an inline form body, so use the Stripe-specific converter:
    → `python3 tools/stripe_openapi2md.py api/spec3.json api/` (one page per resource)
-   The Chrome DevTools Protocol is defined in PDL files at each Chromium release
-   tag (`third_party/blink/public/devtools_protocol/browser_protocol.pdl`, which
-   includes `domains/*.pdl`, plus V8's `include/js_protocol.pdl` at the
+   The Chrome DevTools Protocol publishes protocol JSON instead of OpenAPI
+   (`github.com/ChromeDevTools/devtools-protocol`, tagged per Chromium revision,
+   not per Chrome release):
+   → `python3 tools/cdp2md.py api/browser_protocol.json api/browser-protocol` (one page per domain)
+   For the protocol of one exact Chrome release, use the PDL files at that
+   Chromium release tag instead (`third_party/blink/public/devtools_protocol/browser_protocol.pdl`,
+   which includes `domains/*.pdl`, plus V8's `include/js_protocol.pdl` at the
    `v8_revision` in that tag's `DEPS`):
    → `python3 tools/pdl2md.py api/cdp api/pdl/browser_protocol.pdl api/pdl/js_protocol.pdl`
    Chrome's command-line switches have no official reference; generate one from
