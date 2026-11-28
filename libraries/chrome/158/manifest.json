@@ -1,0 +1,122 @@
+{
+  "name": "Google Chrome / Chromium: command line, headless, DevTools Protocol and automation",
+  "slug": "chrome",
+  "version": "158",
+  "release": "158.0.8127.88",
+  "requested": "google-chrome CLI docs plus docs on controlling Chrome from the command line and/or an API (latest stable; no version given)",
+  "kind": "application",
+  "summary": "Controlling Chrome 158 (158.0.8127.88) from outside: every command-line switch (--remote-debugging-port, --headless, --user-data-dir, --dump-dom, --screenshot, --print-to-pdf, --no-sandbox, --proxy-server, ...) generated from the Chromium source; the full Chrome DevTools Protocol (CDP) reference for this release (59 domains, 677 commands, 232 events) and its HTTP /json endpoints; Headless mode and chrome-headless-shell; ChromeDriver (WebDriver, capabilities, goog:chromeOptions); Chrome for Testing and its JSON download API; WebDriver BiDi; Chrome DevTools for agents (chrome-devtools-mcp 1.14.0 MCP server and chrome-devtools CLI).",
+  "homepage": "https://www.chromium.org",
+  "docs_url": "https://developer.chrome.com/docs/automation-and-testing",
+  "license": "BSD-3-Clause (Chromium source, switch comments, PDL protocol definitions); CC-BY-4.0 text with Apache-2.0 code samples (developer.chrome.com); Apache-2.0 (chrome-devtools-mcp, chrome-for-testing, debugger-protocol-viewer)",
+  "companions": {
+    "v8": "15.8.62.31",
+    "chrome-devtools-mcp": "1.14.0"
+  },
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://chromium.googlesource.com/chromium/src.git",
+      "ref": "158.0.8127.88",
+      "commit": "0cefb18236a23db1ebb6b2bc040fbbaf8cbe759e",
+      "path": "**/*switches*.{h,cc} (desktop), headless/, chrome/test/chromedriver/, docs/chrome_for_testing/, docs/gpu/*headless*, docs/user_data_dir.md, third_party/blink/public/devtools_protocol/",
+      "dest": "content/02-chromium-source-docs",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": "other",
+      "url": "https://chromium.googlesource.com/chromium/src.git",
+      "ref": "158.0.8127.88",
+      "commit": "0cefb18236a23db1ebb6b2bc040fbbaf8cbe759e",
+      "path": "97 *_switches.h/.cc files, rendered by tools/switches2md.py",
+      "dest": "content/01-command-line-switches",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": "other",
+      "url": "https://chromium.googlesource.com/chromium/src.git",
+      "ref": "158.0.8127.88",
+      "commit": "0cefb18236a23db1ebb6b2bc040fbbaf8cbe759e",
+      "path": "third_party/blink/public/devtools_protocol/browser_protocol.pdl + domains/*.pdl (unchanged)",
+      "dest": "api/pdl",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": "other",
+      "url": "https://chromium.googlesource.com/v8/v8.git",
+      "ref": "b601a2347f005e8bfadd32f285df97ffba5cf1bd (v8_revision in Chromium 158.0.8127.88 DEPS; V8 15.8.62.31)",
+      "commit": "b601a2347f005e8bfadd32f285df97ffba5cf1bd",
+      "path": "include/js_protocol.pdl (unchanged; Runtime, Debugger, Profiler, HeapProfiler, Console, Schema domains)",
+      "dest": "api/pdl/js_protocol.pdl",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": "other",
+      "url": "https://chromium.googlesource.com/chromium/src.git",
+      "ref": "158.0.8127.88",
+      "path": "CDP reference pages generated from api/pdl by tools/pdl2md.py",
+      "dest": "api/cdp",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/ChromeDevTools/debugger-protocol-viewer.git",
+      "ref": "master",
+      "commit": "2ff9083d8368c547cbfd95dc2f2f163fca086749",
+      "path": "src/index.html (converted to Markdown)",
+      "dest": "content/00-devtools-protocol-overview.md",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "llms-txt",
+      "url": "https://developer.chrome.com/docs/llms.txt",
+      "path": "55 pages as <page>.md.txt: docs/automation-and-testing/*, docs/chromedriver/*, docs/chromium/headless, docs/devtools/agents/*, docs/devtools/protocol-monitor, docs/devtools/remote-debugging*, docs/puppeteer, and blog posts on headless, Chrome for Testing, remote-debugging-port, WebDriver BiDi, chrome-devtools-mcp",
+      "dest": "content/developer.chrome.com",
+      "license": "CC-BY-4.0 (text), Apache-2.0 (code samples)"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/GoogleChromeLabs/chrome-for-testing.git",
+      "ref": "main",
+      "commit": "4474bc23ebfcfa8fdc03eccadaabed0cc42ebdaa",
+      "path": "README.md",
+      "dest": "content/03-chrome-for-testing",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/ChromeDevTools/chrome-devtools-mcp.git",
+      "ref": "chrome-devtools-mcp-v1.14.0",
+      "commit": "8dd516e3de26ee159a51dae2f3ed58db92ced72a",
+      "path": "docs/, README.md, CHANGELOG.md",
+      "dest": "content/04-chrome-devtools-mcp",
+      "license": "Apache-2.0"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://developer.chrome.com/blog/chrome-158-beta",
+      "dest": "content/release-notes",
+      "license": "CC-BY-4.0"
+    }
+  ],
+  "ingested_at": "2026-11-28",
+  "coverage": "All 1,258 command-line switches defined in 97 desktop *_switches files at the 158.0.8127.88 tag, one page per source file plus an A-Z index (01-command-line-switches/ALL-SWITCHES.md); the complete CDP for this exact release (browser_protocol.pdl + V8 js_protocol.pdl: 59 domains, 677 commands, 232 events, all types) as raw PDL and one Markdown page per domain; the CDP site's overview (HTTP endpoints /json/version, /json/list, /json/new, /json/protocol, WebSocket URLs, --remote-allow-origins); Chromium's headless, ChromeDriver, Chrome for Testing, user-data-dir and headless-GPU docs at the tag; the developer.chrome.com automation-and-testing, Headless, ChromeDriver and DevTools-for-agents docs; Chrome for Testing JSON endpoints; chrome-devtools-mcp 1.14.0 docs (tool reference, CLI, configuration).",
+  "gaps": [
+    "Chrome has no official, human-written list of command-line switches. 01-command-line-switches is generated from the source comments, so many switches are terse or undocumented, and many are developer/test-only or have no effect in branded Google Chrome. Switches defined outside *_switches.{h,cc} files, and base::Feature names used with --enable-features/--disable-features, are not listed.",
+    "Switch files for ChromeOS/Ash, Android WebView, Chromecast, Fuchsia and iOS, and test-only switch files, were left out (desktop Chrome only).",
+    "developer.chrome.com, the chrome-for-testing README and the debugger-protocol-viewer overview are not versioned: they are snapshots taken 2026-11-28 (the CfT README and viewer at main/master, not a tag). ChromeDriver/CfT pages describe the current state, which may mention later milestones.",
+    "The CDP reference pages are generated from PDL by tools/pdl2md.py, not taken from chromedevtools.github.io (whose per-domain pages are built in the browser). The devtools-protocol npm/JSON package has no build exactly at this release (nearest r1724436 before the branch point), so the PDL from the release tag was used instead.",
+    "No official 'Chrome 158 release notes' page exists on developer.chrome.com at ingest time; only the 'Chrome 158 beta' post is included. Chrome Status release notes (chromestatus.com) and 'What's new in DevTools' posts are not included.",
+    "Chrome Enterprise policies (chrome://policy, the policy list) are not included.",
+    "The W3C WebDriver and WebDriver BiDi specifications themselves are not included; only Chrome's blog posts about BiDi. Puppeteer is a separate set (libraries/puppeteer/25.19.0, which pins Chrome 158.0.8127.88); Playwright is libraries/playwright/1.65.0.",
+    "Images, author bios and site components on developer.chrome.com pages are left as-is or missing; chrome-devtools-mcp's skills/ folder (agent skill files) was not included.",
+    "This machine has Google Chrome 151.0.7922.71 installed (google-chrome --version), older than this set; switch and CDP details may differ for 151."
+  ],
+  "notes": "Version: Chrome for Testing last-known-good Stable on 2026-11-28 was 158.0.8127.88 (Chromium revision/branch position 1727472); chrome/VERSION at the tag confirms 158.0.8127.88. Switches: modern Chromium declares many switches as inline constexpr in headers rather than .cc files, so both were parsed and merged by constant name, keeping comments from either side and the #if condition (platform/buildflag) each switch sits under; a switch defined in several components appears once per file. CDP: browser_protocol.pdl includes domains/*.pdl; js_protocol.pdl was taken from V8 at the v8_revision pinned by the tag's DEPS. Pages fetched from developer.chrome.com as .md.txt had no title, so a '# Title' (from llms.txt) and 'Source: <url>' line were prepended; otherwise unchanged. third_party/blink/public/devtools_protocol/AGENTS.md (Chromium contributor guidance for AI coding agents) was deliberately not copied. No build-time placeholders found. Tools added for this set: tools/switches2md.py, tools/pdl2md.py.",
+  "stats": {
+    "files": 299,
+    "doc_files": 244,
+    "spec_files": 0,
+    "megabytes": 2.85
+  }
+}

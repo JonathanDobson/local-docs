@@ -11,6 +11,9 @@ It holds the raw protocol JSON, one generated page per domain (the content the
 [protocol viewer](https://chromedevtools.github.io/devtools-protocol/) shows), the
 viewer's landing page and the protocol changelog.
 
+For the protocol exactly as shipped in **Chrome 158 Stable** (plus Chrome's
+command-line switches, headless mode and ChromeDriver), see `libraries/chrome/158/`.
+
 ## Layout
 
 | Path | What it holds |

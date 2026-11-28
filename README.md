@@ -61,7 +61,9 @@ The ingest skill tries sources in this order and records which it used:
 5. For APIs, also the OpenAPI/Swagger spec, plus generated per-endpoint pages (`tools/openapi2md.py`);
    for AWS services, the Smithy API model, with one page per operation (`tools/smithy2md.py`);
    for Stripe, its OpenAPI spec, with one page per resource (`tools/stripe_openapi2md.py`);
-   for the Chrome DevTools Protocol, its protocol JSON, with one page per domain (`tools/cdp2md.py`)
+   for the Chrome DevTools Protocol, its protocol JSON, with one page per domain (`tools/cdp2md.py`),
+   or, for one exact Chrome release, its PDL definition files (`tools/pdl2md.py`);
+   for Chrome's command-line switches, the Chromium `*_switches` source files (`tools/switches2md.py`)
 
 `tools/finalize.py` validates each set, writes its `TOC.md`, and rebuilds `INDEX.md`.
 
