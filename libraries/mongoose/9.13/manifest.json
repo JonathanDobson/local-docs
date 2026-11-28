@@ -1,0 +1,60 @@
+{
+  "name": "Mongoose",
+  "slug": "mongoose",
+  "version": "9.13",
+  "release": "9.13.1",
+  "requested": "mongoosejs (latest)",
+  "kind": "library",
+  "summary": "Mongoose 9.13 (latest 9.13.1), the MongoDB object modelling library for Node.js: every guide (schemas, SchemaTypes, connections, models, documents, subdocuments, queries, validation, middleware, populate, discriminators, transactions, TypeScript), tutorials, migration guides 5→9, the full API reference (Model, Query, Schema, Document, Connection, Aggregate, SchemaTypes…), TypeScript declaration files and the changelog.",
+  "homepage": "https://mongoosejs.com/",
+  "docs_url": "https://mongoosejs.com/docs/",
+  "license": "MIT",
+  "sources": [
+    {
+      "type": "llms-txt",
+      "url": "https://mongoosejs.com/llms.txt",
+      "ref": "site build v9.13.0",
+      "dest": "content/docs",
+      "license": "MIT"
+    },
+    {
+      "type": "llms-txt",
+      "url": "https://mongoosejs.com/llms.txt",
+      "ref": "site build v9.13.0",
+      "dest": "content/api-reference",
+      "license": "MIT"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/Automattic/mongoose.git",
+      "ref": "9.13.1",
+      "path": "types",
+      "commit": "e34f6001eee6054e2c15e25b2e60b22264f29f2a",
+      "dest": "api/types",
+      "license": "MIT"
+    },
+    {
+      "type": "release-notes",
+      "url": "https://github.com/Automattic/mongoose/blob/9.13.1/CHANGELOG.md",
+      "ref": "9.13.1",
+      "commit": "e34f6001eee6054e2c15e25b2e60b22264f29f2a",
+      "dest": "content/release-notes/CHANGELOG.md",
+      "license": "MIT"
+    }
+  ],
+  "ingested_at": "2026-11-28",
+  "coverage": "All 99 pages that mongoosejs.com lists in llms.txt, fetched as the site's own Markdown: 63 guide, tutorial, TypeScript and migration pages and 36 API reference pages. Also the TypeScript declarations (types/*.d.ts) and CHANGELOG.md, both from the 9.13.1 tag.",
+  "gaps": [
+    "The site was still built from 9.13.0 when fetched (its version picker shows v9.13.0), so guide and API pages describe 9.13.0. The 9.13.1 changes are bug fixes, a types tweak and a bulkWrite()/bulkSave() doc correction (incorrect w and j defaults removed); see the top of content/release-notes/CHANGELOG.md.",
+    "docs/version-support.md lists stale 'Latest release' numbers (9.9.3, 8.24.4); that is upstream text.",
+    "docs/api.md (the API index page) isn't in llms.txt and wasn't fetched; content/api-reference/ has every class page it links to.",
+    "Docs for older lines (mongoosejs.com/docs/8.x/ etc.), the blog, sponsor and job pages, images and the site search index are not included."
+  ],
+  "notes": "Latest stable resolved from npm dist-tags (latest 9.13.1; next 9.0.0-rc1 is older) and GitHub releases. The site's Markdown pages were preferred over the git source because the API reference only exists as JSDoc in lib/ (generated into pages at site build time) and the repo's guide pages carry acquit build markers on code blocks; the site's Markdown has both rendered. docs/api/*.md was moved to content/api-reference/ so search classifies it as API reference. 87 code fences in content/docs keep an 'acquit:<test name>' info string (e.g. ```javascript acquit:Validation$); every one has its code inside, so the label only names the test the example came from. No other placeholders found (checked for [require:, {{ and <%).",
+  "stats": {
+    "files": 130,
+    "doc_files": 100,
+    "spec_files": 0,
+    "megabytes": 2.22
+  }
+}
